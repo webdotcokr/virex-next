@@ -97,7 +97,7 @@ export function buildWhereClause(conditions: FilterCondition[]): FilterQuery {
   }
   
   const whereClauses: string[] = [];
-  const parameters: Record<string, any> = {};
+  const parameters: Record<string, unknown> = {};
   let paramIndex = 1;
   
   conditions.forEach(condition => {

@@ -18,6 +18,9 @@ export interface Product {
   image_url?: string
   datasheet_url?: string
   parameters?: ProductParameter[]
+  // Join fields from related tables
+  maker_name?: string
+  category_name?: string
 }
 
 export interface Category {
@@ -95,7 +98,7 @@ export interface FilterCondition {
 // 필터링 쿼리 빌더 결과
 export interface FilterQuery {
   conditions: FilterCondition[]
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
   sql: string
 }
 

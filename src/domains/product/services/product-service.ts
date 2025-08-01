@@ -418,14 +418,14 @@ export class ProductService {
             partnumber: p.part_number,
             name: p.part_number,
             series: seriesData?.series_name || '',
-            image_url: p.product_media?.find((m: any) => m.is_primary)?.url || '',
+            image_url: p.product_media?.find((m: Record<string, unknown>) => m.is_primary)?.url || '',
             category: p.categories
           }))
         }
       }
 
       // Get primary image
-      const primaryImage = product.product_media?.find((m: any) => m.is_primary)
+      const primaryImage = product.product_media?.find((m: Record<string, unknown>) => m.is_primary)
       const imageUrl = primaryImage?.url || ''
 
       return {

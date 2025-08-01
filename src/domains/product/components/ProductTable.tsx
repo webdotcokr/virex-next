@@ -53,28 +53,10 @@ export default function ProductTable({
 
   // Calculate pagination with memoization
   const { totalPages, displayData } = useMemo(() => {
-    // 테스트용 Mock 데이터 (실제 데이터가 없을 때) - 페이지네이션 테스트를 위해 25개 생성
-    const mockData = products.length === 0 ? Array.from({ length: 25 }, (_, index) => ({
-      id: `mock-${index + 1}`,
-      part_number: `ARL-${(index + 1).toString().padStart(2, '0')}CH-12D`,
-      series: `ARL-${(index + 1).toString().padStart(2, '0')}CH-12D`,
-      maker_name: 'ARES CIS',
-      specifications: {
-        scan_width: `${400 + (index * 10)}`,
-        dpi: '2400',
-        resolution: '10.57 μm',
-        line_rate: '2.2',
-        speed: '23',
-        wd: '14.2 mm',
-        no_of_pixels: `${18832 + (index * 1000)}`
-      }
-    } as Product)) : []
-    
-    const dataToUse = products.length > 0 ? products : mockData
-    const totalPages = Math.ceil(dataToUse.length / itemsPerPage)
+    const totalPages = Math.ceil(products.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const endIndex = startIndex + itemsPerPage
-    const paginatedProducts = dataToUse.slice(startIndex, endIndex)
+    const paginatedProducts = products.slice(startIndex, endIndex)
     
     return { totalPages, displayData: paginatedProducts }
   }, [products, currentPage, itemsPerPage])
