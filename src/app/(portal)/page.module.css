@@ -1,0 +1,756 @@
+/* Main Page CSS Module - Converted from ASP index.css */
+
+/* Hidden heading for screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Main Hero Section */
+.pageContentContainer {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.4)), 
+              url('/img/bg-main.jpg') center/cover no-repeat;
+  min-height: 23rem;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.pageContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 60px;
+}
+
+.leftAligned {
+  flex: 1;
+  max-width: 500px;
+}
+
+.pageTitle {
+  font-size: 2.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: white;
+  line-height: 1.2;
+  margin: 1.5rem 0;
+}
+
+.pageDescription {
+  font-size: 1.25rem;
+  color: #ffffffb3;
+  line-height: 1.6;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  letter-spacing: -0.03em;
+}
+
+/* Main Slider */
+.mainSliderWrapper {
+  flex: 1;
+  position: relative;
+  max-width: 600px;
+}
+
+.mainSliderController {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  color: white;
+}
+
+.arrowButtons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.leftArrow,
+.rightArrow {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.leftArrow:hover,
+.rightArrow:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.leftArrow:disabled,
+.rightArrow:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.separator {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.slideNo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 600;
+}
+
+.txtSlide1,
+.txtSlide2 {
+  font-size: 1.2rem;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.txtSlide1.active,
+.txtSlide2.active {
+  opacity: 1;
+}
+
+.horizontalLine {
+  width: 60px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  transition: background 0.3s ease;
+}
+
+.horizontalLine.active {
+  background: white;
+}
+
+.mainSliderContents {
+  position: relative;
+  height: 400px;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.sliderImage {
+  position: absolute;
+  top: 0;
+  right: 0;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.sliderImage.active {
+  opacity: 1;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.mainContents {
+  padding: 80px 0;
+}
+
+/* Main Products Section */
+.mainProductsWrapper {
+  margin-bottom: 100px;
+}
+
+.mainProductsWrapper h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 3rem;
+  color: #1a1a1a;
+}
+
+.mainProductsItems {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 0.625rem;
+}
+
+.mainProductItem {
+  width: 100%;
+  height: 280px;
+  background-color: #F1F3F5;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  display: block;
+}
+
+.mainProductItem:hover {
+  background-color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.mainProductText {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+}
+
+.mainProductTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin-right: 0.5rem;
+  letter-spacing: -0.035em;
+  margin: 0;
+}
+
+.mainProductArrow {
+  font-size: 1.125rem;
+  color: #666;
+  transition: transform 0.25s ease;
+}
+
+.mainProductItem:hover .mainProductArrow {
+  transform: translateX(4px);
+  color: #333;
+}
+
+.mainProductImage {
+  position: absolute;
+  left: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.mainProductImage img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transition: transform 0.25s ease;
+}
+
+.mainProductItem:hover .mainProductImage img {
+  transform: scale(1.05);
+}
+
+/* New Products Section */
+.newProductsWrapper {
+  margin-top: 3.75rem;
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  margin-bottom: 100px;
+}
+
+.newProductsWrapper h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 3rem;
+  color: #1a1a1a;
+}
+
+.newProductsItemsContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0.625rem auto 0;
+  overflow: hidden;
+  position: relative;
+  padding: 0 60px;
+}
+
+.newProductsItems {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  transition: transform 0.5s ease;
+  width: max-content;
+  gap: 1rem;
+}
+
+.newProductItemLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  flex: 0 0 21.3125rem;
+}
+
+.newProductItem {
+  background-color: #F1F3F5;
+  border-radius: 0.5rem;
+  width: 21.3125rem;
+  height: 15.625rem;
+  padding-bottom: 0.3rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.newProductItem:hover {
+  filter: brightness(1.03);
+  cursor: pointer;
+}
+
+.newProductItem img {
+  max-height: 9rem;
+  width: auto;
+  position: absolute;
+  top: 1.3rem;
+  right: 1.8rem;
+  display: block;
+  transition: all 0.3s ease;
+  mix-blend-mode: multiply;
+  object-fit: contain;
+}
+
+.newProductItem:hover img {
+  transform: scale(1.05);
+}
+
+.newProductItemTitleOuterWrapper {
+  margin: 9.3125rem 1.8125rem 1.5625rem 1.8125rem;
+}
+
+.newProductItemTitleInnerWrapper {
+  cursor: pointer;
+  margin-bottom: 0.625rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.newProductItemTitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-right: 0.375rem;
+  margin: 0;
+}
+
+.newProductItemArrow {
+  width: 1.125rem;
+  height: 1.125rem;
+  background: url(/img/icon-right-arrow-black.svg) no-repeat center center;
+  background-size: cover;
+}
+
+.newProductItemDesc {
+  color: #666;
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.btnNewProductPrev,
+.btnNewProductNext {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  z-index: 100;
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.btnNewProductPrev {
+  left: 0.5rem;
+}
+
+.btnNewProductNext {
+  right: 0.5rem;
+}
+
+.btnNewProductPrev:hover,
+.btnNewProductNext:hover {
+  background: #007bff;
+  border-color: #007bff;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.btnNewProductPrev:hover img,
+.btnNewProductNext:hover img {
+  filter: brightness(0) invert(1);
+}
+
+.btnNewProductPrev:disabled,
+.btnNewProductNext:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnNewProductPrev img,
+.btnNewProductNext img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sliderDotController {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  margin-top: 1.5rem;
+}
+
+.sliderDot {
+  width: 8px;
+  height: 8px;
+  background: #DEE2E6;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.sliderDot.active {
+  width: 22px;
+  background: #566BDA;
+}
+
+/* Tech Info Section */
+.techInfoOuterWrapper {
+  width: 100%;
+  margin-top: 3.75rem;
+  background: #f8f9fa url(/img/bg-tech-info.svg) no-repeat bottom right;
+  background-size: auto;
+  padding: 80px 0;
+}
+
+.techInfoInnerWrapper {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  position: relative;
+  padding: 0 20px;
+}
+
+.techInfoInnerWrapper h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 3rem;
+  color: #1a1a1a;
+  width: 100%;
+}
+
+.techInfoItems {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 1.25rem;
+  gap: 20px;
+}
+
+.techInfoItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 271px;
+  height: 377px;
+  position: relative;
+  transition: all 0.3s ease;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+}
+
+.techInfoItem:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.techInfoItem img {
+  width: 100%;
+  height: 16.875rem;
+  object-fit: cover;
+  cursor: pointer;
+  order: 1;
+}
+
+.techInfoItemTitle {
+  margin-top: 0.875rem;
+  text-align: center;
+  font-weight: 500;
+  font-size: 1.125rem;
+  color: #1a1a1a;
+  cursor: pointer;
+  order: 2;
+  padding: 0 20px;
+}
+
+.techInfoReadMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.techInfoItem:hover .techInfoReadMore {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.readMoreText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #007bff;
+  margin-right: 0.625rem;
+}
+
+.readMoreArrow {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.readMoreArrow img {
+  width: 2.3125rem;
+  height: auto;
+  transition: transform 0.3s ease;
+}
+
+.techInfoReadMore:hover .readMoreArrow img {
+  transform: translateX(4px);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .mainProductsItems {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .pageContent {
+    flex-direction: column;
+    gap: 40px;
+    text-align: center;
+  }
+  
+  .pageTitle {
+    font-size: 2.5rem;
+  }
+  
+  .mainSliderWrapper {
+    max-width: 500px;
+  }
+  
+  .btnNewProductPrev,
+  .btnNewProductNext {
+    display: none;
+  }
+  
+  .newProductsItemsContainer {
+    padding: 0;
+  }
+
+  .techInfoItems {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageTitle {
+    font-size: 2rem;
+  }
+  
+  .pageDescription {
+    font-size: 1.1rem;
+  }
+
+  .mainProductsWrapper h2,
+  .newProductsWrapper h2,
+  .techInfoInnerWrapper h2 {
+    font-size: 1.75rem;
+  }
+
+  .mainProductsItems {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .mainProductItem {
+    height: 210px;
+  }
+
+  .mainProductTitle {
+    font-size: 1.15rem;
+  }
+  
+  .newProductItemLink {
+    flex: 0 0 100%;
+  }
+  
+  .techInfoItems {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    justify-content: space-between;
+  }
+
+  .techInfoItem {
+    width: 100%;
+    height: auto;
+  }
+
+  .techInfoItem img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+  }
+
+  .techInfoItemTitle {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    line-height: 1.3;
+    min-height: 2.6rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .techInfoReadMore {
+    position: absolute;
+    bottom: 0.2rem;
+    right: 0.2rem;
+    transform: scale(0.6);
+    transform-origin: bottom right;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .techInfoReadMore .readMoreText {
+    font-size: 0.625rem;
+  }
+
+  .techInfoReadMore .readMoreArrow img {
+    width: 1.5rem;
+    height: auto;
+  }
+
+  .techInfoItem:hover .techInfoReadMore,
+  .techInfoItem:active .techInfoReadMore {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .mainSliderContents {
+    height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container,
+  .techInfoInnerWrapper {
+    padding: 0 16px;
+  }
+  
+  .pageContent {
+    padding: 0 16px;
+  }
+  
+  .pageTitle {
+    font-size: 1.75rem;
+  }
+  
+  .mainProductsWrapper h2,
+  .newProductsWrapper h2,
+  .techInfoInnerWrapper h2 {
+    font-size: 2rem;
+  }
+  
+  .mainContents {
+    padding: 60px 0;
+  }
+  
+  .techInfoOuterWrapper {
+    padding: 60px 0;
+  }
+
+  .newProductsWrapper {
+    margin-top: 60px;
+    margin-bottom: 60px;
+  }
+}
+
+@media (max-width: 380px) {
+  .techInfoInnerWrapper {
+    padding: 3rem 16px;
+  }
+  
+  .techInfoItems {
+    gap: 0.5rem;
+  }
+  
+  .techInfoItemTitle {
+    font-size: 0.75rem;
+  }
+  
+  .techInfoReadMore {
+    transform: scale(0.5);
+  }
+  
+  .techInfoReadMore .readMoreText {
+    font-size: 0.5rem;
+  }
+  
+  .techInfoReadMore .readMoreArrow img {
+    width: 1.25rem;
+  }
+}
