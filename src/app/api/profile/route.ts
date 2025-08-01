@@ -1,10 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js'
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    // Authorization 헤더에서 토큰 추출
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.substring(7)
+    
+    // Supabase 클라이언트 생성
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      }
+    )
     
     // 현재 로그인한 사용자 확인
     const { data: { user }, error: authError } = await supabase.auth.getUser()

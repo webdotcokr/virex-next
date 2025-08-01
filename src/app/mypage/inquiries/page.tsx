@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 
 interface Inquiry {
   id: string
@@ -62,7 +63,20 @@ export default function InquiriesPage() {
 
       try {
         setLoading(true)
-        const response = await fetch('/api/mypage/inquiries')
+        
+        // 현재 세션에서 토큰 가져오기
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) {
+          setError('인증이 만료되었습니다. 다시 로그인해주세요.')
+          setLoading(false)
+          return
+        }
+
+        const response = await fetch('/api/mypage/inquiries', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        })
         
         if (response.ok) {
           const data = await response.json()

@@ -100,9 +100,9 @@ export default function MyPageLayout({ children }: MyPageLayoutProps) {
                   {profile?.name || '사용자'}
                 </div>
                 <div style={{ fontSize: '12px', color: '#666' }}>
-                  {profile?.member_level === 1 ? '일반회원' : 
-                   profile?.member_level === 2 ? '우수회원' : 
-                   profile?.member_level === 3 ? 'VIP회원' : '일반회원'}
+                  {!profile?.member_level ? '일반회원' :
+                   profile?.member_level === 1 ? '일반회원' : 
+                   profile?.member_level === 9 ? '관리자' : '일반회원'}
                 </div>
               </div>
             </div>

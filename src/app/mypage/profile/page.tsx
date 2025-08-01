@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 import FormField from '@/components/auth/FormField'
 import PhoneField from '@/components/auth/PhoneField'
 import CheckboxField from '@/components/auth/CheckboxField'
@@ -111,10 +112,19 @@ export default function ProfileEditPage() {
     }
 
     try {
+      // 현재 세션에서 토큰 가져오기
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setGeneralError('인증이 만료되었습니다. 다시 로그인해주세요.')
+        setLoading(false)
+        return
+      }
+
       const response = await fetch('/api/profile', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify(formData),
       })

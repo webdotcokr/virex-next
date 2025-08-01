@@ -73,9 +73,9 @@ export default function MyPageDashboard() {
             <div style={{ marginBottom: '12px' }}>
               <span style={{ fontSize: '14px', color: '#666', display: 'block', marginBottom: '4px' }}>회원등급</span>
               <span style={{ fontSize: '16px', color: '#333' }}>
-                {profile.member_level === 1 ? '일반회원' : 
-                 profile.member_level === 2 ? '우수회원' : 
-                 profile.member_level === 3 ? 'VIP회원' : '일반회원'}
+                {!profile.member_level ? '일반회원' :
+                 profile.member_level === 1 ? '일반회원' : 
+                 profile.member_level === 9 ? '관리자' : '일반회원'}
               </span>
             </div>
           </div>

@@ -67,21 +67,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // 기본 회원 등급 조회
-  const getDefaultMemberLevel = async (): Promise<number> => {
-    const { data, error } = await supabase
-      .from('tbl_member_level')
-      .select('m_lev')
-      .eq('m_default', true)
-      .single()
-    
-    if (error || !data) {
-      console.warn('기본 회원 등급을 찾을 수 없습니다. 기본값 1을 사용합니다.')
-      return 1
-    }
-    
-    return data.m_lev
-  }
 
   // 회원 프로필 조회
   const fetchProfile = async (userId: string): Promise<MemberProfile | null> => {
@@ -93,6 +78,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) {
+        // PGRST116은 "행을 찾을 수 없음" 오류
+        if (error.code === 'PGRST116') {
+          console.log('프로필이 존재하지 않습니다. 기본 프로필을 생성합니다.')
+          return await createDefaultProfile(userId)
+        }
         console.error('프로필 조회 오류:', error)
         return null
       }
@@ -100,6 +90,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return data
     } catch (error) {
       console.error('프로필 조회 중 예외 발생:', error)
+      return null
+    }
+  }
+
+  // 기본 프로필 생성 (기존 사용자용)
+  const createDefaultProfile = async (userId: string): Promise<MemberProfile | null> => {
+    try {
+      console.log('기본 프로필 생성 시작:', userId)
+      
+      // 현재 사용자 정보 가져오기
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || user.id !== userId) {
+        console.error('사용자 정보 불일치 또는 없음')
+        return null
+      }
+
+      // 사용자 메타데이터에서 이름 추출
+      const userName = user.user_metadata?.name || user.email?.split('@')[0] || '사용자'
+
+      // 프로필 생성 (member_level은 NULL로 설정)
+      const { data, error } = await supabase
+        .from('member_profiles')
+        .insert({
+          id: userId,
+          name: userName,
+          agree_terms: true, // 기존 사용자는 약관에 동의했다고 가정
+          agree_privacy: true,  
+          agree_marketing: false, // 마케팅은 기본적으로 false
+          member_level: null, // tbl_member_level 데이터가 없으므로 NULL
+          status: 0
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('기본 프로필 생성 오류:', error)
+        console.error('Error details:', JSON.stringify(error, null, 2))
+        return null
+      }
+
+      console.log('기본 프로필 생성 완료:', data)
+      return data
+    } catch (error) {
+      console.error('기본 프로필 생성 중 예외 발생:', error)
       return null
     }
   }
@@ -197,10 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: '회원가입에 실패했습니다.' }
       }
 
-      // 2. 기본 회원 등급 조회
-      const defaultLevel = await getDefaultMemberLevel()
-
-      // 3. member_profiles 테이블에 프로필 정보 저장
+      // 2. member_profiles 테이블에 프로필 정보 저장 (기본회원 = 1)
       const { error: profileError } = await supabase
         .from('member_profiles')
         .insert({
@@ -220,7 +251,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           agree_terms: signUpData.agree_terms,
           agree_privacy: signUpData.agree_privacy,
           agree_marketing: signUpData.agree_marketing,
-          member_level: defaultLevel,
+          member_level: null, // tbl_member_level 데이터가 없으므로 NULL
           status: 0 // 정상 상태
         })
 
