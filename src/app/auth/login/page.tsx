@@ -5,13 +5,20 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import PageContentContainer from '@/components/PageContentContainer'
+import FormField from '@/components/auth/FormField'
+
+interface FormErrors {
+  email?: string
+  password?: string
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState<FormErrors>({})
+  const [generalError, setGeneralError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn, user } = useAuth()
+  const { signIn, user, profile } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
@@ -22,13 +29,48 @@ export default function LoginPage() {
     }
   }, [user, router, redirectTo])
 
+  // 입력 값 변경 핸들러
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value)
+    if (errors.email) {
+      setErrors(prev => ({ ...prev, email: '' }))
+    }
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value)
+    if (errors.password) {
+      setErrors(prev => ({ ...prev, password: '' }))
+    }
+  }
+
+  // 폼 유효성 검사
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {}
+
+    if (!email) {
+      newErrors.email = '이메일을 입력해주세요.'
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        newErrors.email = '올바른 이메일 형식을 입력해주세요.'
+      }
+    }
+
+    if (!password) {
+      newErrors.password = '비밀번호를 입력해주세요.'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
+    setGeneralError('')
 
-    if (!email || !password) {
-      setError('이메일과 비밀번호를 입력해주세요.')
+    if (!validateForm()) {
       setLoading(false)
       return
     }
@@ -36,9 +78,10 @@ export default function LoginPage() {
     const { error } = await signIn(email, password)
     
     if (error) {
-      setError(error)
+      setGeneralError(error)
       setLoading(false)
     } else {
+      // 로그인 성공 시 프로필 정보도 함께 로드됨 (AuthContext에서 처리)
       router.push(redirectTo)
     }
   }
@@ -56,58 +99,52 @@ export default function LoginPage() {
       titleEn="Member Login"
       titleKo="회원 로그인"
     >
-      <div className="auth-container" style={{ maxWidth: '400px', margin: '0 auto', padding: '40px 20px' }}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {error && (
+      <div className="auth-container" style={{ maxWidth: '500px', margin: '0 auto', padding: '40px 20px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
+            회원 로그인
+          </h2>
+          <p style={{ fontSize: '16px', color: '#666', margin: '0' }}>
+            등록된 이메일과 비밀번호로 로그인하세요
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {generalError && (
             <div style={{ 
               color: '#dc3545', 
               backgroundColor: '#f8d7da', 
               border: '1px solid #f5c6cb',
-              padding: '12px',
-              borderRadius: '4px',
-              fontSize: '14px'
+              padding: '15px',
+              borderRadius: '6px',
+              fontSize: '14px',
+              textAlign: 'center'
             }}>
-              {error}
+              {generalError}
             </div>
           )}
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label htmlFor="email" style={{ fontSize: '14px', fontWeight: '500' }}>
-              이메일
-            </label>
-            <input
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <FormField
               id="email"
+              label="이메일"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="이메일을 입력하세요"
-              style={{
-                padding: '12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '16px'
-              }}
+              onChange={handleEmailChange}
+              placeholder="example@email.com"
               required
+              error={errors.email}
             />
-          </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label htmlFor="password" style={{ fontSize: '14px', fontWeight: '500' }}>
-              비밀번호
-            </label>
-            <input
+            <FormField
               id="password"
+              label="비밀번호"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange}
               placeholder="비밀번호를 입력하세요"
-              style={{
-                padding: '12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '16px'
-              }}
               required
+              error={errors.password}
             />
           </div>
 
@@ -115,31 +152,64 @@ export default function LoginPage() {
             type="submit"
             disabled={loading}
             style={{
-              padding: '12px 24px',
+              padding: '16px 24px',
               backgroundColor: loading ? '#ccc' : '#007bff',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
-              fontSize: '16px',
+              borderRadius: '6px',
+              fontSize: '18px',
+              fontWeight: '600',
               cursor: loading ? 'not-allowed' : 'pointer',
-              marginTop: '10px'
+              marginTop: '10px',
+              transition: 'background-color 0.2s'
             }}
           >
             {loading ? '로그인 중...' : '로그인'}
           </button>
 
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <span style={{ fontSize: '14px', color: '#666' }}>
-              계정이 없으신가요?{' '}
+          {/* 추가 링크들 */}
+          <div style={{ textAlign: 'center', marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #dee2e6' }}>
+            <div style={{ marginBottom: '12px' }}>
+              <span style={{ fontSize: '14px', color: '#666' }}>
+                계정이 없으신가요?{' '}
+                <Link 
+                  href={`/auth/signup${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
+                  style={{ color: '#007bff', textDecoration: 'none', fontWeight: '500' }}
+                >
+                  회원가입
+                </Link>
+              </span>
+            </div>
+            
+            {/* 향후 비밀번호 찾기 기능을 위한 예비 공간 */}
+            {/* <div>
               <Link 
-                href={`/auth/signup${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
-                style={{ color: '#007bff', textDecoration: 'none' }}
+                href="/auth/forgot-password"
+                style={{ fontSize: '14px', color: '#6c757d', textDecoration: 'none' }}
               >
-                회원가입
+                비밀번호를 잊으셨나요?
               </Link>
-            </span>
+            </div> */}
           </div>
         </form>
+
+        {/* 로그인 후 프로필 미리보기 (디버깅용 - 운영환경에서는 제거) */}
+        {user && profile && (
+          <div style={{ 
+            marginTop: '30px', 
+            padding: '15px', 
+            backgroundColor: '#f8f9fa', 
+            borderRadius: '6px',
+            fontSize: '14px',
+            color: '#6c757d'
+          }}>
+            <strong>로그인 정보:</strong><br />
+            이메일: {user.email}<br />
+            이름: {profile.name}<br />
+            {profile.company && <>회사: {profile.company}<br /></>}
+            가입일: {new Date(profile.created_at).toLocaleDateString()}
+          </div>
+        )}
       </div>
     </PageContentContainer>
   )

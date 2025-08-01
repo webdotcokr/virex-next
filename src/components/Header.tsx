@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Menu configuration for better maintainability
 const MENU_CONFIG = {
@@ -71,9 +72,10 @@ export default function Header() {
   const [hoveredMenuItem, setHoveredMenuItem] = useState<string | null>(null)
   const [menuPositions, setMenuPositions] = useState<Record<string, number>>({})
   
-  // TODO: Replace with actual session management
-  const [isLoggedIn] = useState(false)
-  const [userName] = useState('')
+  // Use AuthContext for actual session management
+  const { user, profile, signOut } = useAuth()
+  const isLoggedIn = !!user
+  const userName = profile?.name || user?.email?.split('@')[0] || ''
 
   const handleMobileMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -88,10 +90,9 @@ export default function Header() {
     setActiveSubmenu(activeSubmenu === menu ? null : menu)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (confirm('로그아웃하시겠습니까?')) {
-      // TODO: Implement logout logic
-      console.log('Logout clicked')
+      await signOut()
     }
   }
 
@@ -297,11 +298,11 @@ export default function Header() {
 
           <div id="profile">
             {isLoggedIn ? (
-              <Link href="/member/profile" title="회원정보수정">
+              <Link href="/mypage" title="마이페이지">
                 <img src="/icon/icon-profile.svg" alt="Profile" />
               </Link>
             ) : (
-              <Link href="/member/login" title="로그인">
+              <Link href="/auth/login" title="로그인">
                 <img src="/icon/icon-profile.svg" alt="Login" />
               </Link>
             )}
@@ -382,11 +383,11 @@ export default function Header() {
           <div className="user-info">
             <div className="user-icon">
               {isLoggedIn ? (
-                <Link href="/member/profile">
+                <Link href="/mypage">
                   <img src="/icon/icon-profile.svg" alt="User" />
                 </Link>
               ) : (
-                <Link href="/member/login">
+                <Link href="/auth/login">
                   <img src="/icon/icon-profile.svg" alt="User" />
                 </Link>
               )}

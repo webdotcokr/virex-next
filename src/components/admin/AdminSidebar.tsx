@@ -17,6 +17,12 @@ import {
   Inventory as ProductsIcon,
   ViewList as AllProductsIcon,
   Email as EmailIcon,
+  Download as DownloadIcon,
+  ContactSupport as InquiriesIcon,
+  Business as MakersIcon,
+  Article as NewsIcon,
+  NewReleases as NewProductsIcon,
+  Category as SeriesIcon,
 } from '@mui/icons-material';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -33,7 +39,13 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin' },
   { text: 'Products', icon: <ProductsIcon />, path: '/admin/products' },
   { text: 'All Products', icon: <AllProductsIcon />, path: '/admin/products/all' },
+  { text: 'Series', icon: <SeriesIcon />, path: '/admin/series' },
   { text: 'Newsletter', icon: <EmailIcon />, path: '/admin/newsletter' },
+  { text: 'Downloads', icon: <DownloadIcon />, path: '/admin/downloads' },
+  { text: 'Inquiries', icon: <InquiriesIcon />, path: '/admin/inquiries' },
+  { text: 'Makers', icon: <MakersIcon />, path: '/admin/makers' },
+  { text: 'News & Media', icon: <NewsIcon />, path: '/admin/news' },
+  { text: 'New Products', icon: <NewProductsIcon />, path: '/admin/new-products' },
 ];
 
 export default function AdminSidebar({ open, onClose, isMobile }: AdminSidebarProps) {

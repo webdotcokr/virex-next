@@ -251,10 +251,6 @@
   transition: transform 0.2s ease;
 }
 
-.filterTitleBtnRefresh:hover {
-  transform: rotate(180deg);
-}
-
 /* Filter Container */
 .filterContainer {
   width: 100%;

@@ -237,6 +237,62 @@ export type Database = {
           created_at?: string
         }
       }
+      inquiries: {
+        Row: {
+          id: string
+          product_id: string | null
+          name: string
+          email: string
+          company: string | null
+          phone: string | null
+          message: string | null
+          status: string | null
+          created_at: string | null
+          inquiry_type: string | null
+          job_title: string | null
+          contact_path: string | null
+          product_name: string | null
+          attachment_url: string | null
+          description: string | null
+          privacy_agreed: boolean | null
+        }
+        Insert: {
+          id?: string
+          product_id?: string | null
+          name: string
+          email: string
+          company?: string | null
+          phone?: string | null
+          message?: string | null
+          status?: string | null
+          created_at?: string | null
+          inquiry_type?: string | null
+          job_title?: string | null
+          contact_path?: string | null
+          product_name?: string | null
+          attachment_url?: string | null
+          description?: string | null
+          privacy_agreed?: boolean | null
+        }
+        Update: {
+          id?: string
+          product_id?: string | null
+          name?: string
+          email?: string
+          company?: string | null
+          phone?: string | null
+          message?: string | null
+          status?: string | null
+          created_at?: string | null
+          inquiry_type?: string | null
+          job_title?: string | null
+          contact_path?: string | null
+          product_name?: string | null
+          attachment_url?: string | null
+          description?: string | null
+          privacy_agreed?: boolean | null
+        }
+      }
     }
     Views: {
       [_ in never]: never

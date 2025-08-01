@@ -1,26 +1,26 @@
-import Head from 'next/head';
 import Image from 'next/image';
-import Link from 'next/link';
 import PageContentContainer from '@/components/PageContentContainer';
+import KakaoMap from '@/components/KakaoMap';
 import styles from '../company.module.css'; // CSS 모듈 import
+import { Metadata } from 'next';
 
-const CompanyPage = () => {
-  const DIR_ROOT = ''; // public 폴더 기준 경로
+export const metadata: Metadata = {
+  title: '오시는 길 | 바이렉스',
+  description: '바이렉스 본사 위치 및 연락처 안내',
+};
+
+const LocationPage = () => {
   const page_title_en = "Leading your vision to success";
   const page_title_ko = "바이렉스";
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
-    { label: "바이렉스", href: "/sub/company/" },
+    { label: "바이렉스", href: "/company" },
     { label: "오시는 길" }
   ];
 
   return (
-    <div>
-      <Head>
-        <title>{`회사소개 | 바이렉스`}</title>
-      </Head>
-
+    <>
       <PageContentContainer
         backgroundClass="company-header-background"
         backgroundImage="/img/bg-company.webp"
@@ -28,21 +28,73 @@ const CompanyPage = () => {
         titleEn={page_title_en}
         titleKo={page_title_ko}
       >
-      <div className={`${styles['container']} ${styles['flex-col']}`} data-page="global-partners">
-      <div className="content-title">
-        <h2>파트너사</h2>
-      </div>
-      <div className={`${styles['content-subtitle']} mt-14px`}>
-        글로벌 선두 파트너사들과 함께
-        <br />
-        귀사에 최적의 솔루션을 제안합니다.
-      </div>
-      <div className={`${styles['content-body']} mt-30px`}>
-      </div>
-      </div>
+        <div className={`${styles['container']} ${styles['flex-col']}`} data-page="location">
+          <div className="content-title mt-16px">
+            <h2>오시는 길</h2>
+          </div>
+          <div className={`${styles['location-container']} mt-37px`}>
+            {/* 카카오맵 - 지도퍼가기 */}
+            <KakaoMap timestamp="1746683321855" mapKey="2nxer" />
+
+            <div className={`${styles['location-details']} mt-40px`}>
+              <div className={styles['left-items']}>
+                <div className={styles['location-detail-item']}>
+                  <div className={styles['location-detail-item-icon']}>
+                    <Image src="/img/icon-address.svg" alt="Address" width={16} height={16} />
+                  </div>
+                  <div className={styles['location-detail-item-type']}>
+                    <h3>Address</h3>
+                  </div>
+                  <div className={styles['location-detail-item-value']}>
+                    <h4>
+                      경기도 안양시 동안구 흥안대로 427번길38, 1214호<br/>
+                      (관양동, 인덕원성지스타위드)
+                    </h4>
+                  </div>
+                </div>
+              </div>
+              <div className={`${styles['right-items']} flex-row`}>
+                <div className={styles['location-detail-item']}>
+                  <div className={styles['location-detail-item-icon']}>
+                    <Image src="/img/icon-phone.svg" alt="Tel" width={16} height={16} />
+                  </div>
+                  <div className={styles['location-detail-item-type']}>
+                    <h3>Tel</h3>
+                  </div>
+                  <div className={styles['location-detail-item-value']}>
+                    <h4>070-5055-3330</h4>
+                  </div>
+                </div>
+                <div className={styles['location-detail-item']}>
+                  <div className={styles['location-detail-item-icon']}>
+                    <Image src="/img/icon-fax.svg" alt="Fax" width={16} height={16} />
+                  </div>
+                  <div className={styles['location-detail-item-type']}>
+                    <h3>Fax</h3>
+                  </div>
+                  <div className={styles['location-detail-item-value']}>
+                    <h4>070-8233-5445</h4>
+                  </div>
+                </div>
+                <div className={styles['location-detail-item']}>
+                  <div className={styles['location-detail-item-icon']}>
+                    <Image src="/img/icon-email-gray.svg" alt="E-mail" width={16} height={16} />
+                  </div>
+                  <div className={styles['location-detail-item-type']}>
+                    <h3>E-mail</h3>
+                  </div>
+                  <div className={styles['location-detail-item-value']}>
+                    <h4>ts@virex.co.kr</h4>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </PageContentContainer>
-    </div>
+
+    </>
   );
 };
 
-export default CompanyPage;
+export default LocationPage;

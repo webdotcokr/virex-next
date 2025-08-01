@@ -15,8 +15,11 @@ import {
   Category as CategoryIcon,
   Business as MakerIcon,
 } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 
 export default function ProductsPage() {
+  const router = useRouter();
+
   return (
     <Box>
       {/* Page Title */}
@@ -43,6 +46,7 @@ export default function ProductsPage() {
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               },
             }}
+            onClick={() => router.push('/admin/products/all')}
           >
             <CardContent sx={{ textAlign: 'center' }}>
               <InventoryIcon sx={{ fontSize: 48, color: '#566BDA', mb: 2 }} />
@@ -50,7 +54,7 @@ export default function ProductsPage() {
                 All Products
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                View and manage all products in your catalog
+                View and manage all products in your catalog with advanced filtering
               </Typography>
               <Button variant="contained" fullWidth>
                 View Products
@@ -71,6 +75,7 @@ export default function ProductsPage() {
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               },
             }}
+            onClick={() => router.push('/admin/products/categories')}
           >
             <CardContent sx={{ textAlign: 'center' }}>
               <CategoryIcon sx={{ fontSize: 48, color: '#10B981', mb: 2 }} />
@@ -78,7 +83,7 @@ export default function ProductsPage() {
                 Categories
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Organize products into categories
+                Organize products into hierarchical categories
               </Typography>
               <Button variant="contained" fullWidth>
                 Manage Categories
@@ -99,6 +104,7 @@ export default function ProductsPage() {
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               },
             }}
+            onClick={() => router.push('/admin/makers')}
           >
             <CardContent sx={{ textAlign: 'center' }}>
               <MakerIcon sx={{ fontSize: 48, color: '#F59E0B', mb: 2 }} />
@@ -106,7 +112,7 @@ export default function ProductsPage() {
                 Makers
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Manage product manufacturers
+                Manage product manufacturers and suppliers
               </Typography>
               <Button variant="contained" fullWidth>
                 View Makers
@@ -120,19 +126,30 @@ export default function ProductsPage() {
       <Card sx={{ p: 3, borderRadius: '12px', textAlign: 'center' }}>
         <AddIcon sx={{ fontSize: 64, color: '#566BDA', mb: 2 }} />
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-          Add New Product
+          Quick Actions
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Create a new product entry in your catalog with specifications and media.
+          Add new products or bulk import from CSV files with intelligent synchronization.
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          size="large"
-          sx={{ minWidth: 200 }}
-        >
-          Add Product
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            size="large"
+            onClick={() => router.push('/admin/products/all')}
+            sx={{ minWidth: 160 }}
+          >
+            Add Product
+          </Button>
+          <Button
+            variant="outlined"
+            size="large"
+            disabled
+            sx={{ minWidth: 160 }}
+          >
+            CSV Import (Soon)
+          </Button>
+        </Box>
       </Card>
     </Box>
   );

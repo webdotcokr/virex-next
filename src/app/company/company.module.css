@@ -319,8 +319,10 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    cursor: pointer;
     transition: all 0.2s ease-in-out;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
   }
   
   .global-partners-list .global-partners-item:hover {
@@ -389,6 +391,7 @@
     padding-left: 0.5rem;
     line-height: 1.375rem;
   }
+
   
   .global-partners-item-content .global-partners-item-desc {
     margin-top: 0.5rem;
@@ -448,6 +451,9 @@
       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
       position: relative;
       border: 1px solid #E9ECEF;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
     }
   
     .global-partners-item .global-partners-item-image {
@@ -482,6 +488,7 @@
       padding-left: 0.5rem;
       line-height: 1rem;
     }
+
   
     .global-partners-item-content .global-partners-item-products {
       font-size: 0.75rem;
@@ -502,6 +509,17 @@
   }
   
   /** Company > Location */
+  .container {
+    max-width: var(--mw-container);
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .flex-col {
+    display: flex;
+    flex-direction: column;
+  }
+
   .container[data-page="location"] .location-container {
     display: flex;
     flex-direction: column;
