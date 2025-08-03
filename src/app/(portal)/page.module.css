@@ -15,9 +15,8 @@
 
 /* Main Hero Section */
 .pageContentContainer {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.4)), 
-              url('/img/bg-main.jpg') center/cover no-repeat;
-  min-height: 23rem;
+  background: url('/img/bg-main.jpg') center/cover no-repeat;
+  min-height: 30rem;
   display: flex;
   align-items: center;
   position: relative;
@@ -36,20 +35,19 @@
 
 .leftAligned {
   flex: 1;
-  max-width: 500px;
 }
 
 .pageTitle {
   font-size: 2.75rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   color: white;
   line-height: 1.2;
-  margin: 1.5rem 0;
+  margin: 2.5rem 0 1.5rem 0;
 }
 
 .pageDescription {
-  font-size: 1.25rem;
+  font-size: 1rem;
   color: #ffffffb3;
   line-height: 1.6;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
@@ -59,39 +57,39 @@
 /* Main Slider */
 .mainSliderWrapper {
   flex: 1;
-  position: relative;
-  max-width: 600px;
+  position: relative; 
 }
 
 .mainSliderController {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  margin-bottom: 2rem;
+  gap: 2rem;
+  margin-top: 3.125rem;
   color: white;
 }
 
 .arrowButtons {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0;
 }
 
 .leftArrow,
 .rightArrow {
-  background: rgba(255, 255, 255, 0.2);
+  background: none;
   border: none;
-  padding: 12px;
-  border-radius: 50%;
+  padding: 0;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .leftArrow:hover,
 .rightArrow:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
+  opacity: 0.7;
 }
 
 .leftArrow:disabled,
@@ -100,10 +98,18 @@
   cursor: not-allowed;
 }
 
+.leftArrow img,
+.rightArrow img {
+  width: 40px;
+  height: 40px;
+  display: block;
+}
+
 .separator {
   width: 1px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.5);
+  height: 16px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 0 14px;
 }
 
 .slideNo {
@@ -115,7 +121,7 @@
 
 .txtSlide1,
 .txtSlide2 {
-  font-size: 1.2rem;
+  font-size: 15px;
   opacity: 0.6;
   transition: opacity 0.3s ease;
 }
@@ -141,13 +147,10 @@
   height: 400px;
   overflow: hidden;
   border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .sliderImage {
   position: absolute;
-  top: 0;
-  right: 0;
   object-fit: cover;
   opacity: 0;
   transition: opacity 0.5s ease;
@@ -607,13 +610,14 @@
   }
   
   .pageDescription {
-    font-size: 1.1rem;
+    font-size: .8rem;
   }
 
   .mainProductsWrapper h2,
   .newProductsWrapper h2,
   .techInfoInnerWrapper h2 {
-    font-size: 1.75rem;
+    font-size: 28px;
+    margin-bottom: 1rem;
   }
 
   .mainProductsItems {
@@ -712,7 +716,7 @@
   .mainProductsWrapper h2,
   .newProductsWrapper h2,
   .techInfoInnerWrapper h2 {
-    font-size: 2rem;
+    font-size: 28px;
   }
   
   .mainContents {
@@ -726,6 +730,15 @@
   .newProductsWrapper {
     margin-top: 60px;
     margin-bottom: 60px;
+  }
+  .leftArrow img, .rightArrow img {
+  width: 30px;
+  height: 30px;
+  display: block;
+  }
+  .mainSliderController {
+  justify-content: space-between;
+  gap: 2rem;
   }
 }
 
