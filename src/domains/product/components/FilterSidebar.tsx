@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useFilterStore } from '@/lib/store'
 import { buildFilterUrl } from '@/lib/utils'
-import { getConfigByCategoryName, categoryConfigs } from '../config/category-filters'
-import { buildFilterQuery } from '../services/filter-query-builder'
+import { supabase } from '@/lib/supabase'
 import { X } from 'lucide-react'
 import styles from '../../../app/(portal)/products/products.module.css'
-import type { Category, AdvancedFilterOption } from '../types'
+import type { Category } from '../types'
+import type { Database } from '@/lib/supabase'
+
+type FilterConfig = Database['public']['Tables']['filter_configs']['Row']
+type FilterOption = Database['public']['Tables']['filter_options']['Row']
 
 interface FilterSidebarProps {
   categories: Category[]
@@ -30,9 +33,10 @@ export default function FilterSidebar({
   const router = useRouter()
   const searchParams = useSearchParams()
   const { filters, updateFilter, resetFilters } = useFilterStore()
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['categories', 'search', 'parameters'])
-  )
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
+  const [dynamicFilters, setDynamicFilters] = useState<FilterConfig[]>([])
+  const [filterOptions, setFilterOptions] = useState<Record<number, FilterOption[]>>({})
+  const [loading, setLoading] = useState(true)
 
   // Close sidebar on escape key
   useEffect(() => {
@@ -52,6 +56,60 @@ export default function FilterSidebar({
       document.body.style.overflow = 'unset'
     }
   }, [isMobile, isOpen, onClose])
+
+  // Load dynamic filters based on selected category
+  useEffect(() => {
+    loadFilters()
+  }, [filters.categories])
+
+  const loadFilters = async () => {
+    try {
+      // Get current category ID
+      const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
+      
+      // Load filter configs for the category
+      const { data: filterConfigs, error: configError } = await supabase
+        .from('filter_configs')
+        .select('*')
+        .eq('category_id', parseInt(currentCategoryId))
+        .eq('is_active', true)
+        .order('sort_order')
+
+      if (configError) throw configError
+      setDynamicFilters(filterConfigs || [])
+
+      // Load options for checkbox filters
+      const optionsMap: Record<number, FilterOption[]> = {}
+      for (const config of filterConfigs || []) {
+        if (config.filter_type === 'checkbox') {
+          const { data: options, error: optionsError } = await supabase
+            .from('filter_options')
+            .select('*')
+            .eq('filter_config_id', config.id)
+            .eq('is_active', true)
+            .order('sort_order')
+
+          if (!optionsError && options) {
+            optionsMap[config.id] = options
+          }
+        }
+      }
+      setFilterOptions(optionsMap)
+
+      // Set default expanded sections
+      const defaultExpanded = new Set<string>()
+      filterConfigs?.forEach(config => {
+        if (config.default_expanded) {
+          defaultExpanded.add(config.filter_name)
+        }
+      })
+      setExpandedSections(defaultExpanded)
+    } catch (error) {
+      console.error('Error loading filters:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections)
@@ -140,46 +198,42 @@ export default function FilterSidebar({
     filters.series ||
     Object.keys(filters.parameters).length > 0
 
-  // 선택된 카테고리에 맞는 필터 설정 가져오기
-  const categoryConfig = getConfigByCategoryName(selectedCategory) || categoryConfigs['cis']
-  const availableFilters = categoryConfig?.filters || []
-
   const sidebarClasses = `${styles.filterSidebar} ${
     isMobile && isOpen ? styles.active : ''
   }`
 
   // 슬라이더 렌더링 함수
-  const renderSlider = (filter: any, paramKey: string) => {
-    const currentValue = filters.parameters[paramKey] as [number, number] || filter.range || [0, 100]
+  const renderSlider = (filter: FilterConfig, sliderConfig?: any) => {
+    const currentValue = filters.parameters[filter.filter_name] as [number, number] || [0, 100]
     const [min, max] = currentValue
     
     return (
       <div className={styles.sliderContainer}>
         <div className={styles.sliderValues}>
-          <span>{min}{filter.unit || ''}</span>
-          <span>{max}{filter.unit || ''}</span>
+          <span>{min}{filter.filter_unit || ''}</span>
+          <span>{max}{filter.filter_unit || ''}</span>
         </div>
         <input
           type="range"
-          min={filter.range?.[0] || 0}
-          max={filter.range?.[1] || 100}
-          step={filter.tick || 1}
+          min={sliderConfig?.min_value || 0}
+          max={sliderConfig?.max_value || 100}
+          step={sliderConfig?.step_value || 1}
           value={min}
           onChange={(e) => {
             const newMin = parseFloat(e.target.value)
-            handleParameterChange(paramKey, [newMin, max])
+            handleParameterChange(filter.filter_name, [newMin, max])
           }}
           className={styles.slider}
         />
         <input
           type="range"
-          min={filter.range?.[0] || 0}
-          max={filter.range?.[1] || 100}
-          step={filter.tick || 1}
+          min={sliderConfig?.min_value || 0}
+          max={sliderConfig?.max_value || 100}
+          step={sliderConfig?.step_value || 1}
           value={max}
           onChange={(e) => {
             const newMax = parseFloat(e.target.value)
-            handleParameterChange(paramKey, [min, newMax])
+            handleParameterChange(filter.filter_name, [min, newMax])
           }}
           className={styles.slider}
         />
@@ -188,8 +242,8 @@ export default function FilterSidebar({
   }
 
   // 체크박스 렌더링 함수
-  const renderCheckboxes = (filter: any, paramKey: string) => {
-    const paramValue = filters.parameters[paramKey]
+  const renderCheckboxes = (filter: FilterConfig, options: FilterOption[]) => {
+    const paramValue = filters.parameters[filter.filter_name]
     const currentValues = Array.isArray(paramValue) 
       ? paramValue.map(String)
       : (paramValue !== null && paramValue !== undefined) 
@@ -198,22 +252,19 @@ export default function FilterSidebar({
     
     return (
       <div className={styles.checkboxGroup}>
-        {filter.options?.map((option: AdvancedFilterOption) => {
-          const isChecked = currentValues.includes(String(option.value))
+        {options.map((option) => {
+          const isChecked = currentValues.includes(option.option_value)
           
           return (
-            <label key={String(option.value)} className={styles.checkboxLabel}>
+            <label key={option.id} className={styles.checkboxLabel}>
               <input
                 type="checkbox"
                 checked={isChecked}
-                onChange={(e) => handleParameterChange(paramKey, String(option.value), e.target.checked)}
+                onChange={(e) => handleParameterChange(filter.filter_name, option.option_value, e.target.checked)}
                 className={styles.checkbox}
               />
               <span className={styles.checkboxText}>
-                {option.display}
-                {filter.unit && !option.display.includes(filter.unit) && (
-                  <span className={styles.unit}> {filter.unit}</span>
-                )}
+                {option.option_label}
               </span>
             </label>
           )
@@ -254,36 +305,40 @@ export default function FilterSidebar({
         </div>
 
         <div className={styles.filterContainer}>
-          {/* ASP 원본 필터 그룹들 */}
-          {availableFilters.map((filter) => {
-            const paramKey = filter.param || filter.name.toLowerCase().replace(/\s+/g, '_')
-            const isExpanded = expandedSections.has(paramKey) || filter.defaultExpanded
-            
-            return (
-              <div key={paramKey} className={`${styles.filterGroup} ${!isExpanded ? styles.collapsed : ''}`}>
-                <h4 
-                  onClick={() => toggleSection(paramKey)}
-                  className={styles.filterGroupHeader}
-                >
-                  <span className={styles.filterGroupTitle}>
-                    {filter.name}
-                    {filter.unit && (
-                      <span className={styles.filterUnit}>({filter.unit})</span>
-                    )}
-                  </span>
-                  <span className={styles.filterExpandToggle}>
-                  </span>
-                </h4>
-                
-                {isExpanded && (
-                  <div className={styles.filterOptions}>
-                    {filter.type === 'checkbox' && renderCheckboxes(filter, paramKey)}
-                    {filter.type === 'slider' && renderSlider(filter, paramKey)}
-                  </div>
-                )}
-              </div>
-            )
-          })}
+          {/* 동적으로 로드된 필터 그룹들 */}
+          {loading ? (
+            <div className={styles.loadingMessage}>필터를 불러오는 중...</div>
+          ) : (
+            dynamicFilters.map((filter) => {
+              const isExpanded = expandedSections.has(filter.filter_name)
+              
+              return (
+                <div key={filter.id} className={`${styles.filterGroup} ${!isExpanded ? styles.collapsed : ''}`}>
+                  <h4 
+                    onClick={() => toggleSection(filter.filter_name)}
+                    className={styles.filterGroupHeader}
+                  >
+                    <span className={styles.filterGroupTitle}>
+                      {filter.filter_label}
+                      {filter.filter_unit && (
+                        <span className={styles.filterUnit}>({filter.filter_unit})</span>
+                      )}
+                    </span>
+                    <span className={styles.filterExpandToggle}>
+                    </span>
+                  </h4>
+                  
+                  {isExpanded && (
+                    <div className={styles.filterOptions}>
+                      {filter.filter_type === 'checkbox' && filterOptions[filter.id] && 
+                        renderCheckboxes(filter, filterOptions[filter.id])}
+                      {filter.filter_type === 'slider' && renderSlider(filter)}
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          )}
         </div>
 
         {/* Filter Buttons */}

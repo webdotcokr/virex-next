@@ -654,6 +654,18 @@
   background: var(--gray000) !important;
 }
 
+/* NEW Badge */
+.newBadge {
+  display: inline-block;
+  background-color: #FF4444;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
 
 /* 체크박스 스타일링 */
 .colCompare input[type="checkbox"] {

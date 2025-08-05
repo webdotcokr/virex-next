@@ -1,8 +1,13 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useFilterStore } from '@/lib/store'
 import styles from '../../../app/(portal)/products/products.module.css'
 import type { Product } from '../types'
+import type { Database } from '@/lib/supabase'
+
+type TableColumnConfig = Database['public']['Tables']['table_column_configs']['Row']
 
 interface ProductTableProps {
   products: Product[]
@@ -28,6 +33,34 @@ export default function ProductTable({
   isLoading = false
 }: ProductTableProps) {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
+  const [columnConfigs, setColumnConfigs] = useState<TableColumnConfig[]>([])
+  const [loading, setLoading] = useState(true)
+  const { filters } = useFilterStore()
+
+  // Load column configurations based on current category
+  useEffect(() => {
+    loadColumnConfigs()
+  }, [filters.categories])
+
+  const loadColumnConfigs = async () => {
+    try {
+      const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
+      
+      const { data, error } = await supabase
+        .from('table_column_configs')
+        .select('*')
+        .eq('category_id', parseInt(currentCategoryId))
+        .eq('is_visible', true)
+        .order('sort_order')
+
+      if (error) throw error
+      setColumnConfigs(data || [])
+    } catch (error) {
+      console.error('Error loading column configs:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleCompareChange = useCallback((productId: string, checked: boolean) => {
     if (checked && selectedProducts.length >= 4) {
@@ -66,7 +99,7 @@ export default function ProductTable({
     return { totalPages, displayData: paginatedProducts }
   }, [products, currentPage, itemsPerPage])
 
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div className={styles.productListWrapper}>
         <div className={styles.productListContainer}>
@@ -97,156 +130,105 @@ export default function ProductTable({
             <thead>
               <tr>
                 <th className={styles.colCompare}>비교</th>
-                <th className={styles.colBrand}>
-                  브랜드
-                  <img 
-                    src="/img/icon-sort.svg" 
-                    className={styles.sortIcon}
-                    onClick={() => handleSort('maker_name')}
-                    alt="정렬"
-                  />
-                </th>
-                <th className={styles.colSeries}>
-                  Series
-                  <img 
-                    src="/img/icon-sort.svg" 
-                    className={styles.sortIcon}
-                    onClick={() => handleSort('series')}
-                    alt="정렬"
-                  />
-                </th>
-                <th className={styles.colPartNumber}>
-                  Part Number
-                  <img 
-                    src="/img/icon-sort.svg" 
-                    className={styles.sortIcon}
-                    onClick={() => handleSort('part_number')}
-                    alt="정렬"
-                  />
-                </th>
-                <th className={styles.colScanWidth}>
-                  Scan Width
-                  <img 
-                    src="/img/icon-sort.svg" 
-                    className={styles.sortIcon}
-                    onClick={() => handleSort('scan_width')}
-                    alt="정렬"
-                  />
-                </th>
-                <th className={styles.colDpi}>
-                  DPI
-                  <img 
-                    src="/img/icon-sort.svg" 
-                    className={styles.sortIcon}
-                    onClick={() => handleSort('dpi')}
-                    alt="정렬"
-                  />
-                </th>
-                <th className={styles.colResolution}>
-                  Resolution
-                  <img 
-                    src="/img/icon-sort.svg" 
-                    className={styles.sortIcon}
-                    onClick={() => handleSort('resolution')}
-                    alt="정렬"
-                  />
-                </th>
-                <th className={styles.colLineRate}>
-                  Line Rate
-                  <img 
-                    src="/img/icon-sort.svg" 
-                    className={styles.sortIcon}
-                    onClick={() => handleSort('line_rate')}
-                    alt="정렬"
-                  />
-                </th>
-                <th className={styles.colSpeed}>
-                  Speed
-                  <img 
-                    src="/img/icon-sort.svg" 
-                    className={styles.sortIcon}
-                    onClick={() => handleSort('speed')}
-                    alt="정렬"
-                  />
-                </th>
-                <th className={styles.colWd}>
-                  WD
-                  <img 
-                    src="/img/icon-sort.svg" 
-                    className={styles.sortIcon}
-                    onClick={() => handleSort('wd')}
-                    alt="정렬"
-                  />
-                </th>
-                <th className={styles.colPixels}>
-                  No. of Pixels
-                  <img 
-                    src="/img/icon-sort.svg" 
-                    className={styles.sortIcon}
-                    onClick={() => handleSort('no_of_pixels')}
-                    alt="정렬"
-                  />
-                </th>
+                {columnConfigs.map((column) => (
+                  <th 
+                    key={column.id} 
+                    style={{ width: column.column_width || 'auto' }}
+                  >
+                    {column.column_label}
+                    {column.is_sortable && (
+                      <img 
+                        src="/img/icon-sort.svg" 
+                        className={styles.sortIcon}
+                        onClick={() => handleSort(column.column_name)}
+                        alt="정렬"
+                      />
+                    )}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {displayData.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className={styles.noDataCell}>
+                  <td colSpan={columnConfigs.length + 1} className={styles.noDataCell}>
                     <div className={styles.noDataMessage}>
                       조건에 맞는 제품이 없습니다.
                     </div>
                   </td>
                 </tr>
               ) : (
-                displayData.map((product) => (
-                  <tr 
-                    key={product.id}
-                    onClick={(e) => handleRowClick(product, e)}
-                    className={styles.productRow}
-                  >
-                    <td className={styles.colCompare}>
-                      <input 
-                        type="checkbox"
-                        checked={selectedProducts.includes(product.part_number)}
-                        onChange={(e) => handleCompareChange(product.part_number, e.target.checked)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </td>
-                    <td className={styles.colBrand}>
-                      {product.maker_name || '-'}
-                    </td>
-                    <td className={styles.colSeries}>
-                      {product.series || '-'}
-                    </td>
-                    <td className={styles.colPartNumber}>
-                      <span className={styles.modelName}>
-                        {product.part_number}
-                      </span>
-                    </td>
-                    <td className={styles.colScanWidth}>
-                      {product.specifications?.scan_width ? `${product.specifications.scan_width} mm` : '-'}
-                    </td>
-                    <td className={styles.colDpi}>
-                      {product.specifications?.dpi ? `${product.specifications.dpi} dpi` : '-'}
-                    </td>
-                    <td className={styles.colResolution}>
-                      {product.specifications?.resolution || '-'}
-                    </td>
-                    <td className={styles.colLineRate}>
-                      {product.specifications?.line_rate ? `${product.specifications.line_rate} kHz` : '-'}
-                    </td>
-                    <td className={styles.colSpeed}>
-                      {product.specifications?.speed ? `${product.specifications.speed} MHz` : '-'}
-                    </td>
-                    <td className={styles.colWd}>
-                      {product.specifications?.wd || '-'}
-                    </td>
-                    <td className={styles.colPixels}>
-                      {product.specifications?.no_of_pixels || '-'}
-                    </td>
-                  </tr>
-                ))
+                // Sort products: is_new first
+                [...displayData].sort((a, b) => {
+                  if (a.is_new && !b.is_new) return -1
+                  if (!a.is_new && b.is_new) return 1
+                  return 0
+                }).map((product) => (
+                    <tr 
+                      key={product.id}
+                      onClick={(e) => handleRowClick(product, e)}
+                      className={styles.productRow}
+                    >
+                      <td className={styles.colCompare}>
+                        <input 
+                          type="checkbox"
+                          checked={selectedProducts.includes(product.part_number)}
+                          onChange={(e) => handleCompareChange(product.part_number, e.target.checked)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </td>
+                      {columnConfigs.map((column) => {
+                        // Get the value based on column type
+                        let value = '-'
+                        let displayValue = '-'
+                        
+                        if (column.column_type === 'basic') {
+                          // Basic fields
+                          switch (column.column_name) {
+                            case 'maker_name':
+                              value = product.maker_name || '-'
+                              displayValue = value
+                              break
+                            case 'series':
+                              value = product.series || '-'
+                              displayValue = value
+                              break
+                            case 'part_number':
+                              value = product.part_number
+                              displayValue = (
+                                <>
+                                  {product.is_new && <span className={styles.newBadge}>NEW</span>}
+                                  <span className={styles.modelName}>{value}</span>
+                                </>
+                              )
+                              break
+                          }
+                        } else {
+                          // Specification fields
+                          const specValue = product.specifications?.[column.column_name]
+                          if (specValue !== null && specValue !== undefined) {
+                            value = String(specValue)
+                            // Add unit if it's a number
+                            const units: Record<string, string> = {
+                              scan_width: 'mm',
+                              dpi: 'dpi',
+                              line_rate: 'kHz',
+                              speed: 'MHz'
+                            }
+                            displayValue = units[column.column_name] 
+                              ? `${value} ${units[column.column_name]}`
+                              : value
+                          }
+                        }
+                        
+                        return (
+                          <td key={column.id}>
+                            {typeof displayValue === 'string' ? displayValue : displayValue}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))
               )}
             </tbody>
           </table>

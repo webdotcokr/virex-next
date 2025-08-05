@@ -22,6 +22,7 @@ export type Database = {
           specifications: Record<string, any> | null
           is_active: boolean
           is_new: boolean
+          image_url: string | null
           created_at: string
           updated_at: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           specifications?: Record<string, any> | null
           is_active?: boolean
           is_new?: boolean
+          image_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -46,6 +48,7 @@ export type Database = {
           specifications?: Record<string, any> | null
           is_active?: boolean
           is_new?: boolean
+          image_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -449,6 +452,155 @@ export type Database = {
           attachment_url?: string | null
           description?: string | null
           privacy_agreed?: boolean | null
+        }
+      }
+      filter_configs: {
+        Row: {
+          id: number
+          category_id: number
+          filter_name: string
+          filter_label: string
+          filter_type: 'checkbox' | 'slider'
+          filter_unit: string | null
+          is_active: boolean
+          sort_order: number
+          default_expanded: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          category_id: number
+          filter_name: string
+          filter_label: string
+          filter_type: 'checkbox' | 'slider'
+          filter_unit?: string | null
+          is_active?: boolean
+          sort_order?: number
+          default_expanded?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          category_id?: number
+          filter_name?: string
+          filter_label?: string
+          filter_type?: 'checkbox' | 'slider'
+          filter_unit?: string | null
+          is_active?: boolean
+          sort_order?: number
+          default_expanded?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      filter_options: {
+        Row: {
+          id: number
+          filter_config_id: number
+          option_value: string
+          option_label: string
+          sort_order: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          filter_config_id: number
+          option_value: string
+          option_label: string
+          sort_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          filter_config_id?: number
+          option_value?: string
+          option_label?: string
+          sort_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      filter_slider_configs: {
+        Row: {
+          id: number
+          filter_config_id: number
+          min_value: number
+          max_value: number
+          step_value: number
+          default_min: number | null
+          default_max: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          filter_config_id: number
+          min_value: number
+          max_value: number
+          step_value?: number
+          default_min?: number | null
+          default_max?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          filter_config_id?: number
+          min_value?: number
+          max_value?: number
+          step_value?: number
+          default_min?: number | null
+          default_max?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      table_column_configs: {
+        Row: {
+          id: number
+          category_id: number
+          column_name: string
+          column_label: string
+          column_type: 'basic' | 'specification'
+          is_visible: boolean
+          is_sortable: boolean
+          sort_order: number
+          column_width: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          category_id: number
+          column_name: string
+          column_label: string
+          column_type?: 'basic' | 'specification'
+          is_visible?: boolean
+          is_sortable?: boolean
+          sort_order?: number
+          column_width?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          category_id?: number
+          column_name?: string
+          column_label?: string
+          column_type?: 'basic' | 'specification'
+          is_visible?: boolean
+          is_sortable?: boolean
+          sort_order?: number
+          column_width?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
     }
