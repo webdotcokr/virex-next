@@ -34,17 +34,67 @@ export class CSVProcessor {
   private static readonly BASIC_FIELDS = [
     'part_number',
     'category_id',
+    'category_name',
     'maker_id', 
+    'maker_name',
     'series_id',
+    'series_name',
     'is_active',
-    'is_new'
+    'is_new',
+    'image_url'
   ];
 
   private static readonly REQUIRED_FIELDS = [
     'part_number',
-    'category_id',
-    'maker_id'
+    'category_name',  // Changed from category_id to category_name
+    'maker_name'      // Changed from maker_id to maker_name
   ];
+
+  // Mapping caches for performance
+  private static makerCache: Map<string, number> = new Map();
+  private static seriesCache: Map<string, number> = new Map();
+  private static categoryCache: Map<string, number> = new Map();
+
+  /**
+   * Initialize mapping caches from database
+   */
+  static async initializeMappingCaches(
+    makers: Array<{id: number, name: string}>,
+    series: Array<{id: number, series_name: string}>,
+    categories: Array<{id: number, name: string}>
+  ) {
+    this.makerCache.clear();
+    this.seriesCache.clear();
+    this.categoryCache.clear();
+
+    makers.forEach(m => this.makerCache.set(m.name.toLowerCase(), m.id));
+    series.forEach(s => this.seriesCache.set(s.series_name.toLowerCase(), s.id));
+    categories.forEach(c => this.categoryCache.set(c.name.toLowerCase(), c.id));
+  }
+
+  /**
+   * Smart mapping: Convert maker name to ID
+   */
+  static mapMakerNameToId(makerName: string): number | null {
+    if (!makerName || makerName.trim() === '') return null;
+    return this.makerCache.get(makerName.toLowerCase()) || null;
+  }
+
+  /**
+   * Smart mapping: Convert series name to ID
+   */
+  static mapSeriesNameToId(seriesName: string): number | null {
+    if (!seriesName || seriesName.trim() === '') return null;
+    return this.seriesCache.get(seriesName.toLowerCase()) || null;
+  }
+
+  /**
+   * Smart mapping: Convert category name to ID
+   */
+  static mapCategoryNameToId(categoryName: string): number | null {
+    if (!categoryName || categoryName.trim() === '') return null;
+    return this.categoryCache.get(categoryName.toLowerCase()) || null;
+  }
 
   /**
    * Parse CSV file content into structured data
@@ -227,6 +277,17 @@ export class CSVProcessor {
       }
     });
     
+    // Apply smart mappings
+    if (basicFields.maker_name && !basicFields.maker_id) {
+      basicFields.maker_id = this.mapMakerNameToId(basicFields.maker_name);
+    }
+    if (basicFields.series_name && !basicFields.series_id) {
+      basicFields.series_id = this.mapSeriesNameToId(basicFields.series_name);
+    }
+    if (basicFields.category_name && !basicFields.category_id) {
+      basicFields.category_id = this.mapCategoryNameToId(basicFields.category_name);
+    }
+    
     return { basicFields, specifications };
   }
 
@@ -313,6 +374,24 @@ export class CSVProcessor {
         });
       }
     });
+
+    // Also check that we have IDs after mapping
+    if (!basicFields.category_id) {
+      errors.push({
+        rowIndex,
+        field: 'category_id',
+        error: 'Category ID is required (could not map from category_name)',
+        severity: 'error'
+      });
+    }
+    if (!basicFields.maker_id) {
+      errors.push({
+        rowIndex,
+        field: 'maker_id',
+        error: 'Maker ID is required (could not map from maker_name)',
+        severity: 'error'
+      });
+    }
     
     // Validate part_number format (basic check)
     if (basicFields.part_number && typeof basicFields.part_number === 'string') {
@@ -324,6 +403,34 @@ export class CSVProcessor {
           severity: 'warning'
         });
       }
+    }
+    
+    // Validate smart mapping results
+    if (basicFields.maker_name && !basicFields.maker_id) {
+      errors.push({
+        rowIndex,
+        field: 'maker_name',
+        error: `Maker '${basicFields.maker_name}' not found in database`,
+        severity: 'warning'
+      });
+    }
+    
+    if (basicFields.series_name && !basicFields.series_id) {
+      errors.push({
+        rowIndex,
+        field: 'series_name',
+        error: `Series '${basicFields.series_name}' not found in database`,
+        severity: 'warning'
+      });
+    }
+    
+    if (basicFields.category_name && !basicFields.category_id) {
+      errors.push({
+        rowIndex,
+        field: 'category_name',
+        error: `Category '${basicFields.category_name}' not found in database`,
+        severity: 'error'
+      });
     }
     
     // Validate ID fields are numbers

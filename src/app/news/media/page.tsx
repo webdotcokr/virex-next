@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
 import Link from 'next/link';
 import PageContentContainer from '@/components/PageContentContainer';
 import { supabase } from '@/lib/supabase';
@@ -27,16 +26,65 @@ const MediaPage = () => {
   ];
 
   useEffect(() => {
-    fetchMedia();
+    const abortController = new AbortController();
+    
+    const fetchMediaData = async () => {
+      try {
+        setLoading(true);
+        setError(null); // Reset error state
+        
+        const { data, error, count } = await supabase
+          .from('news')
+          .select('*', { count: 'exact' })
+          .eq('category_id', 2) // 미디어 카테고리
+          .order('created_at', { ascending: false })
+          .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+
+        if (error) {
+          console.error('❌ Supabase error:', error);
+          throw error;
+        }
+
+        // AbortController 체크
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        setMedia(data || []);
+        setTotalCount(count || 0);
+      } catch (err) {
+        console.error('❌ Error fetching media:', err);
+        
+        if (!abortController.signal.aborted) {
+          setError(err instanceof Error ? err.message : '미디어를 불러오는데 실패했습니다.');
+          setMedia([]); // Reset data on error
+          setTotalCount(0);
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchMediaData();
+
+    // Cleanup function
+    return () => {
+      abortController.abort();
+    };
   }, [currentPage]);
 
   const fetchMedia = async () => {
+    // 수동 새로고침용 함수
     try {
       setLoading(true);
+      setError(null);
+      
       const { data, error, count } = await supabase
         .from('news')
         .select('*', { count: 'exact' })
-        .eq('category_id', 2) // 미디어 카테고리
+        .eq('category_id', 2)
         .order('created_at', { ascending: false })
         .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
 
@@ -45,7 +93,10 @@ const MediaPage = () => {
       setMedia(data || []);
       setTotalCount(count || 0);
     } catch (err) {
+      console.error('❌ Error fetching media:', err);
       setError(err instanceof Error ? err.message : '미디어를 불러오는데 실패했습니다.');
+      setMedia([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
@@ -108,10 +159,6 @@ const MediaPage = () => {
 
   return (
     <div>
-      <Head>
-        <title>{`미디어 | 바이렉스`}</title>
-      </Head>
-
       <PageContentContainer
         backgroundClass="company-header-background"
         backgroundImage="/img/bg-news.webp"

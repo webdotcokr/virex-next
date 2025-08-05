@@ -1,4 +1,3 @@
-import Head from 'next/head';
 import PageContentContainer from '@/components/PageContentContainer';
 import styles from '../company.module.css'; // CSS 모듈 import
 
@@ -162,10 +161,6 @@ const partners: Partner[] = [
 
   return (
     <div>
-      <Head> 
-        <title>{`회사소개 | 바이렉스`}</title>
-      </Head>
-
       <PageContentContainer
         backgroundClass="company-header-background"
         backgroundImage="/img/bg-company.webp"

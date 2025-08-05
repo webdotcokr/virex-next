@@ -21,111 +21,231 @@ interface CategoryTemplate {
 export class CSVTemplateGenerator {
   private static readonly BASE_COLUMNS = [
     'part_number',
-    'category_id', 
-    'maker_id',
-    'series_id',
+    'category_name', 
+    'maker_name',
+    'series_name',
     'is_active',
-    'is_new'
+    'is_new',
+    'image_url'
   ];
 
   private static readonly CATEGORY_TEMPLATES: Record<string, SpecificationField[]> = {
-    // CIS (Contact Image Sensor) - 접촉식 이미지 센서
+    // 카메라 카테고리
+    // CIS (Contact Image Sensor)
     'cis': [
-      { key: 'scan_width', label: 'Scan Width', type: 'number', unit: 'mm', required: true, description: 'Scanning width in millimeters' },
-      { key: 'dpi', label: 'DPI', type: 'number', required: true, description: 'Dots per inch resolution' },
-      { key: 'line_rate', label: 'Line Rate', type: 'number', unit: 'kHz', required: true, description: 'Line scanning rate in kHz' },
-      { key: 'wd', label: 'Working Distance', type: 'number', unit: 'mm', description: 'Working distance in millimeters' },
-      { key: 'speed', label: 'Speed', type: 'number', description: 'Processing speed' },
-      { key: 'spectrum', label: 'Spectrum', type: 'string', description: 'Spectral characteristics (Mono, Color, etc.)' },
-      { key: 'resolution', label: 'Resolution', type: 'number', unit: 'mm', description: 'Resolution in millimeters' },
-      { key: 'no_of_pixels', label: 'Number of Pixels', type: 'number', description: 'Total number of pixels' },
-      { key: 'interface', label: 'Interface', type: 'string', description: 'Communication interface (Camera Link, USB, etc.)' },
+      { key: 'scan_width', label: 'Scan Width', type: 'number', unit: 'mm', required: true },
+      { key: 'dpi', label: 'DPI', type: 'number', required: true },
+      { key: 'resolution', label: 'Resolution', type: 'number', unit: 'mm', required: true },
+      { key: 'line_rate', label: 'Line Rate', type: 'number', unit: 'kHz' },
+      { key: 'speed', label: 'Speed', type: 'number' },
+      { key: 'wd', label: 'Working Distance', type: 'number', unit: 'mm' },
+      { key: 'no_of_pixels', label: 'Number of Pixels', type: 'number' },
+      { key: 'spectrum', label: 'Spectrum', type: 'string' },
+      { key: 'interface', label: 'Interface', type: 'string' },
     ],
 
-    // TDI (Time Delay Integration) - 시간 지연 적분
+    // TDI (Time Delay Integration)
     'tdi': [
-      { key: 'stages', label: 'TDI Stages', type: 'number', required: true, description: 'Number of TDI stages' },
-      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm', required: true, description: 'Individual pixel size in micrometers' },
-      { key: 'line_frequency', label: 'Line Frequency', type: 'number', unit: 'kHz', required: true, description: 'Line scanning frequency in kHz' },
-      { key: 'sensor_model', label: 'Sensor Model', type: 'string', description: 'Specific sensor model number' },
-      { key: 'interface', label: 'Interface', type: 'string', description: 'Communication interface' },
-      { key: 'spectral_range', label: 'Spectral Range', type: 'string', unit: 'nm', description: 'Spectral sensitivity range' },
-      { key: 'bit_depth', label: 'Bit Depth', type: 'number', unit: 'bit', description: 'Digital output bit depth' },
+      { key: 'resolution', label: 'Resolution', type: 'string', required: true },
+      { key: 'number_of_line', label: 'Number of Line', type: 'number', required: true },
+      { key: 'line_rate', label: 'Line Rate', type: 'number', unit: 'kHz', required: true },
+      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm' },
+      { key: 'interface', label: 'Interface', type: 'string' },
+      { key: 'spectrum', label: 'Spectrum', type: 'string' },
+      { key: 'dynamic_range', label: 'Dynamic Range', type: 'string' },
+      { key: 'mount', label: 'Mount', type: 'string' },
     ],
 
-    // Line Scan Camera - 라인 스캔 카메라
+    // Line Scan Camera
     'line': [
-      { key: 'resolution', label: 'Resolution', type: 'string', required: true, description: 'Image resolution (e.g., 2048x1)' },
-      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm', required: true, description: 'Individual pixel size in micrometers' },
-      { key: 'line_rate', label: 'Line Rate', type: 'number', unit: 'kHz', required: true, description: 'Maximum line scanning rate' },
-      { key: 'sensor_type', label: 'Sensor Type', type: 'string', description: 'CCD or CMOS sensor type' },
-      { key: 'interface', label: 'Interface', type: 'string', description: 'Communication interface' },
-      { key: 'shutter_type', label: 'Shutter Type', type: 'string', description: 'Electronic or global shutter' },
-      { key: 'trigger_mode', label: 'Trigger Mode', type: 'string', description: 'External or internal trigger' },
+      { key: 'resolution', label: 'Resolution', type: 'string', required: true },
+      { key: 'number_of_line', label: 'Number of Line', type: 'number' },
+      { key: 'line_rate', label: 'Line Rate', type: 'number', unit: 'kHz', required: true },
+      { key: 'line_rate_turbo', label: 'Line Rate Turbo', type: 'number', unit: 'kHz' },
+      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm', required: true },
+      { key: 'interface', label: 'Interface', type: 'string' },
+      { key: 'spectrum', label: 'Spectrum', type: 'string' },
+      { key: 'dynamic_range', label: 'Dynamic Range', type: 'string' },
+      { key: 'mount', label: 'Mount', type: 'string' },
     ],
 
-    // Area Scan Camera - 영역 스캔 카메라
+    // Area Scan Camera
     'area': [
-      { key: 'resolution', label: 'Resolution', type: 'string', required: true, description: 'Image resolution (e.g., 1920x1080)' },
-      { key: 'frame_rate', label: 'Frame Rate', type: 'number', unit: 'fps', required: true, description: 'Maximum frames per second' },
-      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm', required: true, description: 'Individual pixel size in micrometers' },
-      { key: 'sensor_type', label: 'Sensor Type', type: 'string', description: 'CCD or CMOS sensor type' },
-      { key: 'interface', label: 'Interface', type: 'string', description: 'Communication interface' },
-      { key: 'shutter_type', label: 'Shutter Type', type: 'string', description: 'Rolling or global shutter' },
-      { key: 'lens_mount', label: 'Lens Mount', type: 'string', description: 'Lens mounting standard (C-mount, CS-mount, etc.)' },
+      { key: 'mega_pixel', label: 'Mega Pixel', type: 'number', unit: 'MP', required: true },
+      { key: 'resolution', label: 'Resolution', type: 'string', required: true },
+      { key: 'sensor_model', label: 'Sensor Model', type: 'string' },
+      { key: 'frame_rate', label: 'Frame Rate', type: 'number', unit: 'fps', required: true },
+      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm' },
+      { key: 'image_circle', label: 'Image Circle', type: 'string' },
+      { key: 'interface', label: 'Interface', type: 'string' },
+      { key: 'spectrum', label: 'Spectrum', type: 'string' },
+      { key: 'dynamic_range', label: 'Dynamic Range', type: 'string' },
+      { key: 'mount', label: 'Mount', type: 'string' },
     ],
 
-    // Large Format Camera - 대형 포맷 카메라
-    'large': [
-      { key: 'resolution', label: 'Resolution', type: 'string', required: true, description: 'High resolution specification' },
-      { key: 'sensor_size', label: 'Sensor Size', type: 'string', unit: 'mm', required: true, description: 'Physical sensor dimensions' },
-      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm', description: 'Individual pixel size' },
-      { key: 'frame_rate', label: 'Frame Rate', type: 'number', unit: 'fps', description: 'Maximum frame rate' },
-      { key: 'interface', label: 'Interface', type: 'string', description: 'High-speed interface type' },
-      { key: 'lens_mount', label: 'Lens Mount', type: 'string', description: 'Large format lens mounting' },
-    ],
-
-    // Telecentric Lens - 텔레센트릭 렌즈
-    'telecentric': [
-      { key: 'magnification', label: 'Magnification', type: 'string', required: true, description: 'Optical magnification ratio' },
-      { key: 'working_distance', label: 'Working Distance', type: 'number', unit: 'mm', required: true, description: 'Working distance from lens to object' },
-      { key: 'field_of_view', label: 'Field of View', type: 'number', unit: 'mm', description: 'Maximum field of view diameter' },
-      { key: 'resolution', label: 'Resolution', type: 'number', unit: 'μm', description: 'Optical resolution capability' },
-      { key: 'mount_type', label: 'Mount Type', type: 'string', description: 'Lens mounting standard' },
-      { key: 'distortion', label: 'Distortion', type: 'string', unit: '%', description: 'Maximum optical distortion' },
-      { key: 'aperture', label: 'Aperture', type: 'string', description: 'F-number range' },
-    ],
-
-    // FA Lens - Factory Automation 렌즈
-    'fa': [
-      { key: 'focal_length', label: 'Focal Length', type: 'number', unit: 'mm', required: true, description: 'Lens focal length' },
-      { key: 'aperture', label: 'Aperture', type: 'string', required: true, description: 'F-number specification' },
-      { key: 'mount_type', label: 'Mount Type', type: 'string', required: true, description: 'Lens mounting standard' },
-      { key: 'image_circle', label: 'Image Circle', type: 'number', unit: 'mm', description: 'Maximum image circle diameter' },
-      { key: 'resolution', label: 'Resolution', type: 'number', unit: 'MP', description: 'Lens resolution in megapixels' },
-      { key: 'working_distance', label: 'Working Distance', type: 'string', unit: 'mm', description: 'Recommended working distance range' },
-      { key: 'distortion', label: 'Distortion', type: 'string', unit: '%', description: 'Maximum optical distortion' },
-    ],
-
-    // Invisible/IR Camera - 비가시광/적외선 카메라
+    // Invisible Camera
     'invisible': [
-      { key: 'spectral_range', label: 'Spectral Range', type: 'string', unit: 'nm', required: true, description: 'Wavelength sensitivity range' },
-      { key: 'resolution', label: 'Resolution', type: 'string', required: true, description: 'Image resolution' },
-      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm', description: 'Individual pixel size' },
-      { key: 'sensitivity', label: 'Sensitivity', type: 'string', description: 'Spectral sensitivity characteristics' },
-      { key: 'interface', label: 'Interface', type: 'string', description: 'Communication interface' },
-      { key: 'cooling', label: 'Cooling', type: 'string', description: 'Cooling mechanism if any' },
+      { key: 'type', label: 'Type', type: 'string', required: true },
+      { key: 'mega_pixel', label: 'Mega Pixel', type: 'number', unit: 'MP' },
+      { key: 'resolution', label: 'Resolution', type: 'string', required: true },
+      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm' },
+      { key: 'spectrum', label: 'Spectrum', type: 'string', required: true },
+      { key: 'dynamic_range', label: 'Dynamic Range', type: 'string' },
+      { key: 'sensor_model', label: 'Sensor Model', type: 'string' },
+      { key: 'frame_rate', label: 'Frame Rate', type: 'number', unit: 'fps' },
+      { key: 'interface', label: 'Interface', type: 'string' },
+      { key: 'mount', label: 'Mount', type: 'string' },
+      { key: 'image_circle', label: 'Image Circle', type: 'string' },
+      { key: 'number_of_line', label: 'Number of Line', type: 'number' },
     ],
 
-    // Scientific Camera - 과학용 카메라
+    // Scientific Camera
     'scientific': [
-      { key: 'resolution', label: 'Resolution', type: 'string', required: true, description: 'High-precision resolution' },
-      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm', required: true, description: 'Precise pixel dimensions' },
-      { key: 'sensitivity', label: 'Sensitivity', type: 'string', description: 'Quantum efficiency or sensitivity' },
-      { key: 'bit_depth', label: 'Bit Depth', type: 'number', unit: 'bit', description: 'Digital precision bit depth' },
-      { key: 'noise_level', label: 'Noise Level', type: 'string', description: 'Electronic noise characteristics' },
-      { key: 'cooling', label: 'Cooling', type: 'string', description: 'Active cooling system' },
-      { key: 'interface', label: 'Interface', type: 'string', description: 'High-speed data interface' },
+      { key: 'mega_pixel', label: 'Mega Pixel', type: 'number', unit: 'MP', required: true },
+      { key: 'resolution', label: 'Resolution', type: 'string', required: true },
+      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm', required: true },
+      { key: 'dynamic_range', label: 'Dynamic Range', type: 'string' },
+      { key: 'peak_qe', label: 'Peak QE', type: 'string' },
+      { key: 'sensor_model', label: 'Sensor Model', type: 'string' },
+      { key: 'frame_rate', label: 'Frame Rate', type: 'number', unit: 'fps' },
+      { key: 'spectrum', label: 'Spectrum', type: 'string' },
+      { key: 'interface', label: 'Interface', type: 'string' },
+      { key: 'mount', label: 'Mount', type: 'string' },
+    ],
+
+    // 렌즈 카테고리
+    // Large Format Lens
+    'large format': [
+      { key: 'mag_range', label: 'Magnification Range', type: 'string', required: true },
+      { key: 'central_mag', label: 'Central Magnification', type: 'string' },
+      { key: 'image_circle', label: 'Image Circle', type: 'string' },
+      { key: 'focal_length', label: 'Focal Length', type: 'string' },
+      { key: 'image_resolution', label: 'Image Resolution', type: 'string' },
+      { key: 'f_number', label: 'F Number', type: 'string' },
+      { key: 'coaxial', label: 'Coaxial', type: 'string' },
+      { key: 'mount', label: 'Mount', type: 'string' },
+    ],
+
+    // Telecentric Lens
+    'telecentric': [
+      { key: 'mag', label: 'Magnification', type: 'string', required: true },
+      { key: 'wd', label: 'Working Distance', type: 'number', unit: 'mm', required: true },
+      { key: 'na', label: 'NA', type: 'string' },
+      { key: 'f_number', label: 'F Number', type: 'string' },
+      { key: 'image_circle', label: 'Image Circle', type: 'string' },
+      { key: 'coaxial', label: 'Coaxial', type: 'string' },
+      { key: 'mount', label: 'Mount', type: 'string' },
+      { key: 'mtf30', label: 'MTF30', type: 'string' },
+      { key: 'optical_resolution', label: 'Optical Resolution', type: 'string' },
+      { key: 'distortion', label: 'Distortion', type: 'string' },
+      { key: 'dof', label: 'DOF', type: 'string' },
+      { key: 'length_of_io', label: 'Length of I/O', type: 'string' },
+      { key: 'telecentricity', label: 'Telecentricity', type: 'string' },
+    ],
+
+    // FA Lens
+    'fa lens': [
+      { key: 'focal_length', label: 'Focal Length', type: 'number', unit: 'mm', required: true },
+      { key: 'image_circle', label: 'Image Circle', type: 'string' },
+      { key: 'image_resolution', label: 'Image Resolution', type: 'string' },
+      { key: 'mag_range', label: 'Magnification Range', type: 'string' },
+      { key: 'f_number', label: 'F Number', type: 'string' },
+      { key: 'mount', label: 'Mount', type: 'string' },
+      { key: 'mod', label: 'MOD', type: 'string' },
+      { key: 'optical_distortion', label: 'Optical Distortion', type: 'string' },
+      { key: 'wd', label: 'Working Distance', type: 'string' },
+    ],
+
+    // 3D 카메라 카테고리
+    // Laser Profiler
+    'laser profiler': [
+      { key: 'point', label: 'Point', type: 'number', required: true },
+      { key: 'z_range', label: 'Z Range', type: 'string', required: true },
+      { key: 'z_resolution', label: 'Z Resolution', type: 'string' },
+      { key: 'x_resolution', label: 'X Resolution', type: 'string' },
+      { key: 'fov', label: 'FOV', type: 'string' },
+      { key: 'profile_rate', label: 'Profile Rate', type: 'string' },
+      { key: 'wd', label: 'Working Distance', type: 'string' },
+      { key: 'linearity', label: 'Linearity', type: 'string' },
+      { key: 'laser_option', label: 'Laser Option', type: 'string' },
+    ],
+
+    // Stereo Camera
+    'stereo camera': [
+      { key: 'mega_pixel', label: 'Mega Pixel', type: 'number', unit: 'MP', required: true },
+      { key: 'pixel_size', label: 'Pixel Size', type: 'number', unit: 'μm' },
+      { key: 'fov', label: 'FOV', type: 'string' },
+      { key: 'focal_length', label: 'Focal Length', type: 'string' },
+      { key: 'depth_accuracy', label: 'Depth Accuracy', type: 'string' },
+      { key: 'spectrum', label: 'Spectrum', type: 'string' },
+      { key: 'shutter_type', label: 'Shutter Type', type: 'string' },
+      { key: 'interface', label: 'Interface', type: 'string' },
+    ],
+
+    // 오토포커스모듈 카테고리
+    // Auto Focus
+    'auto focus': [
+      { key: 'description', label: 'Description', type: 'string' },
+      { key: 'sensing_type', label: 'Sensing Type', type: 'string' },
+      { key: 'sampling_rate', label: 'Sampling Rate', type: 'string' },
+      { key: 'capture_range', label: 'Capture Range', type: 'string' },
+      { key: 'laser_wavelength', label: 'Laser Wavelength', type: 'string' },
+      { key: 'interface', label: 'Interface', type: 'string' },
+      { key: 'stroke', label: 'Stroke', type: 'string' },
+      { key: 'resolution', label: 'Resolution', type: 'string' },
+      { key: 'linearity_error', label: 'Linearity Error', type: 'string' },
+      { key: 'repeatability', label: 'Repeatability', type: 'string' },
+    ],
+
+    // 조명 카테고리
+    // Light
+    'light': [
+      { key: 'color', label: 'Color', type: 'string' },
+      { key: 'wavelength', label: 'Wavelength', type: 'string' },
+      { key: 'power', label: 'Power', type: 'string' },
+      { key: 'controller', label: 'Controller', type: 'string' },
+      { key: 'current', label: 'Current', type: 'string' },
+      { key: 'focal_length', label: 'Focal Length', type: 'string' },
+    ],
+
+    // Controller
+    'controller': [
+      { key: 'channel', label: 'Channel', type: 'number' },
+      { key: 'max_continuous_current', label: 'Max Continuous Current', type: 'string' },
+      { key: 'max_pulse_current', label: 'Max Pulse Current', type: 'string' },
+      { key: 'led_voltage_range', label: 'LED Voltage Range', type: 'string' },
+      { key: 'min_pulse_width', label: 'Min Pulse Width', type: 'string' },
+      { key: 'max_frequency', label: 'Max Frequency', type: 'string' },
+      { key: 'max_power_output_total', label: 'Max Power Output Total', type: 'string' },
+    ],
+
+    // 프레임그래버 카테고리
+    'frame grabber': [
+      { key: 'model', label: 'Model', type: 'string' },
+      { key: 'pc_slot', label: 'PC Slot', type: 'string' },
+      { key: 'max_pixel_clock', label: 'Max Pixel Clock', type: 'string' },
+      { key: 'acquisition_rate', label: 'Acquisition Rate', type: 'string' },
+      { key: 'onboard_memory', label: 'Onboard Memory', type: 'string' },
+      { key: 'input', label: 'Input', type: 'string' },
+      { key: 'cables', label: 'Cables', type: 'string' },
+    ],
+
+    // 소프트웨어 카테고리
+    'software': [
+      { key: 'type', label: 'Type', type: 'string' },
+      { key: 'description', label: 'Description', type: 'string' },
+      { key: 'device', label: 'Device', type: 'string' },
+    ],
+
+    // 주변기기 카테고리
+    // 케이블
+    'cable': [
+      { key: 'description', label: 'Description', type: 'string' },
+    ],
+
+    // 악세사리
+    'accessory': [
+      { key: 'description', label: 'Description', type: 'string' },
     ],
   };
 
@@ -179,11 +299,12 @@ export class CSVTemplateGenerator {
     if (!template) {
       return [{
         part_number: 'SAMPLE-001',
-        category_id: '',
-        maker_id: '',
-        series_id: '',
+        category_name: categoryName,
+        maker_name: 'Sample Maker',
+        series_name: 'Sample Series',
         is_active: 'true',
         is_new: 'false',
+        image_url: '/images/sample.jpg',
         spec_model: 'Sample Model',
         spec_specification: 'Sample Specification'
       }];
@@ -191,11 +312,12 @@ export class CSVTemplateGenerator {
 
     const sampleData: Record<string, any> = {
       part_number: 'SAMPLE-001',
-      category_id: '',
-      maker_id: '',
-      series_id: '',
+      category_name: categoryName,
+      maker_name: 'Sample Maker',
+      series_name: 'Sample Series',
       is_active: 'true',
       is_new: 'false',
+      image_url: '/images/sample.jpg',
     };
 
     // Add sample values for specifications

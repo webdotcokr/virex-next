@@ -12,6 +12,7 @@ import ProductSortBar from '@/domains/product/components/ProductSortBar'
 import FilterSidebar from '@/domains/product/components/FilterSidebar'
 import FloatingActionButtons from '@/domains/product/components/FloatingActionButtons'
 import ComparisonLimitModal from '@/domains/product/components/ComparisonLimitModal'
+import ProductComparisonModal from '@/components/ProductComparisonModal'
 import ProductGridSkeleton from '@/domains/product/components/ProductGridSkeleton'
 import styles from './products.module.css'
 import type { Product, Category } from '@/domains/product/types'
@@ -31,6 +32,8 @@ function ProductsContent() {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const [breadcrumbs, setBreadcrumbs] = useState<Array<{label: string, href?: string, active?: boolean}>>([])
   const [showComparisonLimitModal, setShowComparisonLimitModal] = useState(false)
+  const [showComparisonModal, setShowComparisonModal] = useState(false)
+  const [comparisonProducts, setComparisonProducts] = useState<Product[]>([])
 
   // Initialize filters from URL on component mount
   useEffect(() => {
@@ -54,6 +57,14 @@ function ProductsContent() {
       try {
         setLoading(true)
         setError(null)
+        
+        console.log('🔄 Loading products data...', { 
+          categories: filters.categories, 
+          currentPage, 
+          itemsPerPage, 
+          sortBy, 
+          sortDirection 
+        })
 
         // Get current category (default to CIS if none selected)
         const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
@@ -81,16 +92,37 @@ function ProductsContent() {
 
         setProducts(productResult.products)
         
+        console.log('✅ Products data loaded successfully:', {
+          productsCount: productResult.products.length,
+          siblingsCount: siblings.length,
+          breadcrumbsCount: breadcrumbsData.length
+        })
+        
       } catch (err) {
-        console.error('Failed to load data:', err)
+        console.error('❌ Failed to load data:', err)
         setError(err instanceof Error ? err.message : 'Failed to load data')
+        // Reset data on error
+        setProducts([])
+        setSiblingCategories([])
+        setBreadcrumbs([])
       } finally {
         setLoading(false)
       }
     }
 
     loadData()
-  }, [filters, currentPage, itemsPerPage, sortBy, sortDirection])
+  }, [
+    // Use specific filter values instead of the entire filters object
+    filters.categories.join(','), 
+    filters.partnumber, 
+    filters.series, 
+    filters.search, 
+    JSON.stringify(filters.parameters),
+    currentPage, 
+    itemsPerPage, 
+    sortBy, 
+    sortDirection
+  ])
 
   // 현재 선택된 카테고리 정보
   const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
@@ -172,13 +204,22 @@ function ProductsContent() {
   }
 
   const handleProductQuestion = () => {
-    // 제품 문의 페이지로 이동 또는 모달 오픈
-    console.log('Product question clicked')
+    // 선택된 제품들의 part_number를 콤마로 연결
+    if (selectedProducts.length > 0) {
+      const productsParam = selectedProducts.join(',')
+      // 새 창으로 문의 페이지 열기
+      window.open(`/support/inquiry?products=${encodeURIComponent(productsParam)}`, '_blank')
+    } else {
+      // 선택된 제품이 없을 경우 일반 문의 페이지로 이동
+      window.open('/support/inquiry', '_blank')
+    }
   }
 
   const handleProductComparison = () => {
-    // 제품 비교 모달 오픈
-    console.log('Product comparison clicked', selectedProducts)
+    // 선택된 제품들의 정보를 찾아서 비교 모달에 전달
+    const selectedProductsData = products.filter(p => selectedProducts.includes(p.part_number))
+    setComparisonProducts(selectedProductsData)
+    setShowComparisonModal(true)
   }
 
   const handleComparisonLimitWarning = () => {
@@ -261,6 +302,7 @@ function ProductsContent() {
       {/* Floating Action Buttons */}
       <FloatingActionButtons
         selectedProductsCount={selectedProducts.length}
+        selectedProducts={selectedProducts}
         onProductQuestion={handleProductQuestion}
         onProductComparison={handleProductComparison}
         onShowComparisonLimitWarning={handleComparisonLimitWarning}
@@ -271,6 +313,18 @@ function ProductsContent() {
         isOpen={showComparisonLimitModal}
         onClose={() => setShowComparisonLimitModal(false)}
         maxProducts={4}
+      />
+
+      {/* Product Comparison Modal */}
+      <ProductComparisonModal
+        isOpen={showComparisonModal}
+        onClose={() => setShowComparisonModal(false)}
+        products={comparisonProducts}
+        onRemoveProduct={(productId) => {
+          // 제품 제거 시 선택 목록에서도 제거
+          setSelectedProducts(prev => prev.filter(id => id !== productId))
+          setComparisonProducts(prev => prev.filter(p => p.part_number !== productId))
+        }}
       />
     </ProductsPageLayout>
   )

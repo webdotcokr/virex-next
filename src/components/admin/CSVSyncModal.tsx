@@ -221,7 +221,25 @@ export default function CSVSyncModal({
     setCurrentStep(2);
     
     try {
+      // Call the CSV upload API directly
+      const formData = new FormData();
+      formData.append('file', csvFile!);
+
+      const response = await fetch('/api/admin/products/csv-upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to upload CSV');
+      }
+
+      const result = await response.json();
+      
+      // Call the parent's sync handler for any additional actions
       await onSync(selectedOperations);
+      
       // Success - close modal after a brief delay
       setTimeout(() => {
         handleClose();
@@ -336,6 +354,23 @@ export default function CSVSyncModal({
                 <strong>Tip:</strong> Use CSV templates with spec_ prefixes like: spec_scan_width, spec_dpi, spec_line_rate. 
                 The system will automatically convert these to JSONB specifications format.
               </Typography>
+              <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  Download Templates:
+                </Typography>
+                {['CIS', 'TDI', 'Line', 'Area', 'Telecentric', 'FA Lens'].map(category => (
+                  <Button
+                    key={category}
+                    size="small"
+                    variant="text"
+                    href={`/api/admin/csv-template?category=${encodeURIComponent(category)}&sample=true`}
+                    download={`${category.toLowerCase().replace(/\s+/g, '_')}_template.csv`}
+                    sx={{ textTransform: 'none', fontSize: '0.75rem' }}
+                  >
+                    {category}
+                  </Button>
+                ))}
+              </Box>
             </Alert>
 
             {/* File Drop Zone */}
@@ -407,17 +442,18 @@ export default function CSVSyncModal({
                 icon={<InfoIcon />}
                 sx={{ mb: 3 }}
               >
-                <Typography variant="body2">
-                  <strong>Processing Summary:</strong> {CSVProcessor.getProcessingStats(processingResult).summary}
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                  <Typography variant="body2" component="span">
+                    <strong>Processing Summary:</strong> {CSVProcessor.getProcessingStats(processingResult).summary}
+                  </Typography>
                   {processingResult.summary.detectedCategory && (
                     <Chip 
                       label={`Detected: ${processingResult.summary.detectedCategory}`}
                       size="small" 
-                      color="primary" 
-                      sx={{ ml: 1 }}
+                      color="primary"
                     />
                   )}
-                </Typography>
+                </Box>
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   Processed {processingResult.summary.totalRows} rows with {processingResult.summary.specificationFields.length} specification fields
                 </Typography>

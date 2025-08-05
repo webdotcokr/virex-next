@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Head from 'next/head'
 import PageContentContainer from '@/components/PageContentContainer'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -179,10 +178,6 @@ export default function DownloadListPage() {
 
   return (
     <div>
-      <Head>
-        <title>{`다운로드 센터${category ? ` - ${category.name}` : ''} | 바이렉스`}</title>
-      </Head>
-
       <PageContentContainer
         backgroundClass="support-header-background"
         backgroundImage="/img/bg-support.webp"

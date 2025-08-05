@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -10,97 +14,251 @@ export type Database = {
     Tables: {
       products: {
         Row: {
-          id: string
-          partnumber: string
-          series: string
-          name: string
-          description: string | null
-          category_id: string
+          id: number
+          part_number: string
+          category_id: number
+          maker_id: number
+          series_id: number | null
+          specifications: Record<string, any> | null
+          is_active: boolean
           is_new: boolean
-          image_url: string | null
-          datasheet_url: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
-          id?: string
-          partnumber: string
-          series: string
-          name: string
-          description?: string | null
-          category_id: string
+          id?: number
+          part_number: string
+          category_id: number
+          maker_id: number
+          series_id?: number | null
+          specifications?: Record<string, any> | null
+          is_active?: boolean
           is_new?: boolean
-          image_url?: string | null
-          datasheet_url?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
-          id?: string
-          partnumber?: string
-          series?: string
-          name?: string
-          description?: string | null
-          category_id?: string
+          id?: number
+          part_number?: string
+          category_id?: number
+          maker_id?: number
+          series_id?: number | null
+          specifications?: Record<string, any> | null
+          is_active?: boolean
           is_new?: boolean
-          image_url?: string | null
-          datasheet_url?: string | null
           created_at?: string
           updated_at?: string
         }
       }
       categories: {
         Row: {
-          id: string
+          id: number
           name: string
-          slug: string
+          parent_id: number | null
+          slug: string | null
           description: string | null
           created_at: string
         }
         Insert: {
-          id?: string
+          id?: number
           name: string
-          slug: string
+          parent_id?: number | null
+          slug?: string | null
           description?: string | null
           created_at?: string
         }
         Update: {
-          id?: string
+          id?: number
           name?: string
-          slug?: string
+          parent_id?: number | null
+          slug?: string | null
           description?: string | null
           created_at?: string
         }
       }
-      product_parameters: {
+      makers: {
         Row: {
-          id: string
-          product_id: string
-          parameter_name: string
-          parameter_value: string
-          parameter_type: 'text' | 'number' | 'boolean' | 'select'
-          display_order: number
-          is_filterable: boolean
+          id: number
+          name: string
           created_at: string
         }
         Insert: {
-          id?: string
-          product_id: string
-          parameter_name: string
-          parameter_value: string
-          parameter_type: 'text' | 'number' | 'boolean' | 'select'
-          display_order?: number
-          is_filterable?: boolean
+          id?: number
+          name: string
           created_at?: string
         }
         Update: {
-          id?: string
-          product_id?: string
-          parameter_name?: string
-          parameter_value?: string
-          parameter_type?: 'text' | 'number' | 'boolean' | 'select'
-          display_order?: number
-          is_filterable?: boolean
+          id?: number
+          name?: string
+          created_at?: string
+        }
+      }
+      series: {
+        Row: {
+          id: number
+          series_name: string
+          category_id: number | null
+          intro_text: string | null
+          short_text: string | null
+          youtube_url: string | null
+          feature_image_url: string | null
+          feature_title_1: string | null
+          feature_desc_1: string | null
+          feature_title_2: string | null
+          feature_desc_2: string | null
+          feature_title_3: string | null
+          feature_desc_3: string | null
+          feature_title_4: string | null
+          feature_desc_4: string | null
+          strength_1: string | null
+          strength_2: string | null
+          strength_3: string | null
+          strength_4: string | null
+          strength_5: string | null
+          strength_6: string | null
+          app_title_1: string | null
+          app_image_1: string | null
+          app_title_2: string | null
+          app_image_2: string | null
+          app_title_3: string | null
+          app_image_3: string | null
+          app_title_4: string | null
+          app_image_4: string | null
+          text_title_1: string | null
+          text_desc_1: string | null
+          text_image_url_1: string | null
+          text_title_2: string | null
+          text_desc_2: string | null
+          text_image_url_2: string | null
+          text_title_3: string | null
+          text_desc_3: string | null
+          text_image_url_3: string | null
+          text_title_4: string | null
+          text_desc_4: string | null
+          text_image_url_4: string | null
+          text_title_5: string | null
+          text_desc_5: string | null
+          text_image_url_5: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          series_name: string
+          category_id?: number | null
+          intro_text?: string | null
+          short_text?: string | null
+          youtube_url?: string | null
+          feature_image_url?: string | null
+          feature_title_1?: string | null
+          feature_desc_1?: string | null
+          feature_title_2?: string | null
+          feature_desc_2?: string | null
+          feature_title_3?: string | null
+          feature_desc_3?: string | null
+          feature_title_4?: string | null
+          feature_desc_4?: string | null
+          strength_1?: string | null
+          strength_2?: string | null
+          strength_3?: string | null
+          strength_4?: string | null
+          strength_5?: string | null
+          strength_6?: string | null
+          app_title_1?: string | null
+          app_image_1?: string | null
+          app_title_2?: string | null
+          app_image_2?: string | null
+          app_title_3?: string | null
+          app_image_3?: string | null
+          app_title_4?: string | null
+          app_image_4?: string | null
+          text_title_1?: string | null
+          text_desc_1?: string | null
+          text_image_url_1?: string | null
+          text_title_2?: string | null
+          text_desc_2?: string | null
+          text_image_url_2?: string | null
+          text_title_3?: string | null
+          text_desc_3?: string | null
+          text_image_url_3?: string | null
+          text_title_4?: string | null
+          text_desc_4?: string | null
+          text_image_url_4?: string | null
+          text_title_5?: string | null
+          text_desc_5?: string | null
+          text_image_url_5?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          series_name?: string
+          category_id?: number | null
+          intro_text?: string | null
+          short_text?: string | null
+          youtube_url?: string | null
+          feature_image_url?: string | null
+          feature_title_1?: string | null
+          feature_desc_1?: string | null
+          feature_title_2?: string | null
+          feature_desc_2?: string | null
+          feature_title_3?: string | null
+          feature_desc_3?: string | null
+          feature_title_4?: string | null
+          feature_desc_4?: string | null
+          strength_1?: string | null
+          strength_2?: string | null
+          strength_3?: string | null
+          strength_4?: string | null
+          strength_5?: string | null
+          strength_6?: string | null
+          app_title_1?: string | null
+          app_image_1?: string | null
+          app_title_2?: string | null
+          app_image_2?: string | null
+          app_title_3?: string | null
+          app_image_3?: string | null
+          app_title_4?: string | null
+          app_image_4?: string | null
+          text_title_1?: string | null
+          text_desc_1?: string | null
+          text_image_url_1?: string | null
+          text_title_2?: string | null
+          text_desc_2?: string | null
+          text_image_url_2?: string | null
+          text_title_3?: string | null
+          text_desc_3?: string | null
+          text_image_url_3?: string | null
+          text_title_4?: string | null
+          text_desc_4?: string | null
+          text_image_url_4?: string | null
+          text_title_5?: string | null
+          text_desc_5?: string | null
+          text_image_url_5?: string | null
+          created_at?: string
+        }
+      }
+      product_media: {
+        Row: {
+          id: number
+          product_id: number
+          url: string
+          media_type: string
+          is_primary: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          product_id: number
+          url: string
+          media_type: string
+          is_primary?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          product_id?: number
+          url?: string
+          media_type?: string
+          is_primary?: boolean
           created_at?: string
         }
       }

@@ -1,4 +1,3 @@
-import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import PageContentContainer from '@/components/PageContentContainer';
@@ -17,10 +16,6 @@ const DownloadComponent = () => {
 
   return (
     <div>
-      <Head>
-        <title>{`회사소개 | 바이렉스`}</title>
-      </Head>
-
       <PageContentContainer
         backgroundClass="company-header-background"
         backgroundImage="/img/bg-support.webp"

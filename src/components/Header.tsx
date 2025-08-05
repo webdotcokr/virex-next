@@ -8,16 +8,16 @@ import { useAuth } from '@/contexts/AuthContext'
 const MENU_CONFIG = {
   products: {
     title: '제품',
-    mainLink: '/product',
+    mainLink: '/product-index',
     items: [
-      { label: '카메라', href: '/product/list?category_id=9' },
-      { label: '렌즈', href: '/product/list?category_id=10' },
-      { label: '3D 카메라', href: '/product/list?category_id=13' },
-      { label: '오토포커스 모듈', href: '/product/list?category_id=4' },
-      { label: '조명', href: '/product/list?category_id=15' },
-      { label: '프레임그래버', href: '/product/list?category_id=18' },
-      { label: '소프트웨어', href: '/product/list?category_id=7' },
-      { label: '주변기기', href: '/product/list?category_id=21' }
+      { label: '카메라', href: '/products?categories=9' },
+      { label: '렌즈', href: '/products?categories=15' },
+      { label: '3D 카메라', href: '/products?categories=18' },
+      { label: '오토포커스 모듈', href: '/products?categories=4' },
+      { label: '조명', href: '/products?categories=20' },
+      { label: '프레임그래버', href: '/products?categories=23' },
+      { label: '소프트웨어', href: '/products?categories=7' },
+      { label: '주변기기', href: '/products?categories=26' }
     ]
   },
   knowledge: {
@@ -128,51 +128,115 @@ export default function Header() {
     [handleScroll, throttle]
   )
 
-  // Megamenu handlers
+  // Unified megamenu handlers - no timeouts for smoother UX
+  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
+  
   const handleMenuItemEnter = (menuKey: string) => {
+    // Clear any pending hide timeout
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      setHoverTimeout(null)
+    }
+    
     setHoveredMenuItem(menuKey)
     setIsMegaMenuActive(true)
   }
 
   const handleMenuItemLeave = () => {
-    // Add small delay to prevent flickering
-    setTimeout(() => {
+    // Don't hide immediately - wait for potential megamenu enter
+    const timeout = setTimeout(() => {
       setHoveredMenuItem(null)
       setIsMegaMenuActive(false)
-    }, 100)
+    }, 100) // Slightly longer delay for mouse travel time
+    
+    setHoverTimeout(timeout)
   }
 
   const handleMegaMenuEnter = () => {
+    // Clear any pending hide timeout
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      setHoverTimeout(null)
+    }
+    
+    // Keep megamenu active
     setIsMegaMenuActive(true)
   }
 
   const handleMegaMenuLeave = () => {
+    // Hide immediately when leaving megamenu area
     setHoveredMenuItem(null)
     setIsMegaMenuActive(false)
+    
+    // Clear any pending timeout
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      setHoverTimeout(null)
+    }
   }
 
-  // Calculate menu item positions
+  // Enhanced menu item position calculation with debugging
   const calculateMenuPositions = useCallback(() => {
     const positions: Record<string, number> = {}
     
+    // Get container element
+    const containerElement = document.getElementById('top-menu')
+    if (!containerElement) {
+      console.warn('top-menu container not found')
+      return
+    }
+    
+    const containerRect = containerElement.getBoundingClientRect()
+    
     Object.keys(MENU_CONFIG).forEach((menuKey) => {
-      const menuElement = document.querySelector(`[data-menu="${menuKey}"]`)
+      const menuElement = document.querySelector(`[data-menu="${menuKey}"]`) as HTMLElement
       const submenuElement = menuElement?.querySelector('.submenu-column') as HTMLElement
       
       if (menuElement && submenuElement) {
         const menuRect = menuElement.getBoundingClientRect()
-        const submenuRect = submenuElement.getBoundingClientRect()
-        const containerRect = document.getElementById('top-menu')?.getBoundingClientRect()
         
-        if (containerRect) {
-          // Calculate center position of menu item relative to container
-          const menuCenter = menuRect.left + menuRect.width / 2 - containerRect.left
-          // Calculate how much to offset submenu to center it under menu item
-          const submenuHalfWidth = submenuRect.width / 2
-          const optimalLeft = menuCenter - submenuHalfWidth
-          
-          positions[menuKey] = optimalLeft
-        }
+        // Calculate center position of menu item relative to container
+        const menuCenter = menuRect.left + menuRect.width / 2 - containerRect.left
+        
+        // Get submenu width more reliably
+        const currentDisplay = submenuElement.style.display
+        const currentVisibility = submenuElement.style.visibility
+        const currentOpacity = submenuElement.style.opacity
+        
+        // Temporarily show to measure
+        submenuElement.style.display = 'block'
+        submenuElement.style.visibility = 'hidden'
+        submenuElement.style.opacity = '0'
+        
+        const submenuWidth = submenuElement.offsetWidth
+        
+        // Restore original styles
+        submenuElement.style.display = currentDisplay
+        submenuElement.style.visibility = currentVisibility
+        submenuElement.style.opacity = currentOpacity
+        
+        // Calculate optimal left position to center submenu under menu item
+        const submenuHalfWidth = submenuWidth / 2
+        let optimalLeft = menuCenter - submenuHalfWidth
+        
+        // Prevent submenu from going outside container bounds
+        const containerWidth = containerRect.width
+        const maxLeft = containerWidth - submenuWidth - 20 // 20px padding
+        const minLeft = 20 // 20px padding
+        
+        optimalLeft = Math.max(minLeft, Math.min(maxLeft, optimalLeft))
+        
+        positions[menuKey] = optimalLeft
+        
+        // Debug logging
+        console.log(`Menu ${menuKey}:`, {
+          menuCenter,
+          submenuWidth,
+          optimalLeft,
+          containerWidth
+        })
+      } else {
+        console.warn(`Menu element or submenu not found for ${menuKey}`)
       }
     })
     
@@ -197,7 +261,7 @@ export default function Header() {
     }
   }, [throttledHandleScroll, handleScroll])
 
-  // Setup position calculation
+  // Setup position calculation with ResizeObserver
   useEffect(() => {
     // Calculate positions after component mounts
     const timer = setTimeout(calculateMenuPositions, 100)
@@ -205,20 +269,50 @@ export default function Header() {
     // Recalculate on window resize
     window.addEventListener('resize', throttledCalculatePositions, { passive: true })
     
+    // Add ResizeObserver to watch header size changes
+    const headerElement = document.querySelector('header')
+    let resizeObserver: ResizeObserver | null = null
+    
+    if (headerElement && window.ResizeObserver) {
+      resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.target === headerElement) {
+            throttledCalculatePositions()
+          }
+        }
+      })
+      resizeObserver.observe(headerElement)
+    }
+    
     return () => {
       clearTimeout(timer)
       window.removeEventListener('resize', throttledCalculatePositions)
+      if (resizeObserver) {
+        resizeObserver.disconnect()
+      }
     }
   }, [calculateMenuPositions, throttledCalculatePositions])
 
+  // Cleanup hover timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeout) {
+        clearTimeout(hoverTimeout)
+      }
+    }
+  }, [hoverTimeout])
+
   // Recalculate positions when megamenu becomes active
   useEffect(() => {
-    if (isMegaMenuActive) {
-      // Small delay to ensure DOM is updated
+    if (isMegaMenuActive && hoveredMenuItem) {
+      // Immediate calculation when menu becomes active
+      calculateMenuPositions()
+      
+      // Also schedule a second calculation to handle any layout shifts
       const timer = setTimeout(calculateMenuPositions, 50)
       return () => clearTimeout(timer)
     }
-  }, [isMegaMenuActive, calculateMenuPositions])
+  }, [isMegaMenuActive, hoveredMenuItem, calculateMenuPositions])
 
   // Generate dynamic classes
   const headerClasses = [

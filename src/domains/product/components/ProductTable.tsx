@@ -30,11 +30,16 @@ export default function ProductTable({
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
 
   const handleCompareChange = useCallback((productId: string, checked: boolean) => {
+    if (checked && selectedProducts.length >= 4) {
+      // 최대 4개 제한
+      alert('최대 4개의 제품만 비교할 수 있습니다.')
+      return
+    }
+    
     const newSelected = checked 
       ? [...selectedProducts, productId]
       : selectedProducts.filter(id => id !== productId)
     
-    // 선택 개수 제한 없음 (문의하기 기능을 위해)
     setSelectedProducts(newSelected)
     onCompareChange?.(newSelected)
   }, [selectedProducts, onCompareChange])

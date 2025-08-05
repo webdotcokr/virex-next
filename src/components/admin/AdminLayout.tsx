@@ -86,7 +86,7 @@ export default function AdminLayout({
                 borderRadius: '12px',
                 p: { xs: 2, md: 3 },
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                minHeight: 'calc(100vh - 200px)',
+                height: 'calc(100vh - 120px)',
               }}
             >
               {children}

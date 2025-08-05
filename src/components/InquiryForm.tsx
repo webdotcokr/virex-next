@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 type InquiryType = 'quote' | 'tech' | 'edu' | 'etc';
 
@@ -18,6 +19,7 @@ interface FormData {
 }
 
 const InquiryForm = () => {
+  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState<InquiryType>('quote');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -40,6 +42,17 @@ const InquiryForm = () => {
     edu: '교육문의',
     etc: '기타'
   };
+
+  // URL 파라미터에서 products 값을 읽어서 product_name에 설정
+  useEffect(() => {
+    const productsParam = searchParams.get('products');
+    if (productsParam) {
+      setFormData(prev => ({
+        ...prev,
+        product_name: productsParam
+      }));
+    }
+  }, [searchParams]);
 
   const handleCategorySelect = (category: InquiryType) => {
     setSelectedCategory(category);

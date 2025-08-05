@@ -13,6 +13,10 @@
   border: 0;
 }
 
+footer #newsletter {
+  margin-top: 0;
+}
+
 /* Main Hero Section */
 .pageContentContainer {
   background: url('/img/bg-main.jpg') center/cover no-repeat;
@@ -180,7 +184,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
   color: #1a1a1a;
 }
 
@@ -218,6 +222,7 @@
   left: 1.5rem;
   display: flex;
   align-items: center;
+  gap: 6px;
   z-index: 2;
 }
 
@@ -276,7 +281,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
   color: #1a1a1a;
 }
 
@@ -286,7 +291,6 @@
   margin: 0.625rem auto 0;
   overflow: hidden;
   position: relative;
-  padding: 0 60px;
 }
 
 .newProductsItems {
@@ -302,20 +306,21 @@
   display: block;
   text-decoration: none;
   color: inherit;
-  flex: 0 0 21.3125rem;
+  flex: 0 0 18rem;
 }
 
 .newProductItem {
   background-color: #F1F3F5;
   border-radius: 0.5rem;
-  width: 21.3125rem;
+  width: 18rem;
   height: 15.625rem;
-  padding-bottom: 0.3rem;
+  padding: 1.5rem;
   transition: all 0.3s ease;
   overflow: hidden;
   cursor: pointer;
-  position: relative;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .newProductItem:hover {
@@ -323,24 +328,33 @@
   cursor: pointer;
 }
 
-.newProductItem img {
-  max-height: 9rem;
+/* 새로운 이미지 영역 */
+.newProductImageArea {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  min-height: 8rem;
+  padding-bottom: 0.5rem;
+}
+
+.newProductImageArea img {
+  max-height: 100%;
+  max-width: 65%;
   width: auto;
-  position: absolute;
-  top: 1.3rem;
-  right: 1.8rem;
   display: block;
   transition: all 0.3s ease;
   mix-blend-mode: multiply;
   object-fit: contain;
 }
 
-.newProductItem:hover img {
+.newProductItem:hover .newProductImageArea img {
   transform: scale(1.05);
 }
 
 .newProductItemTitleOuterWrapper {
-  margin: 9.3125rem 1.8125rem 1.5625rem 1.8125rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
 }
 
 .newProductItemTitleInnerWrapper {
@@ -380,14 +394,11 @@
   display: block;
   width: 2.5rem;
   height: 2.5rem;
-  background-color: white;
   border: 1px solid #ddd;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .btnNewProductPrev {
@@ -396,24 +407,6 @@
 
 .btnNewProductNext {
   right: 0.5rem;
-}
-
-.btnNewProductPrev:hover,
-.btnNewProductNext:hover {
-  background: #007bff;
-  border-color: #007bff;
-  transform: translateY(-50%) scale(1.1);
-}
-
-.btnNewProductPrev:hover img,
-.btnNewProductNext:hover img {
-  filter: brightness(0) invert(1);
-}
-
-.btnNewProductPrev:disabled,
-.btnNewProductNext:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .btnNewProductPrev img,
@@ -441,18 +434,13 @@
   border: none;
 }
 
-.sliderDot.active {
-  width: 22px;
-  background: #566BDA;
-}
-
 /* Tech Info Section */
 .techInfoOuterWrapper {
   width: 100%;
   margin-top: 3.75rem;
   background: #f8f9fa url(/img/bg-tech-info.svg) no-repeat bottom right;
   background-size: auto;
-  padding: 80px 0;
+  padding: 120px 0;
 }
 
 .techInfoInnerWrapper {
@@ -470,8 +458,8 @@
 .techInfoInnerWrapper h2 {
   font-size: 2.5rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  margin-bottom: 3rem;
+  letter-spacing: -0.05em;
+  margin-bottom: 1rem;
   color: #1a1a1a;
   width: 100%;
 }
@@ -486,39 +474,42 @@
   gap: 20px;
 }
 
+.techInfoItemLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  flex: 0 0 calc(20% - 16px);
+  min-width: 200px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.techInfoItemLink:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
 .techInfoItem {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 271px;
-  height: 377px;
+  width: 100%;
   position: relative;
   transition: all 0.3s ease;
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0f0f0;
-}
-
-.techInfoItem:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
 }
 
 .techInfoItem img {
   width: 100%;
-  height: 16.875rem;
   object-fit: cover;
   cursor: pointer;
   order: 1;
+  border-radius: .5em;
 }
 
 .techInfoItemTitle {
   margin-top: 0.875rem;
   text-align: center;
   font-weight: 500;
-  font-size: 1.125rem;
+  font-size: 1.025rem;
   color: #1a1a1a;
   cursor: pointer;
   order: 2;
@@ -530,8 +521,8 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  bottom: 0.5rem;
-  right: 0.5rem;
+  bottom: -3rem;
+  right: 0;
   cursor: pointer;
   opacity: 0;
   visibility: hidden;
@@ -548,8 +539,9 @@
 
 .readMoreText {
   font-size: 0.75rem;
+  font-family: "Montserrat", sans-serif;
   font-weight: 600;
-  color: #007bff;
+  color: var(--primary);
   margin-right: 0.625rem;
 }
 
@@ -642,6 +634,11 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     justify-content: space-between;
+  }
+
+  .techInfoItemLink {
+    flex: none;
+    min-width: auto;
   }
 
   .techInfoItem {
@@ -750,6 +747,11 @@
   .techInfoItems {
     gap: 0.5rem;
   }
+
+  .techInfoItemLink {
+    flex: none;
+    min-width: auto;
+  }
   
   .techInfoItemTitle {
     font-size: 0.75rem;
@@ -766,4 +768,30 @@
   .techInfoReadMore .readMoreArrow img {
     width: 1.25rem;
   }
+}
+
+/* Loading and warning states for tech info */
+.techInfoLoading {
+  text-align: center;
+  padding: 4rem 0;
+  color: #666;
+}
+
+.techInfoLoading p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.techInfoWarning {
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 0.25rem;
+}
+
+.techInfoWarning small {
+  color: #856404;
+  font-size: 0.85rem;
 }

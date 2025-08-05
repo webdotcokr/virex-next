@@ -20,7 +20,7 @@ export default function Home() {
     {
       title: '카메라',
       href: '/products?type=camera&category=CIS',
-      image: '/img/main-products/01.png'
+      image:  '/img/main-products/01.png'
     },
     {
       title: '렌즈',
@@ -87,51 +87,49 @@ export default function Home() {
     fetchNewProducts()
   }, [])
 
-  // Mock tech info data (would come from WordPress API)
-  const techInfoItems = [
-    {
-      id: 1,
-      title: 'Machine Vision의 최신 기술 동향',
-      image: '/img/tech/tech-01.jpg',
-      date: '2024-12-15',
-      href: 'https://blog.virex.co.kr/tech-trends-2024'
-    },
-    {
-      id: 2,
-      title: '산업용 카메라 선택 가이드',
-      image: '/img/tech/tech-02.jpg',
-      date: '2024-12-10',
-      href: 'https://blog.virex.co.kr/camera-selection-guide'
-    },
-    {
-      id: 3,
-      title: '3D 비전 시스템 구축 사례',
-      image: '/img/tech/tech-03.jpg',
-      date: '2024-12-05',
-      href: 'https://blog.virex.co.kr/3d-vision-case-study'
-    },
-    {
-      id: 4,
-      title: 'LED 조명 시스템 최적화 방법',
-      image: '/img/tech/tech-04.jpg',
-      date: '2024-11-28',
-      href: 'https://blog.virex.co.kr/led-lighting-optimization'
-    },
-    {
-      id: 5,
-      title: '머신비전용 렌즈 성능 비교',
-      image: '/img/tech/tech-05.jpg',
-      date: '2024-11-20',
-      href: 'https://blog.virex.co.kr/lens-performance-comparison'
+  // WordPress 연동 tech info data
+  const [techInfoItems, setTechInfoItems] = useState<Array<{
+    id: number;
+    title: string;
+    image: string;
+    date: string;
+    href: string;
+  }>>([])
+  const [techInfoLoading, setTechInfoLoading] = useState(true)
+  const [techInfoSource, setTechInfoSource] = useState<'wordpress' | 'fallback' | null>(null)
+
+  // Fetch tech info from WordPress API
+  useEffect(() => {
+    const fetchTechInfo = async () => {
+      try {
+        setTechInfoLoading(true)
+        const response = await fetch('/api/tech-info')
+        if (response.ok) {
+          const result = await response.json()
+          setTechInfoItems(result.data || [])
+          setTechInfoSource(result.source)
+          if (result.source === 'fallback') {
+            console.warn('WordPress API 실패, 폴백 데이터 사용:', result.error)
+          }
+        } else {
+          console.error('Tech info API 호출 실패')
+        }
+      } catch (error) {
+        console.error('Tech info 로딩 중 오류:', error)
+      } finally {
+        setTechInfoLoading(false)
+      }
     }
-  ]
+
+    fetchTechInfo()
+  }, [])
 
   const handleSlideChange = (slideNo: number) => {
     setCurrentSlide(slideNo)
   }
 
   const handleNewProductsNav = (direction: 'prev' | 'next') => {
-    const itemsPerView = 3
+    const itemsPerView = 4
     const maxIndex = Math.max(0, newProducts.length - itemsPerView)
     
     if (direction === 'next' && newProductsIndex < maxIndex) {
@@ -142,7 +140,7 @@ export default function Home() {
   }
 
   return (
-    <>
+    <div className="landing-page">
       <h1 className="sr-only">바이렉스(VIREX) - 머신비전, 광학 솔루션 & 컨설팅 전문 기업</h1>
       
       {/* Main Hero Section with Background Image and Slider */}
@@ -235,12 +233,14 @@ export default function Home() {
             <div className={styles.newProductsItemsContainer}>
               <div 
                 className={styles.newProductsItems}
-                style={{ transform: `translateX(-${newProductsIndex * 33.333}%)` }}
+                style={{ transform: `translateX(-${newProductsIndex * 25}%)` }}
               >
                 {newProducts.map((product) => (
                   <Link key={product.id} href={product.link_url} className={styles.newProductItemLink}>
                     <div className={styles.newProductItem}>
-                      <img src={product.img_url} alt={product.title} loading="lazy" />
+                      <div className={styles.newProductImageArea}>
+                        <img src={product.img_url} alt={product.title} loading="lazy" />
+                      </div>
                       <div className={styles.newProductItemTitleOuterWrapper}>
                         <div className={styles.newProductItemTitleInnerWrapper}>
                           <h3 className={styles.newProductItemTitle}>{product.title}</h3>
@@ -257,7 +257,7 @@ export default function Home() {
             </div>
             
             <div className={styles.sliderDotController}>
-              {Array.from({ length: Math.ceil(newProducts.length / 3) }).map((_, index) => (
+              {Array.from({ length: Math.ceil(newProducts.length / 4) }).map((_, index) => (
                 <button
                   key={index}
                   className={`${styles.sliderDot} ${index === newProductsIndex ? styles.active : ''}`}
@@ -269,7 +269,7 @@ export default function Home() {
             <button 
               className={styles.btnNewProductNext}
               onClick={() => handleNewProductsNav('next')}
-              disabled={newProductsIndex >= Math.max(0, newProducts.length - 3)}
+              disabled={newProductsIndex >= Math.max(0, newProducts.length - 4)}
             >
               <img src="/img/btn-slide-next-gray.svg" alt="Next" />
             </button>
@@ -281,24 +281,45 @@ export default function Home() {
       <div className={styles.techInfoOuterWrapper}>
         <div className={styles.techInfoInnerWrapper}>
           <h2>최신 기술지식 및 정보</h2>
-          <div className={styles.techInfoItems}>
-            {techInfoItems.map((item) => (
-              <div key={item.id} className={styles.techInfoItem} data-date={item.date}>
-                <img src={item.image} alt={item.title} loading="lazy" />
-                <div className={styles.techInfoItemTitle}>{item.title}</div>
-                <div className={styles.techInfoReadMore}>
-                  <Link href={item.href} target="_blank" rel="noopener noreferrer">
-                    <span className={styles.readMoreText}>Read more</span>
-                    <span className={styles.readMoreArrow}>
-                      <img src="/img/btn-read-more-tech-info.svg" alt="Read more" loading="lazy" />
-                    </span>
-                  </Link>
+          {techInfoLoading ? (
+            <div className={styles.techInfoLoading}>
+              <p>최신 기술 정보를 불러오는 중...</p>
+            </div>
+          ) : (
+            <>
+              {techInfoSource === 'fallback' && (
+                <div className={styles.techInfoWarning}>
+                  <small>⚠️ WordPress 연결 실패, 캐시된 데이터를 표시합니다</small>
                 </div>
+              )}
+              <div className={styles.techInfoItems}>
+                {techInfoItems.map((item) => (
+                  <Link key={item.id} href={item.href} className={styles.techInfoItemLink}>
+                    <div className={styles.techInfoItem} data-date={item.date} data-url={item.href}>
+                      <img 
+                        src={item.image} 
+                        alt={item.title} 
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/img/main/noImg.jpg';
+                        }}
+                      />
+                      <div className={styles.techInfoItemTitle}>{item.title}</div>
+                      <div className={styles.techInfoReadMore} data-url={item.href}>
+                        <span className={styles.readMoreText}>Read more</span>
+                        <span className={styles.readMoreArrow}>
+                          <img src="/img/btn-read-more-tech-info.svg" alt="Read more" loading="lazy" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
       </div>
-    </>
+    </div>
   )
 }

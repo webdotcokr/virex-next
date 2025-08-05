@@ -4,6 +4,7 @@ import styles from '../../../app/(portal)/products/products.module.css'
 
 interface FloatingActionButtonsProps {
   selectedProductsCount?: number
+  selectedProducts?: string[]
   onProductQuestion?: () => void
   onProductComparison?: () => void
   onKnowledgeCenter?: () => void
@@ -12,6 +13,7 @@ interface FloatingActionButtonsProps {
 
 export default function FloatingActionButtons({
   selectedProductsCount = 0,
+  selectedProducts = [],
   onProductQuestion,
   onProductComparison,
   onKnowledgeCenter,

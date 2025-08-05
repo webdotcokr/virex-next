@@ -491,14 +491,14 @@ header.scrolled .horizontal-line {
   text-decoration: none;
 }
 
-/* Megamenu styles */
+/* Megamenu styles - improved for better hover detection */
 #megamenu-container {
   position: absolute;
   top: 0%;
   left: 0;
   width: 100%;
   height: 0;
-  /* overflow: hidden; */
+  overflow: hidden; /* Re-enable to prevent content overflow when closed */
   transition: height 0.3s ease;
   background-color: var(--primary);
   background-image: url(/img/bg-megamenu.svg);
@@ -574,29 +574,11 @@ header .horizontal-menu .top-menu-item.active a {
   font-weight: bold;
 }
 
-/* Set specific positions for each submenu column to create a table-like layout */
-.top-menu-item[data-menu="products"] .submenu-column {
-  left: -2rem;
-}
-
-.top-menu-item[data-menu="knowledge"] .submenu-column {
-  left: 6rem; /* 지식 메뉴 위치 조정 */
-}
-
-.top-menu-item[data-menu="news"] .submenu-column {
-  left: 15rem; /* 뉴스 메뉴 위치 조정 */
-}
-
-.top-menu-item[data-menu="support"] .submenu-column {
-  left: 24rem; /* 고객지원 메뉴 위치 조정 */
-}
-
-.top-menu-item[data-menu="contact"] .submenu-column {
-  left: 33rem; /* 문의하기 메뉴 위치 조정 */
-}
-
-.top-menu-item[data-menu="company"] .submenu-column {
-  left: 41rem; /* 바이렉스 메뉴 위치 조정 */
+/* Dynamic positioning - React will calculate and set left positions */
+.top-menu-item[data-menu] .submenu-column {
+  left: auto; /* Will be set dynamically by React */
+  transition: left 0.2s ease, opacity 0.2s ease;
+  will-change: left; /* Optimize for position changes */
 }
 
 /* Style the submenu content */
@@ -742,6 +724,10 @@ header .horizontal-menu .top-menu-item.active a {
   margin: 0 0.5rem;
 }
 
+#page-content #breadcrumb .arrow img {
+  display: inline;
+}
+
 /* Title styling */
 #page-content .page-title-en {
   color: rgba(255, 255, 255, 0.4);
@@ -752,6 +738,7 @@ header .horizontal-menu .top-menu-item.active a {
   line-height: normal;
   letter-spacing: -0.03rem;
   margin-top: 2.69rem;
+  text-align: center;
 }
 
 #page-content .page-title-en-light {
@@ -787,9 +774,16 @@ header .horizontal-menu .top-menu-item.active a {
 /** Footer */
 footer {
   width: 100%;
-  margin-top: 7rem;
   background-color: var(--bg-footer);
+  margin-top: 7rem;
 }
+
+/* Remove footer margin-top when main contains virex-page or landing-page */
+main:has(.virex-page) ~ footer,
+main:has(.landing-page) ~ footer {
+  margin-top: 0 !important;
+}
+
 
 footer #newsletter {
   color: var(--white);
@@ -827,15 +821,15 @@ footer #newsletter .newsletter-contents {
   color: var (--gray300);
   font-family: var(--ft-en);
   font-size: 0.9375rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: -0.01875rem;
 }
 
 footer #newsletter .newsletter-title {
   color: var(--white);
   font-size: 2.125rem;
-  font-weight: 500;
-  letter-spacing: -0.0425rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
   margin-top: 0.69rem;
 }
 
@@ -979,7 +973,7 @@ footer #footer-contents #footer-company-info {
 .info-item .info-item-value {
   color: var(--white);
   font-size: 0.8375rem;
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: -0.01875rem;
 }
 
@@ -992,7 +986,7 @@ footer #footer-gnb-menu {
 footer #footer-gnb-menu .gnb-menu-group .gnb-menu-group-title {
   color: var(--fg-gnb-label);
   font-size: 0.9375rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.01875rem;
   padding-bottom: 1rem;
 }
@@ -1000,9 +994,8 @@ footer #footer-gnb-menu .gnb-menu-group .gnb-menu-group-title {
 footer #footer-gnb-menu .gnb-menu-group .gnb-menu-group-item {
   color: var(--white);
   font-size: 0.9375rem;
-  font-weight: 300;
+  font-weight: 500;
   line-height: 2.25rem;
-  /* 240% */
   letter-spacing: -0.01875rem;
 }
 
@@ -1289,15 +1282,15 @@ footer #footer-bottom #footer-copyright {
     }
     
     .icon-email {
-      left: 0.125rem;
-      top: 0.25rem;
+      left: 0.25rem;
+      top: 0.5rem;
       width: 1.75rem;
       height: 1.75rem;
     }
     
     .newsletter-input input {
       font-size: 0.875rem;
-      padding-left: 3rem;
+      padding-left: 2.5rem;
     }
     
     .btn-newsletter-submit {
@@ -2343,29 +2336,9 @@ footer #footer-bottom #footer-copyright {
     gap: 3rem;
   }
   
-  /* 메가메뉴 위치 조정 */
-  .top-menu-item[data-menu="products"] .submenu-column {
-    left: 0;
-  }
-  
-  .top-menu-item[data-menu="news"] .submenu-column {
-    left: 6rem; /* 뉴스를 지식 원래 자리로 */
-  }
-  
-  .top-menu-item[data-menu="support"] .submenu-column {
-    left: 12rem; /* 고객지원을 뉴스 원래 자리로 */
-  }
-  
-  .top-menu-item[data-menu="contact"] .submenu-column {
-    left: 18rem; /* 문의하기를 고객지원 원래 자리로 */
-  }
-  
-  .top-menu-item[data-menu="company"] .submenu-column {
-    left: 24rem; /* 바이렉스를 문의하기 원래 자리로 */
-  }
-  
-  .top-menu-item[data-menu="knowledge"] .submenu-column {
-    left: 30rem; /* 지식을 맨 뒤로 */
+  /* Dynamic positioning for smaller screens - React will calculate positions */
+  .top-menu-item[data-menu] .submenu-column {
+    left: auto !important; /* Override any fixed positions */
   }
 }
 
@@ -3277,6 +3250,10 @@ body.megamenu-open {
     padding-left: 1rem;
     padding-right: 1rem;
   }
+
+  footer #footer-gnb-menu {
+    display: none;
+  }
   
   .mobile-menu-content {
     flex-direction: column;
@@ -3818,22 +3795,34 @@ header.scrolled #search-bar .close-icon {
 /* MEGAMENU POSITIONING FIXES    */
 /* ============================== */
 
-/* Fix megamenu container positioning and z-index for sticky header */
+/* Fix megamenu container positioning for seamless hover */
 #megamenu-container {
   position: absolute !important;
   top: 100% !important; /* Position right below header */
   left: 0 !important;
-  z-index: 999 !important; /* Higher than header z-index */
+  width: 100% !important;
+  z-index: 999 !important;
+  pointer-events: auto; /* Always enable for hover detection */
+  
+  /* Create bridge area between header and megamenu */
+  padding-top: 1px; /* Small overlap to prevent gaps */
+  margin-top: -1px; /* Pull up slightly to connect with header */
 }
 
-/* Remove fixed left positions - let React handle dynamic positioning */
-.top-menu-item[data-menu="products"] .submenu-column,
-.top-menu-item[data-menu="knowledge"] .submenu-column,
-.top-menu-item[data-menu="news"] .submenu-column,
-.top-menu-item[data-menu="support"] .submenu-column,
-.top-menu-item[data-menu="contact"] .submenu-column,
-.top-menu-item[data-menu="company"] .submenu-column {
-  left: auto !important; /* Let React handle positioning */
+/* Ensure megamenu content doesn't interfere when inactive */
+#megamenu-container:not(.active) {
+  pointer-events: none;
+}
+
+#megamenu-container.active {
+  pointer-events: auto;
+}
+
+/* Enhanced submenu positioning - React handles all positioning dynamically */
+.top-menu-item[data-menu] .submenu-column {
+  left: auto !important; /* Let React handle all positioning */
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  will-change: left; /* Optimize for position changes */
 }
 
 /* Ensure submenu columns are positioned correctly */
@@ -3844,13 +3833,40 @@ header.scrolled #search-bar .close-icon {
   white-space: nowrap;
 }
 
-/* Update z-index hierarchy */
+/* Expand hover area for smoother interaction */
+.top-menu-item {
+  position: relative;
+}
+
+/* Create invisible bridge between menu item and megamenu */
+.top-menu-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -10px;
+  right: -10px;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/* Extend hover area when megamenu is active */
+header.megamenu-active .top-menu-item::before {
+  bottom: -480px; /* Extend down to cover megamenu height */
+}
+
+/* Update z-index hierarchy for smooth hover */
 header #top-menu {
   z-index: 1000;
 }
 
 #megamenu-container {
-  z-index: 1001;
+  z-index: 999; /* Lower than header to prevent interference */
+}
+
+/* Ensure submenu is above megamenu background */
+.submenu-column {
+  z-index: 1002;
 }
 
 /* Responsive handling - disable megamenu on mobile */

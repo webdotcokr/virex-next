@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Head from 'next/head';
 import Link from 'next/link';
 import PageContentContainer from '@/components/PageContentContainer';
 import { supabase } from '@/lib/supabase';
@@ -106,9 +105,6 @@ const NoticeDetailPage = () => {
   if (loading) {
     return (
       <div>
-        <Head>
-          <title>공지사항 | 바이렉스</title>
-        </Head>
         <PageContentContainer
           backgroundClass="news-header-background"
           backgroundImage="/img/bg-news.webp"
@@ -128,9 +124,6 @@ const NoticeDetailPage = () => {
   if (error) {
     return (
       <div>
-        <Head>
-          <title>오류 | 바이렉스</title>
-        </Head>
         <PageContentContainer
           backgroundClass="news-header-background"
           backgroundImage="/img/bg-company.webp"
@@ -158,10 +151,6 @@ const NoticeDetailPage = () => {
 
   return (
     <div>
-      <Head>
-        <title>{`${article.title} | 바이렉스`}</title>
-      </Head>
-
       <PageContentContainer
         backgroundClass="news-header-background"
         backgroundImage="/img/bg-company.webp"

@@ -39,9 +39,12 @@ import {
   FilterList as FilterIcon,
   ExpandMore as ExpandMoreIcon,
   Upload as UploadIcon,
+  Download as DownloadIcon,
+  FileUpload as FileUploadIcon,
 } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import CSVSyncModal from './CSVSyncModal';
 import type { Database } from '@/lib/supabase';
 
 type Product = Database['public']['Tables']['products']['Row'];
@@ -163,6 +166,11 @@ export default function ProductsDataGrid() {
     product: null as Product | null,
     references: [] as ReferenceInfo[],
     loading: false,
+  });
+
+  // CSV Upload dialog state
+  const [csvDialog, setCsvDialog] = useState({
+    open: false,
   });
   
   // Snackbar state
@@ -674,6 +682,27 @@ export default function ProductsDataGrid() {
     }
   };
 
+  // Handle CSV sync
+  const handleCSVSync = async (operations: any[]) => {
+    try {
+      // Operations are handled by the CSVSyncModal itself
+      // Just refresh the data and show success message
+      await fetchData();
+      setSnackbar({
+        open: true,
+        message: `Successfully processed ${operations.length} operations`,
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error('CSV sync error:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to sync CSV data',
+        severity: 'error',
+      });
+    }
+  };
+
   // Handle export
   const handleExport = () => {
     if (rows.length === 0) {
@@ -788,7 +817,7 @@ export default function ProductsDataGrid() {
   };
 
   return (
-    <Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <Box sx={{ 
         mb: 3, 
@@ -822,8 +851,17 @@ export default function ProductsDataGrid() {
             CSV Import
           </Button>
           <Button
+            variant="outlined"
+            onClick={() => setCsvDialog({ open: true })}
+            startIcon={<FileUploadIcon />}
+            sx={{ minWidth: 120 }}
+          >
+            CSV Upload
+          </Button>
+          <Button
             variant="contained"
             onClick={handleExport}
+            startIcon={<DownloadIcon />}
             sx={{ minWidth: 120 }}
           >
             Export CSV
@@ -861,7 +899,7 @@ export default function ProductsDataGrid() {
       </Box>
 
       {/* Data Grid */}
-      <Box sx={{ height: 600, width: '100%', minHeight: 400 }}>
+      <Box sx={{ height: { xs: 400, md: 600 }, width: '100%' }}>
         <DataGrid
           rows={rows}
           columns={columns}
@@ -875,7 +913,6 @@ export default function ProductsDataGrid() {
           filterModel={filterModel}
           onFilterModelChange={setFilterModel}
           sx={{
-            height: '100%',
             border: 'none',
             '& .MuiDataGrid-columnHeaders': {
               backgroundColor: '#F8F9FB',
@@ -1138,6 +1175,15 @@ export default function ProductsDataGrid() {
         itemType="product"
         references={deleteDialog.references}
         loading={deleteDialog.loading}
+      />
+
+      {/* CSV Upload Modal */}
+      <CSVSyncModal
+        open={csvDialog.open}
+        onClose={() => setCsvDialog({ open: false })}
+        onSync={handleCSVSync}
+        tableName="products"
+        title="Upload Products"
       />
 
       {/* Snackbar */}

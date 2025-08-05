@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
 import Link from 'next/link';
 import PageContentContainer from '@/components/PageContentContainer';
 import { supabase } from '@/lib/supabase';
@@ -27,16 +26,66 @@ const NoticePage = () => {
   ];
 
   useEffect(() => {
-    fetchNews();
+    const abortController = new AbortController();
+    
+    const fetchNewsData = async () => {
+      try {
+        setLoading(true);
+        setError(null); // Reset error state
+        
+        const { data, error, count } = await supabase
+          .from('news')
+          .select('*', { count: 'exact' })
+          .eq('category_id', 1) // 공지사항 카테고리
+          .order('is_featured', { ascending: false })
+          .order('created_at', { ascending: false })
+          .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+
+        if (error) {
+          console.error('❌ Supabase error:', error);
+          throw error;
+        }
+
+        // AbortController 체크
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        setNews(data || []);
+        setTotalCount(count || 0);
+      } catch (err) {
+        console.error('❌ Error fetching news:', err);
+        
+        if (!abortController.signal.aborted) {
+          setError(err instanceof Error ? err.message : '뉴스를 불러오는데 실패했습니다.');
+          setNews([]); // Reset data on error
+          setTotalCount(0);
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchNewsData();
+
+    // Cleanup function
+    return () => {
+      abortController.abort();
+    };
   }, [currentPage]);
 
   const fetchNews = async () => {
+    // 수동 새로고침용 함수
     try {
       setLoading(true);
+      setError(null);
+      
       const { data, error, count } = await supabase
         .from('news')
         .select('*', { count: 'exact' })
-        .eq('category_id', 1) // 공지사항 카테고리
+        .eq('category_id', 1)
         .order('is_featured', { ascending: false })
         .order('created_at', { ascending: false })
         .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
@@ -46,7 +95,10 @@ const NoticePage = () => {
       setNews(data || []);
       setTotalCount(count || 0);
     } catch (err) {
+      console.error('❌ Error fetching news:', err);
       setError(err instanceof Error ? err.message : '뉴스를 불러오는데 실패했습니다.');
+      setNews([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
@@ -109,10 +161,6 @@ const NoticePage = () => {
 
   return (
     <div>
-      <Head>
-        <title>{`공지사항 | 바이렉스`}</title>
-      </Head>
-
       <PageContentContainer
         backgroundClass="company-header-background"
         backgroundImage="/img/bg-news.webp"

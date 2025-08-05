@@ -107,44 +107,36 @@ export default function Footer() {
             <div className="info-item-label">E-mail</div>
             <div className="info-item-value">ts@virex.co.kr</div>
           </div>
-          <div className="shortcut-item-group only-mobile">
-            <div className="shortcut-item">
-              <Link href="/company/privacy-policy">개인정보처리방침</Link>
-            </div>
-            <div className="shortcut-item">
-              <Link href="/blog">블로그</Link>
-            </div>
-          </div>
         </div>
 
         <div id="footer-gnb-menu" className="only-desktop">
           <div className="gnb-menu-group">
             <div className="gnb-menu-group-title">
-              <Link href="/product">제품</Link>
+              <Link href="/product-index">제품</Link>
             </div>
             <div className="gnb-menu-group-item">
-              <Link href="/product/camera">카메라</Link>
+              <Link href="/products?categories=9">카메라</Link>
             </div>
             <div className="gnb-menu-group-item">
-              <Link href="/product/lens">렌즈</Link>
+              <Link href="/products?categories=15">렌즈</Link>
             </div>
             <div className="gnb-menu-group-item">
-              <Link href="/product/3d-camera">3D카메라</Link>
+              <Link href="/products?categories=18">3D카메라</Link>
             </div>
             <div className="gnb-menu-group-item">
-              <Link href="/product/af-module">오토포커스 모듈</Link>
+              <Link href="/products?categories=4">오토포커스 모듈</Link>
             </div>
             <div className="gnb-menu-group-item">
-              <Link href="/product/light">조명</Link>
+              <Link href="/products?categories=20">조명</Link>
             </div>
             <div className="gnb-menu-group-item">
-              <Link href="/product/frame-grabber">프레임그래버</Link>
+              <Link href="/products?categories=23">프레임그래버</Link>
             </div>
             <div className="gnb-menu-group-item">
-              <Link href="/product/software">소프트웨어</Link>
+              <Link href="/products?categories=7">소프트웨어</Link>
             </div>
             <div className="gnb-menu-group-item">
-              <Link href="/product/accessory">주변기기</Link>
+              <Link href="/products?categories=26">주변기기</Link>
             </div>
           </div>
           

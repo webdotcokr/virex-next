@@ -6,7 +6,7 @@ import { useFilterStore } from '@/lib/store'
 import { buildFilterUrl } from '@/lib/utils'
 import { getConfigByCategoryName, categoryConfigs } from '../config/category-filters'
 import { buildFilterQuery } from '../services/filter-query-builder'
-import { X, ChevronDown, ChevronUp } from 'lucide-react'
+import { X } from 'lucide-react'
 import styles from '../../../app/(portal)/products/products.module.css'
 import type { Category, AdvancedFilterOption } from '../types'
 
@@ -272,7 +272,6 @@ export default function FilterSidebar({
                     )}
                   </span>
                   <span className={styles.filterExpandToggle}>
-                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </span>
                 </h4>
                 

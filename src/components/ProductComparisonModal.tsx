@@ -11,6 +11,23 @@ interface ProductComparisonModalProps {
   onRemoveProduct: (productId: string) => void
 }
 
+// 스펙 필드 라벨 매핑
+const specFieldLabels: Record<string, string> = {
+  scan_width: 'Scan width',
+  dpi: 'DPI',
+  resolution: 'Resolution',
+  line_rate: 'Line rate',
+  speed: 'Speed',
+  wd: 'WD',
+  no_of_pixels: 'No. of Pixels',
+  spectrum: 'Spectrum',
+  interface: 'Interface',
+  mega_pixel: 'Mega Pixel',
+  frame_rate: 'Frame Rate',
+  sensor_model: 'Sensor Model',
+  lens_mount: 'Lens Mount'
+}
+
 export default function ProductComparisonModal({
   isOpen,
   onClose,
@@ -54,6 +71,10 @@ export default function ProductComparisonModal({
     return typeof value === 'object' ? JSON.stringify(value) : String(value)
   }
 
+  const getFieldLabel = (field: string): string => {
+    return specFieldLabels[field] || field
+  }
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
@@ -66,46 +87,65 @@ export default function ProductComparisonModal({
       <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-6xl">
           {/* Header */}
-          <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium leading-6 text-gray-900">
-                제품 비교 ({products.length}개)
+          <div className="bg-[#1a3a52] px-6 py-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-white">
+                제품 비교
               </h3>
               <button
                 type="button"
-                className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
+                className="rounded-md bg-transparent text-white hover:text-gray-200 focus:outline-none"
                 onClick={onClose}
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
+          </div>
 
+          {/* Body */}
+          <div className="bg-white px-6 py-4">
             {products.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">비교할 제품이 없습니다.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="w-full border-collapse">
+                  <thead>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                        항목
+                      <th className="border border-gray-300 bg-gray-100 p-3 text-left text-sm font-medium text-gray-700 w-40">
+                        &nbsp;
                       </th>
                       {products.map((product) => (
-                        <th key={product.id} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-64">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-semibold text-gray-900 text-sm">
-                                {product.part_number}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {product.series}
-                              </div>
+                        <th key={product.id} className="border border-gray-300 bg-[#1a3a52] p-3 text-center min-w-[200px]">
+                          <div className="relative">
+                            {/* 제품 이미지 */}
+                            <div className="mb-2 flex justify-center">
+                              <img 
+                                src={product.image_url || '/common/virex-logo-color.png'} 
+                                alt={product.part_number}
+                                className="h-24 w-auto object-contain"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = '/common/virex-logo-color.png'
+                                }}
+                              />
                             </div>
+                            {/* 제품 정보 */}
+                            <div className="text-white">
+                              <div className="font-semibold text-sm mb-1">
+                                {product.series || 'LineX CIS Max'}
+                              </div>
+                              <button
+                                onClick={() => window.open(`/support/inquiry?products=${encodeURIComponent(product.part_number)}`, '_blank')}
+                                className="bg-gray-600 hover:bg-gray-700 text-white text-xs px-3 py-1 rounded transition-colors"
+                              >
+                                상품 문의하기
+                              </button>
+                            </div>
+                            {/* 제거 버튼 */}
                             <button
                               onClick={() => onRemoveProduct(product.part_number)}
-                              className="ml-2 text-red-400 hover:text-red-600"
+                              className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
                               title="제품 제거"
                             >
                               <X className="h-4 w-4" />
@@ -115,86 +155,60 @@ export default function ProductComparisonModal({
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {/* 기본 정보 */}
-                    <tr className="bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        제조사
-                      </td>
-                      {products.map((product) => (
-                        <td key={product.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {product.maker_name || '-'}
-                        </td>
-                      ))}
-                    </tr>
+                  <tbody>
+                    {/* Series */}
                     <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        카테고리
+                      <td className="border border-gray-300 bg-gray-100 p-3 text-sm font-medium text-gray-700">
+                        Series
                       </td>
                       {products.map((product) => (
-                        <td key={product.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {product.category?.name || '-'}
+                        <td key={product.id} className="border border-gray-300 p-3 text-sm text-gray-900 text-center">
+                          {product.series || '-'}
                         </td>
                       ))}
                     </tr>
-                    <tr className="bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        상태
+                    
+                    {/* Part Number */}
+                    <tr>
+                      <td className="border border-gray-300 bg-gray-100 p-3 text-sm font-medium text-gray-700">
+                        Part Number
                       </td>
                       {products.map((product) => (
-                        <td key={product.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {product.is_new ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              신제품
-                            </span>
-                          ) : (
-                            '-'
-                          )}
+                        <td key={product.id} className="border border-gray-300 p-3 text-sm text-gray-900 text-center">
+                          {product.part_number}
                         </td>
                       ))}
                     </tr>
 
                     {/* 동적 스펙 비교 */}
-                    {specificationFields.map((field, index) => (
-                      <tr key={field} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {field}
+                    {specificationFields.map((field) => (
+                      <tr key={field}>
+                        <td className="border border-gray-300 bg-gray-100 p-3 text-sm font-medium text-gray-700">
+                          {getFieldLabel(field)}
                         </td>
                         {products.map((product) => (
-                          <td key={product.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td key={product.id} className="border border-gray-300 p-3 text-sm text-gray-900 text-center">
                             {getSpecValue(product, field)}
                           </td>
                         ))}
                       </tr>
                     ))}
+                    
+                    {/* Maker */}
+                    <tr>
+                      <td className="border border-gray-300 bg-gray-100 p-3 text-sm font-medium text-gray-700">
+                        Maker
+                      </td>
+                      {products.map((product) => (
+                        <td key={product.id} className="border border-gray-300 p-3 text-sm text-gray-900 text-center">
+                          {product.maker_name || 'INSNEX'}
+                        </td>
+                      ))}
+                    </tr>
                   </tbody>
                 </table>
               </div>
             )}
-          </div>
-
-          {/* Footer */}
-          <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-            <button
-              type="button"
-              className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
-              onClick={() => {
-                if (products.length > 0) {
-                  // 제품문의 페이지로 이동하면서 선택된 제품 정보 전달
-                  const productNames = products.map(p => p.part_number).join(', ')
-                  window.location.href = `/support/inquiry?product_name=${encodeURIComponent(productNames)}`
-                }
-              }}
-            >
-              제품문의하기
-            </button>
-            <button
-              type="button"
-              className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-              onClick={onClose}
-            >
-              닫기
-            </button>
           </div>
         </div>
       </div>
