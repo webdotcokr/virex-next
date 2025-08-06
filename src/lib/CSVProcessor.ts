@@ -4,9 +4,9 @@
  */
 
 interface ParsedCSVRow {
-  basicFields: Record<string, any>;
-  specifications: Record<string, any>;
-  originalRow: Record<string, any>;
+  basicFields: Record<string, unknown>;
+  specifications: Record<string, unknown>;
+  originalRow: Record<string, unknown>;
   rowIndex: number;
 }
 
@@ -172,7 +172,7 @@ export class CSVProcessor {
       if (values.length === 0) continue; // Skip empty rows
       
       // Create row object
-      const rowData: Record<string, any> = {};
+      const rowData: Record<string, unknown> = {};
       headers.forEach((header, index) => {
         rowData[header] = values[index] || '';
       });
@@ -255,18 +255,18 @@ export class CSVProcessor {
   /**
    * Convert flat CSV row to structured format with specifications JSONB
    */
-  private static convertRowToStructured(csvRow: Record<string, any>): {
-    basicFields: Record<string, any>;
-    specifications: Record<string, any>;
+  private static convertRowToStructured(csvRow: Record<string, unknown>): {
+    basicFields: Record<string, unknown>;
+    specifications: Record<string, unknown>;
   } {
-    const basicFields: Record<string, any> = {};
-    const specifications: Record<string, any> = {};
+    const basicFields: Record<string, unknown> = {};
+    const specifications: Record<string, unknown> = {};
     
     Object.entries(csvRow).forEach(([key, value]) => {
       const lowerKey = key.toLowerCase();
       
       if (lowerKey.startsWith('spec_')) {
-        // Extract specification field
+        // Extract specification field with spec_ prefix
         const specKey = key.substring(5); // Remove 'spec_' prefix
         if (value !== '' && value !== null && value !== undefined) {
           specifications[specKey] = this.convertValueType(value, specKey);
@@ -274,6 +274,11 @@ export class CSVProcessor {
       } else if (this.BASIC_FIELDS.includes(lowerKey)) {
         // Basic product field
         basicFields[lowerKey] = this.convertBasicFieldValue(lowerKey, value);
+      } else {
+        // Any other field becomes a specification (for backward compatibility)
+        if (value !== '' && value !== null && value !== undefined) {
+          specifications[key] = this.convertValueType(value, key);
+        }
       }
     });
     
@@ -294,7 +299,7 @@ export class CSVProcessor {
   /**
    * Convert value to appropriate type based on field name and content
    */
-  private static convertValueType(value: any, fieldKey: string): any {
+  private static convertValueType(value: unknown, fieldKey: string): unknown {
     if (value === '' || value === null || value === undefined) {
       return null;
     }
@@ -331,7 +336,7 @@ export class CSVProcessor {
   /**
    * Convert basic field values to appropriate types
    */
-  private static convertBasicFieldValue(fieldKey: string, value: any): any {
+  private static convertBasicFieldValue(fieldKey: string, value: unknown): unknown {
     if (value === '' || value === null || value === undefined) {
       return null;
     }
@@ -357,8 +362,8 @@ export class CSVProcessor {
    * Validate a parsed row
    */
   private static validateRow(
-    basicFields: Record<string, any>,
-    specifications: Record<string, any>,
+    basicFields: Record<string, unknown>,
+    specifications: Record<string, unknown>,
     rowIndex: number
   ): ValidationError[] {
     const errors: ValidationError[] = [];
@@ -492,8 +497,17 @@ export class CSVProcessor {
    */
   static generateSyncOperations(
     parsedData: ParsedCSVRow[],
-    existingProducts: any[] = []
-  ): any[] {
+    existingProducts: Array<{part_number: string; specifications: Record<string, unknown>}> = []
+  ): Array<{
+    id: string;
+    type: 'INSERT' | 'UPDATE' | 'SKIP';
+    table: string;
+    data: Record<string, unknown>;
+    reason: string;
+    conflicts?: string[];
+    selected: boolean;
+    originalRow: ParsedCSVRow;
+  }> {
     // This would typically compare with existing database records
     // For now, we'll simulate the operations
     

@@ -61,7 +61,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
   const renderSpecifications = () => {
     if (!product.specifications) return null
     
-    const specs = product.specifications as Record<string, any>
+    const specs = product.specifications as Record<string, unknown>
     const categoryName = product.category_name?.toLowerCase() || ''
     
     const specRows = []

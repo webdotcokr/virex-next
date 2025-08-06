@@ -1,6 +1,29 @@
 import { supabase } from '@/lib/supabase'
 import type { Product, Category, FilterState, ProductSearchResult } from '../types'
 
+// 카테고리 ID to 테이블명 매핑
+const CATEGORY_TABLE_MAPPING: Record<number, string> = {
+  9: 'products_cis',        // CIS
+  10: 'products_tdi',       // TDI
+  11: 'products_line',      // Line
+  12: 'products_area',      // Area
+  13: 'products_invisible', // Invisible
+  14: 'products_scientific',// Scientific
+  15: 'products_large_format_lens', // Large Format Lens
+  16: 'products_telecentric',       // Telecentric
+  17: 'products_fa_lens',           // FA Lens
+  18: 'products_3d_laser_profiler', // 3D Laser Profiler
+  19: 'products_3d_stereo_camera',  // 3D Stereo Camera
+  20: 'products_light',             // Light
+  22: 'products_controller',        // Controller
+  23: 'products_frame_grabber',     // Frame Grabber
+  24: 'products_gige_lan_card',     // GigE LAN Card
+  25: 'products_usb_card',          // USB Card
+  7: 'products_software',           // Software
+  26: 'products_cable',             // Cable
+  27: 'products_accessory'          // Accessory
+}
+
 export class ProductService {
   static async getProducts(filters: Partial<FilterState> = {}): Promise<ProductSearchResult> {
     console.log('Attempting to fetch products with filters:', filters)
@@ -17,30 +40,52 @@ export class ProductService {
       limit = 20
     } = filters
 
+    // 카테고리가 지정되지 않았거나 지원하지 않는 카테고리인 경우 빈 결과 반환
+    if (categories.length === 0) {
+      return {
+        products: [],
+        total: 0,
+        filters: {},
+        page,
+        limit,
+        hasNextPage: false,
+        hasPreviousPage: false
+      }
+    }
+
+    const categoryId = categories[0] as number
+    const tableName = CATEGORY_TABLE_MAPPING[categoryId]
+    
+    if (!tableName) {
+      console.warn(`No table mapping found for category ID: ${categoryId}`)
+      return {
+        products: [],
+        total: 0,
+        filters: {},
+        page,
+        limit,
+        hasNextPage: false,
+        hasPreviousPage: false
+      }
+    }
+
     try {
-      // Get products with related data (categories, makers)
+      // Get products from category-specific table with related data
       let query = supabase
-        .from('products')
+        .from(tableName)
         .select(`
           *,
-          categories!inner(id, name, parent_id),
-          makers(id, name)
+          series(id, series_name)
         `)
         .eq('is_active', true) // Only active products
 
-      // Apply category filters
-      if (categories.length > 0) {
-        const categoryIds = categories.map(c => parseInt(String(c))).filter(id => !isNaN(id))
-        if (categoryIds.length > 0) {
-          query = query.in('category_id', categoryIds)
-        }
-      }
+      // Category filter is already applied by table selection
 
       // Apply unified search across multiple fields
       if (search && search.trim()) {
         const searchTerm = search.trim()
-        // Search across part_number, name, and description fields
-        query = query.or(`part_number.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+        // Search across part_number field (main searchable field)
+        query = query.ilike('part_number', `%${searchTerm}%`)
       } else {
         // Apply part number search (backward compatibility)
         if (partnumber && partnumber.trim()) {
@@ -50,30 +95,9 @@ export class ProductService {
 
       // Apply series search (only if not using unified search)
       if (!search && series && series.trim()) {
-        // Join with series table to search by series name
-        query = supabase
-          .from('products')
-          .select(`
-            *,
-            categories!inner(id, name, parent_id),
-            makers(id, name),
-            series!inner(id, series_name)
-          `)
-          .eq('is_active', true)
-          .ilike('series.series_name', `%${series.trim()}%`)
-
-        // Re-apply category filter if exists
-        if (categories.length > 0) {
-          const categoryIds = categories.map(c => parseInt(String(c))).filter(id => !isNaN(id))
-          if (categoryIds.length > 0) {
-            query = query.in('category_id', categoryIds)
-          }
-        }
-
-        // Re-apply part number filter if exists
-        if (partnumber && partnumber.trim()) {
-          query = query.ilike('part_number', `%${partnumber.trim()}%`)
-        }
+        // Note: series search would need to be implemented with joins if needed
+        // For now, skip series search in category-specific tables
+        console.warn('Series search not implemented for category-specific tables')
       }
 
       // Apply sorting with proper column mapping
@@ -96,19 +120,36 @@ export class ProductService {
       console.log('Products fetched successfully:', products?.length || 0, 'products')
       
       // Transform products data for frontend compatibility
-      let transformedProducts = (products || []).map(product => ({
-        ...product,
-        // Add legacy fields for compatibility
-        partnumber: product.part_number,
-        name: product.part_number,
-        category: product.categories,
-        maker_name: product.makers?.name || 'Unknown',
-        // Ensure specifications is always an object
-        specifications: product.specifications || {}
-      }))
+      let transformedProducts = (products || []).map(product => {
+        // Separate common fields from specifications
+        const { id, part_number, series_id, is_active, is_new, image_url, created_at, updated_at, series, ...specifications } = product
+        
+        return {
+          id,
+          part_number,
+          series_id,
+          is_active,
+          is_new,
+          image_url,
+          created_at,
+          updated_at,
+          // Add legacy fields for compatibility
+          partnumber: part_number,
+          name: part_number,
+          category: { id: categoryId, name: this.getCategoryName(categoryId) },
+          maker_name: 'Unknown', // No maker in new structure
+          series_name: series?.series_name || '',
+          // All other fields go to specifications
+          specifications
+        }
+      })
 
-      // Apply specification-based parameter filters
+      // Apply specification-based parameter filters using metadata
       if (Object.keys(parameters).length > 0) {
+        // Get filter configs for the category to determine filter types
+        const categoryName = this.getCategoryNameFromId(categoryId)
+        const filterConfigs = await this.getCategoryFilterConfig(categoryName)
+        
         transformedProducts = transformedProducts.filter(product => {
           if (!product.specifications) return false
           
@@ -116,32 +157,42 @@ export class ProductService {
             const specValue = product.specifications[paramName]
             if (specValue === undefined || specValue === null) return false
             
-            if (Array.isArray(paramValues)) {
-              return paramValues.some(value => String(specValue).toLowerCase().includes(String(value).toLowerCase()))
+            // Find filter config for this parameter
+            const filterConfig = filterConfigs.find(config => config.filter_name === paramName)
+            
+            if (filterConfig?.filter_type === 'slider' || filterConfig?.filter_type === 'range') {
+              // Handle numeric range filters
+              if (Array.isArray(paramValues) && paramValues.length === 2) {
+                const [min, max] = paramValues as [number, number]
+                const numValue = parseFloat(String(specValue))
+                return !isNaN(numValue) && numValue >= min && numValue <= max
+              }
             } else {
-              return String(specValue).toLowerCase().includes(String(paramValues).toLowerCase())
+              // Handle checkbox filters (string matching)
+              if (Array.isArray(paramValues)) {
+                return paramValues.some(value => 
+                  String(specValue).toLowerCase().includes(String(value).toLowerCase())
+                )
+              } else {
+                return String(specValue).toLowerCase().includes(String(paramValues).toLowerCase())
+              }
             }
+            
+            return false
           })
         })
       }
 
       // Get total count for pagination (with same filters)
       let totalQuery = supabase
-        .from('products')
+        .from(tableName)
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true)
-
-      if (categories.length > 0) {
-        const categoryIds = categories.map(c => parseInt(String(c))).filter(id => !isNaN(id))
-        if (categoryIds.length > 0) {
-          totalQuery = totalQuery.in('category_id', categoryIds)
-        }
-      }
       
       // Apply same search logic to total count
       if (search && search.trim()) {
         const searchTerm = search.trim()
-        totalQuery = totalQuery.or(`part_number.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+        totalQuery = totalQuery.ilike('part_number', `%${searchTerm}%`)
       } else if (partnumber && partnumber.trim()) {
         totalQuery = totalQuery.ilike('part_number', `%${partnumber.trim()}%`)
       }
@@ -197,6 +248,34 @@ export class ProductService {
   }
 
   /**
+   * Get category name by ID
+   */
+  private static getCategoryName(categoryId: number): string {
+    const categoryNames: Record<number, string> = {
+      9: 'CIS',
+      10: 'TDI',
+      11: 'Line',
+      12: 'Area',
+      13: 'Invisible',
+      14: 'Scientific',
+      15: 'Large Format Lens',
+      16: 'Telecentric',
+      17: 'FA Lens',
+      18: '3D Laser Profiler',
+      19: '3D Stereo Camera',
+      20: 'Light',
+      22: 'Controller',
+      23: 'Frame Grabber',
+      24: 'GigE LAN Card',
+      25: 'USB Card',
+      7: 'Software',
+      26: 'Cable',
+      27: 'Accessory'
+    }
+    return categoryNames[categoryId] || 'Unknown'
+  }
+
+  /**
    * Generate available filters based on current products
    */
   private static generateAvailableFilters(products: Product[]): Record<string, unknown> {
@@ -225,54 +304,92 @@ export class ProductService {
   }
 
   static async getProductById(id: string): Promise<Product | null> {
-    const { data: product, error } = await supabase
-      .from('products')
-      .select(`
-        *,
-        categories(*)
-      `)
-      .eq('id', parseInt(id))
-      .single()
+    // Need to determine which table to query from
+    // For now, search across all category tables
+    const categoryIds = Object.keys(CATEGORY_TABLE_MAPPING).map(Number)
+    
+    for (const categoryId of categoryIds) {
+      const tableName = CATEGORY_TABLE_MAPPING[categoryId]
+      try {
+        const { data: product, error } = await supabase
+          .from(tableName)
+          .select(`
+            *,
+            series(id, series_name)
+          `)
+          .eq('id', parseInt(id))
+          .single()
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null // Product not found
+        if (!error && product) {
+          const { id: productId, part_number, series_id, is_active, is_new, image_url, created_at, updated_at, series, ...specifications } = product
+          
+          return {
+            id: productId,
+            part_number,
+            series_id,
+            is_active,
+            is_new,
+            image_url,
+            created_at,
+            updated_at,
+            partnumber: part_number,
+            name: part_number,
+            category: { id: categoryId, name: this.getCategoryName(categoryId) },
+            series_name: series?.series_name || '',
+            specifications
+          }
+        }
+      } catch (err) {
+        // Continue searching in other tables
+        continue
       }
-      throw new Error(`Failed to fetch product: ${error.message}`)
     }
 
-    return {
-      ...product,
-      partnumber: product.part_number,
-      name: product.part_number,
-      category: product.categories
-    }
+    return null // Product not found in any table
   }
 
   static async getProductBySlug(slug: string): Promise<Product | null> {
-    // Assuming slug is based on part_number format
-    const { data: product, error } = await supabase
-      .from('products')
-      .select(`
-        *,
-        categories(*)
-      `)
-      .eq('part_number', slug)
-      .single()
+    // Search across all category tables for the part_number
+    const categoryIds = Object.keys(CATEGORY_TABLE_MAPPING).map(Number)
+    
+    for (const categoryId of categoryIds) {
+      const tableName = CATEGORY_TABLE_MAPPING[categoryId]
+      try {
+        const { data: product, error } = await supabase
+          .from(tableName)
+          .select(`
+            *,
+            series(id, series_name)
+          `)
+          .eq('part_number', slug)
+          .single()
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null
+        if (!error && product) {
+          const { id, part_number, series_id, is_active, is_new, image_url, created_at, updated_at, series, ...specifications } = product
+          
+          return {
+            id,
+            part_number,
+            series_id,
+            is_active,
+            is_new,
+            image_url,
+            created_at,
+            updated_at,
+            partnumber: part_number,
+            name: part_number,
+            category: { id: categoryId, name: this.getCategoryName(categoryId) },
+            series_name: series?.series_name || '',
+            specifications
+          }
+        }
+      } catch (err) {
+        // Continue searching in other tables
+        continue
       }
-      throw new Error(`Failed to fetch product: ${error.message}`)
     }
 
-    return {
-      ...product,
-      partnumber: product.part_number,
-      name: product.part_number,
-      category: product.categories
-    }
+    return null // Product not found in any table
   }
 
   static async getCategories(): Promise<Category[]> {
@@ -293,25 +410,52 @@ export class ProductService {
   }
 
   static async searchProducts(query: string): Promise<Product[]> {
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
-        *,
-        categories(*)
-      `)
-      .ilike('part_number', `%${query}%`)
-      .limit(10)
+    const results: Product[] = []
+    const categoryIds = Object.keys(CATEGORY_TABLE_MAPPING).map(Number)
+    
+    // Search across all category tables
+    for (const categoryId of categoryIds) {
+      const tableName = CATEGORY_TABLE_MAPPING[categoryId]
+      try {
+        const { data, error } = await supabase
+          .from(tableName)
+          .select(`
+            *,
+            series(id, series_name)
+          `)
+          .ilike('part_number', `%${query}%`)
+          .limit(3) // Limit per category to avoid too many results
 
-    if (error) {
-      throw new Error(`Failed to search products: ${error.message}`)
+        if (!error && data) {
+          const transformedProducts = data.map(product => {
+            const { id, part_number, series_id, is_active, is_new, image_url, created_at, updated_at, series, ...specifications } = product
+            
+            return {
+              id,
+              part_number,
+              series_id,
+              is_active,
+              is_new,
+              image_url,
+              created_at,
+              updated_at,
+              partnumber: part_number,
+              name: part_number,
+              category: { id: categoryId, name: this.getCategoryName(categoryId) },
+              series_name: series?.series_name || '',
+              specifications
+            }
+          })
+          
+          results.push(...transformedProducts)
+        }
+      } catch (err) {
+        // Continue searching in other tables
+        continue
+      }
     }
 
-    return (data || []).map(product => ({
-      ...product,
-      partnumber: product.part_number,
-      name: product.part_number,
-      category: product.categories
-    }))
+    return results.slice(0, 10) // Return max 10 results total
   }
 
   /**
@@ -319,24 +463,32 @@ export class ProductService {
    */
   static async getProductByPartNumber(partNumber: string): Promise<Product | null> {
     try {
-      // First, fetch the product basic data
-      const { data: product, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          categories(id, name, parent_id),
-          makers(id, name),
-          product_media(url, media_type, is_primary)
-        `)
-        .eq('part_number', partNumber)
-        .eq('is_active', true)
-        .single()
+      // Search across all category tables for the part_number
+      const categoryIds = Object.keys(CATEGORY_TABLE_MAPPING).map(Number)
+      let product: any = null
+      let categoryId: number = 0
+      
+      for (const catId of categoryIds) {
+        const tableName = CATEGORY_TABLE_MAPPING[catId]
+        const { data, error } = await supabase
+          .from(tableName)
+          .select(`
+            *,
+            series(id, series_name)
+          `)
+          .eq('part_number', partNumber)
+          .eq('is_active', true)
+          .single()
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          return null // Product not found
+        if (!error && data) {
+          product = data
+          categoryId = catId
+          break
         }
-        throw new Error(`Failed to fetch product: ${error.message}`)
+      }
+
+      if (!product) {
+        return null // Product not found in any table
       }
 
       // Separately fetch series data if series_id exists
@@ -396,15 +548,15 @@ export class ProductService {
         }
       }
 
-      // Get related products (same series_id)
+      // Get related products (same series_id) from the same category table
       let relatedProducts: Product[] = []
       if (product.series_id) {
+        const tableName = CATEGORY_TABLE_MAPPING[categoryId]
         const { data: related, error: relatedError } = await supabase
-          .from('products')
+          .from(tableName)
           .select(`
-            id, part_number, series_id, 
-            categories(id, name),
-            product_media(url, media_type, is_primary)
+            id, part_number, series_id, image_url,
+            series(id, series_name)
           `)
           .eq('series_id', product.series_id)
           .eq('is_active', true)
@@ -413,37 +565,144 @@ export class ProductService {
           .limit(10)
 
         if (!relatedError && related) {
-          relatedProducts = related.map(p => ({
-            ...p,
-            partnumber: p.part_number,
-            name: p.part_number,
-            series: seriesData?.series_name || '',
-            image_url: p.product_media?.find((m: Record<string, unknown>) => m.is_primary)?.url || '',
-            category: p.categories
-          }))
+          relatedProducts = related.map(p => {
+            const { id, part_number, series_id, image_url, series, ...specifications } = p
+            
+            return {
+              id,
+              part_number,
+              series_id,
+              image_url,
+              partnumber: part_number,
+              name: part_number,
+              series: series?.series_name || seriesData?.series_name || '',
+              category: { id: categoryId, name: this.getCategoryName(categoryId) },
+              specifications
+            }
+          })
         }
       }
 
-      // Get primary image
-      const primaryImage = product.product_media?.find((m: Record<string, unknown>) => m.is_primary)
-      const imageUrl = primaryImage?.url || ''
+      // Separate common fields from specifications
+      const { id, part_number, series_id, is_active, is_new, image_url, created_at, updated_at, series, ...specifications } = product
 
       return {
-        ...product,
-        partnumber: product.part_number,
-        name: product.part_number,
-        category: product.categories,
-        series: seriesData?.series_name || '',
-        image_url: imageUrl,
-        maker_name: product.makers?.name || 'Unknown',
-        category_name: product.categories?.name || '',
+        id,
+        part_number,
+        series_id,
+        is_active,
+        is_new,
+        image_url: image_url || '',
+        created_at,
+        updated_at,
+        partnumber: part_number,
+        name: part_number,
+        category: { id: categoryId, name: this.getCategoryName(categoryId) },
+        series: seriesData?.series_name || series?.series_name || '',
+        maker_name: 'Unknown', // No maker in new structure
+        category_name: this.getCategoryName(categoryId),
         series_data: seriesData,
         related_products: relatedProducts,
-        specifications: product.specifications || {}
+        specifications
       }
     } catch (error) {
       console.error('ProductService.getProductByPartNumber error:', error)
       return null
     }
+  }
+
+  /**
+   * Get display configuration for a category
+   */
+  static async getCategoryDisplayConfig(categoryName: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('category_display_config')
+      .select(`
+        *,
+        parameter_labels(label_ko, label_en, unit)
+      `)
+      .eq('category_name', categoryName)
+      .eq('is_visible', true)
+      .order('display_order')
+
+    if (error) {
+      console.error('Failed to fetch display config:', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  /**
+   * Get filter configuration for a category
+   */
+  static async getCategoryFilterConfig(categoryName: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('filter_config')
+      .select('*')
+      .eq('category_name', categoryName)
+      .eq('is_enabled', true)
+      .order('filter_order')
+
+    if (error) {
+      console.error('Failed to fetch filter config:', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  /**
+   * Get parameter labels for a category
+   */
+  static async getCategoryParameterLabels(categoryName: string): Promise<Record<string, any>> {
+    const { data, error } = await supabase
+      .from('parameter_labels')
+      .select('*')
+      .eq('category_name', categoryName)
+
+    if (error) {
+      console.error('Failed to fetch parameter labels:', error)
+      return {}
+    }
+
+    const labels: Record<string, any> = {}
+    data?.forEach(label => {
+      labels[label.parameter_name] = {
+        ko: label.label_ko,
+        en: label.label_en,
+        unit: label.unit
+      }
+    })
+
+    return labels
+  }
+
+  /**
+   * Get category name from category ID
+   */
+  static getCategoryNameFromId(categoryId: number): string {
+    const categoryNames: Record<number, string> = {
+      9: 'cis',
+      10: 'tdi', 
+      11: 'line',
+      12: 'area',
+      13: 'invisible',
+      14: 'scientific',
+      15: 'large_format_lens',
+      16: 'telecentric', 
+      17: 'fa_lens',
+      18: '3d_laser_profiler',
+      19: '3d_stereo_camera',
+      20: 'light',
+      22: 'controller',
+      23: 'frame_grabber',
+      24: 'gige_lan_card',
+      25: 'usb_card',
+      7: 'software',
+      26: 'cable',
+      27: 'accessory'
+    }
+    return categoryNames[categoryId] || 'unknown'
   }
 }

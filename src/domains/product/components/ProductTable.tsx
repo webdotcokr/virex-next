@@ -1,13 +1,19 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState, useMemo, useCallback } from 'react'
 import { useFilterStore } from '@/lib/store'
+import { useTableMetadata, getVisibleColumns, getParameterLabel, getParameterUnit } from '@/lib/hooks/useTableMetadata'
 import styles from '../../../app/(portal)/products/products.module.css'
 import type { Product } from '../types'
-import type { Database } from '@/lib/supabase'
 
-type TableColumnConfig = Database['public']['Tables']['table_column_configs']['Row']
+// 컬럼 설정 인터페이스 (간소화)
+interface ColumnConfig {
+  parameter_name: string;
+  label: string;
+  display_order: number;
+  unit?: string;
+  is_sortable: boolean;
+}
 
 interface ProductTableProps {
   products: Product[]
@@ -33,34 +39,28 @@ export default function ProductTable({
   isLoading = false
 }: ProductTableProps) {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
-  const [columnConfigs, setColumnConfigs] = useState<TableColumnConfig[]>([])
-  const [loading, setLoading] = useState(true)
   const { filters } = useFilterStore()
 
-  // Load column configurations based on current category
-  useEffect(() => {
-    loadColumnConfigs()
-  }, [filters.categories])
+  // 현재 카테고리 ID 계산
+  const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
+  
+  // 공유 메타데이터 훅 사용
+  const { metadata, loading } = useTableMetadata(currentCategoryId)
 
-  const loadColumnConfigs = async () => {
-    try {
-      const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
-      
-      const { data, error } = await supabase
-        .from('table_column_configs')
-        .select('*')
-        .eq('category_id', parseInt(currentCategoryId))
-        .eq('is_visible', true)
-        .order('sort_order')
-
-      if (error) throw error
-      setColumnConfigs(data || [])
-    } catch (error) {
-      console.error('Error loading column configs:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // 메타데이터에서 컬럼 설정 생성 (메모이제이션)
+  const columnConfigs = useMemo(() => {
+    if (!metadata) return []
+    
+    const visibleColumns = getVisibleColumns(metadata)
+    
+    return visibleColumns.map(config => ({
+      parameter_name: config.parameter_name,
+      label: getParameterLabel(config.parameter_name, metadata),
+      display_order: config.display_order,
+      unit: getParameterUnit(config.parameter_name, metadata),
+      is_sortable: true // 모든 컬럼이 정렬 가능하다고 가정
+    }))
+  }, [metadata])
 
   const handleCompareChange = useCallback((productId: string, checked: boolean) => {
     if (checked && selectedProducts.length >= 4) {
@@ -132,15 +132,15 @@ export default function ProductTable({
                 <th className={styles.colCompare}>비교</th>
                 {columnConfigs.map((column) => (
                   <th 
-                    key={column.id} 
-                    style={{ width: column.column_width || 'auto' }}
+                    key={column.parameter_name} 
+                    style={{ width: 'auto' }}
                   >
-                    {column.column_label}
+                    {column.label}
                     {column.is_sortable && (
                       <img 
                         src="/img/icon-sort.svg" 
                         className={styles.sortIcon}
-                        onClick={() => handleSort(column.column_name)}
+                        onClick={() => handleSort(column.parameter_name)}
                         alt="정렬"
                       />
                     )}
@@ -178,13 +178,13 @@ export default function ProductTable({
                         />
                       </td>
                       {columnConfigs.map((column) => {
-                        // Get the value based on column type
+                        // Get the value based on parameter type
                         let value = '-'
-                        let displayValue = '-'
+                        let displayValue: React.ReactNode = '-'
                         
-                        if (column.column_type === 'basic') {
-                          // Basic fields
-                          switch (column.column_name) {
+                        // 기본 필드들 처리
+                        if (['part_number', 'maker_name', 'series'].includes(column.parameter_name)) {
+                          switch (column.parameter_name) {
                             case 'maker_name':
                               value = product.maker_name || '-'
                               displayValue = value
@@ -204,26 +204,20 @@ export default function ProductTable({
                               break
                           }
                         } else {
-                          // Specification fields
-                          const specValue = product.specifications?.[column.column_name]
+                          // Specification 필드들 처리
+                          const specValue = product.specifications?.[column.parameter_name]
                           if (specValue !== null && specValue !== undefined) {
                             value = String(specValue)
-                            // Add unit if it's a number
-                            const units: Record<string, string> = {
-                              scan_width: 'mm',
-                              dpi: 'dpi',
-                              line_rate: 'kHz',
-                              speed: 'MHz'
-                            }
-                            displayValue = units[column.column_name] 
-                              ? `${value} ${units[column.column_name]}`
+                            // Unit 추가 (parameter_labels에서 가져온 unit 사용)
+                            displayValue = column.unit 
+                              ? `${value} ${column.unit}`
                               : value
                           }
                         }
                         
                         return (
-                          <td key={column.id}>
-                            {typeof displayValue === 'string' ? displayValue : displayValue}
+                          <td key={column.parameter_name}>
+                            {displayValue}
                           </td>
                         )
                       })}

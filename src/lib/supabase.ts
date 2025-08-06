@@ -19,7 +19,7 @@ export type Database = {
           category_id: number
           maker_id: number
           series_id: number | null
-          specifications: Record<string, any> | null
+          specifications: Record<string, unknown> | null
           is_active: boolean
           is_new: boolean
           image_url: string | null
@@ -32,7 +32,7 @@ export type Database = {
           category_id: number
           maker_id: number
           series_id?: number | null
-          specifications?: Record<string, any> | null
+          specifications?: Record<string, unknown> | null
           is_active?: boolean
           is_new?: boolean
           image_url?: string | null
@@ -45,7 +45,7 @@ export type Database = {
           category_id?: number
           maker_id?: number
           series_id?: number | null
-          specifications?: Record<string, any> | null
+          specifications?: Record<string, unknown> | null
           is_active?: boolean
           is_new?: boolean
           image_url?: string | null

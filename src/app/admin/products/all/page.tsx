@@ -1,7 +1,7 @@
 'use client';
 
-import ProductsDataGrid from '@/components/admin/ProductsDataGrid';
+import CategoryProductsDataGrid from '@/components/admin/CategoryProductsDataGrid';
 
 export default function AllProductsPage() {
-  return <ProductsDataGrid />;
+  return <CategoryProductsDataGrid />;
 }

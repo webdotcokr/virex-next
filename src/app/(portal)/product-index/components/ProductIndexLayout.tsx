@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
+import Link from 'next/link'
 import styles from '../product-index.module.css'
 
 interface ProductIndexLayoutProps {
@@ -14,7 +15,7 @@ export default function ProductIndexLayout({ children }: ProductIndexLayoutProps
       <div className={styles.productHeroSection}>
         <div className={styles.productHeroContent}>
           <div className={styles.breadcrumb}>
-            <a href="/">Home</a>
+            <Link href="/">Home</Link>
             <span className={styles.arrow}>
               <img src="/img/icon-breadcrumb-arrow.svg" alt=">" />
             </span>

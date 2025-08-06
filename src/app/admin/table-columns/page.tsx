@@ -12,12 +12,6 @@ import {
   FormControl,
   InputLabel,
   Button,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
   Switch,
   FormControlLabel,
   Grid,
@@ -30,43 +24,68 @@ import {
   TableRow,
   Alert,
   Snackbar,
+  IconButton,
+  Chip,
+  Tooltip,
 } from '@mui/material'
 import {
   Edit as EditIcon,
-  Delete as DeleteIcon,
-  Add as AddIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
   KeyboardArrowUp as ArrowUpIcon,
   KeyboardArrowDown as ArrowDownIcon,
   Visibility as VisibleIcon,
   VisibilityOff as HiddenIcon,
+  TableChart as TableIcon,
+  Label as LabelIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material'
 import { supabase } from '@/lib/supabase'
-import type { Database } from '@/lib/supabase'
 
-type TableColumnConfig = Database['public']['Tables']['table_column_configs']['Row']
-type Category = Database['public']['Tables']['categories']['Row']
+interface Category {
+  id: number
+  name: string
+}
+
+interface TableColumn {
+  column_name: string
+  data_type: string
+  is_nullable: boolean
+  column_default: string | null
+  has_label: boolean
+  label_ko: string | null
+  label_en: string | null
+  unit: string | null
+  is_visible: boolean
+  display_order: number
+}
+
+interface TableSchemaResponse {
+  table_name: string
+  category_name: string
+  columns: TableColumn[]
+}
 
 export default function AdminTableColumnsPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
-  const [columnConfigs, setColumnConfigs] = useState<TableColumnConfig[]>([])
+  const [schemaData, setSchemaData] = useState<TableSchemaResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [editingColumn, setEditingColumn] = useState<TableColumnConfig | null>(null)
-  const [newColumn, setNewColumn] = useState({
-    column_name: '',
-    column_label: '',
-    column_type: 'specification' as 'basic' | 'specification',
-    is_visible: true,
-    is_sortable: true,
-    sort_order: 0,
-    column_width: ''
+  const [editingColumn, setEditingColumn] = useState<string | null>(null)
+  const [editData, setEditData] = useState<{
+    label_ko: string
+    label_en: string
+    unit: string
+  }>({
+    label_ko: '',
+    label_en: '',
+    unit: ''
   })
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success' as 'success' | 'error' | 'warning' | 'info',
   })
-  const [deleteDialog, setDeleteDialog] = useState({ open: false, columnId: null as number | null })
 
   useEffect(() => {
     loadCategories()
@@ -74,7 +93,11 @@ export default function AdminTableColumnsPage() {
 
   useEffect(() => {
     if (selectedCategory) {
-      loadColumnConfigs()
+      // Add a small delay to ensure the client is ready
+      const timer = setTimeout(() => {
+        loadTableSchema()
+      }, 100)
+      return () => clearTimeout(timer)
     }
   }, [selectedCategory])
 
@@ -92,184 +115,230 @@ export default function AdminTableColumnsPage() {
       }
     } catch (error) {
       console.error('Error loading categories:', error)
+      showSnackbar('Failed to load categories', 'error')
     } finally {
       setLoading(false)
     }
   }
 
-  const loadColumnConfigs = async () => {
-    try {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('table_column_configs')
-        .select('*')
-        .eq('category_id', selectedCategory!)
-        .order('sort_order')
-
-      if (error) throw error
-      setColumnConfigs(data || [])
-    } catch (error) {
-      console.error('Error loading column configs:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleAddColumn = async () => {
-    if (!selectedCategory || !newColumn.column_name || !newColumn.column_label) {
-      setSnackbar({
-        open: true,
-        message: 'Please fill in all required fields',
-        severity: 'warning',
-      })
+  const loadTableSchema = async () => {
+    if (!selectedCategory) {
+      console.log('⚠️ No selectedCategory, skipping load')
       return
     }
 
     try {
-      const { data, error } = await supabase
-        .from('table_column_configs')
-        .insert({
-          category_id: selectedCategory,
-          ...newColumn,
-          column_width: newColumn.column_width || null
-        })
-        .select()
-        .single()
+      setLoading(true)
+      console.log('🔄 Loading table schema for category:', selectedCategory)
 
-      if (error) throw error
-      
-      setColumnConfigs([...columnConfigs, data])
-      setNewColumn({
-        column_name: '',
-        column_label: '',
-        column_type: 'specification',
-        is_visible: true,
-        is_sortable: true,
-        sort_order: 0,
-        column_width: ''
+      const url = `/api/admin/table-schema/${selectedCategory}`
+      console.log('📡 Fetching from URL:', url)
+      console.log('🌐 Current location:', typeof window !== 'undefined' ? window.location.href : 'server-side')
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       })
-      
-      setSnackbar({
-        open: true,
-        message: 'Column added successfully!',
-        severity: 'success',
-      })
+      console.log('📥 Response status:', response.status, response.statusText)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ API Error Response:', errorText)
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data: TableSchemaResponse = await response.json()
+      console.log('✅ Table schema loaded:', data)
+
+      setSchemaData(data)
+      showSnackbar(`Loaded ${data.columns.length} columns from ${data.table_name}`, 'success')
     } catch (error) {
-      console.error('Error adding column:', error)
-      setSnackbar({
-        open: true,
-        message: 'Failed to add column',
-        severity: 'error',
-      })
+      console.error('❌ Error loading table schema:', error)
+      console.error('❌ Error type:', typeof error)
+      console.error('❌ Error details:', error instanceof Error ? error.message : error)
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      showSnackbar(`Failed to load table schema: ${errorMessage}`, 'error')
+      setSchemaData(null)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleUpdateColumn = async (column: TableColumnConfig) => {
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
+    setSnackbar({ open: true, message, severity })
+  }
+
+  const handleToggleVisibility = async (columnName: string, currentVisible: boolean) => {
+    if (!schemaData) return
+
     try {
+      const newVisible = !currentVisible
+
+      // category_display_config 테이블 업데이트
       const { error } = await supabase
-        .from('table_column_configs')
-        .update({
-          column_label: column.column_label,
-          is_visible: column.is_visible,
-          is_sortable: column.is_sortable,
-          sort_order: column.sort_order,
-          column_width: column.column_width
+        .from('category_display_config')
+        .upsert({
+          category_name: schemaData.category_name,
+          parameter_name: columnName,
+          is_visible: newVisible,
+          display_order: schemaData.columns.find(col => col.column_name === columnName)?.display_order || 0
         })
-        .eq('id', column.id)
 
       if (error) throw error
-      
-      loadColumnConfigs()
-      setEditingColumn(null)
-      setSnackbar({
-        open: true,
-        message: 'Column updated successfully!',
-        severity: 'success',
+
+      // 로컬 상태 업데이트
+      setSchemaData(prev => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          columns: prev.columns.map(col =>
+            col.column_name === columnName
+              ? { ...col, is_visible: newVisible }
+              : col
+          )
+        }
       })
+
+      showSnackbar(`${columnName} visibility updated`, 'success')
     } catch (error) {
-      console.error('Error updating column:', error)
-      setSnackbar({
-        open: true,
-        message: 'Failed to update column',
-        severity: 'error',
-      })
+      console.error('Error updating visibility:', error)
+      showSnackbar('Failed to update visibility', 'error')
     }
   }
 
-  const handleDeleteColumn = async (columnId: number) => {
-    try {
-      const { error } = await supabase
-        .from('table_column_configs')
-        .delete()
-        .eq('id', columnId)
+  const handleMoveColumn = async (columnName: string, direction: 'up' | 'down') => {
+    if (!schemaData) return
 
-      if (error) throw error
-      
-      setColumnConfigs(columnConfigs.filter(c => c.id !== columnId))
-      setSnackbar({
-        open: true,
-        message: 'Column deleted successfully!',
-        severity: 'success',
-      })
-    } catch (error) {
-      console.error('Error deleting column:', error)
-      setSnackbar({
-        open: true,
-        message: 'Failed to delete column',
-        severity: 'error',
-      })
-    }
-  }
-
-  const confirmDeleteColumn = (columnId: number) => {
-    setDeleteDialog({ open: true, columnId })
-  }
-
-  const moveColumn = async (columnId: number, direction: 'up' | 'down') => {
-    const currentIndex = columnConfigs.findIndex(c => c.id === columnId)
+    const columns = [...schemaData.columns]
+    const currentIndex = columns.findIndex(col => col.column_name === columnName)
+    
     if (
       (direction === 'up' && currentIndex === 0) ||
-      (direction === 'down' && currentIndex === columnConfigs.length - 1)
+      (direction === 'down' && currentIndex === columns.length - 1)
     ) {
       return
     }
 
-    const newConfigs = [...columnConfigs]
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
     
-    // Swap sort orders
-    const currentOrder = newConfigs[currentIndex].sort_order
-    const targetOrder = newConfigs[targetIndex].sort_order
+    // 순서 교체
+    const currentOrder = columns[currentIndex].display_order
+    const targetOrder = columns[targetIndex].display_order
     
-    newConfigs[currentIndex].sort_order = targetOrder
-    newConfigs[targetIndex].sort_order = currentOrder
+    columns[currentIndex].display_order = targetOrder
+    columns[targetIndex].display_order = currentOrder
     
-    // Swap positions in array
-    ;[newConfigs[currentIndex], newConfigs[targetIndex]] = [newConfigs[targetIndex], newConfigs[currentIndex]]
-    
-    setColumnConfigs(newConfigs)
+    // 배열에서 위치 교체
+    ;[columns[currentIndex], columns[targetIndex]] = [columns[targetIndex], columns[currentIndex]]
 
-    // Update both columns in database
     try {
+      // 두 컬럼의 순서를 데이터베이스에 업데이트
       await Promise.all([
         supabase
-          .from('table_column_configs')
-          .update({ sort_order: targetOrder })
-          .eq('id', columnId),
+          .from('category_display_config')
+          .upsert({
+            category_name: schemaData.category_name,
+            parameter_name: columnName,
+            display_order: targetOrder,
+            is_visible: columns.find(col => col.column_name === columnName)?.is_visible || false
+          }),
         supabase
-          .from('table_column_configs')
-          .update({ sort_order: currentOrder })
-          .eq('id', newConfigs[targetIndex].id)
+          .from('category_display_config')
+          .upsert({
+            category_name: schemaData.category_name,
+            parameter_name: columns[currentIndex].column_name,
+            display_order: currentOrder,
+            is_visible: columns[currentIndex].is_visible
+          })
       ])
+
+      // 로컬 상태 업데이트
+      setSchemaData(prev => {
+        if (!prev) return prev
+        return { ...prev, columns }
+      })
+
+      showSnackbar(`Moved ${columnName} ${direction}`, 'success')
     } catch (error) {
-      console.error('Error updating sort order:', error)
-      loadColumnConfigs() // Reload to ensure consistency
+      console.error('Error updating order:', error)
+      showSnackbar('Failed to update order', 'error')
+      // 원래 상태로 되돌리기
+      loadTableSchema()
     }
   }
 
-  const basicColumns = ['maker_name', 'series', 'part_number']
+  const handleEditLabel = (column: TableColumn) => {
+    setEditingColumn(column.column_name)
+    setEditData({
+      label_ko: column.label_ko || '',
+      label_en: column.label_en || '',
+      unit: column.unit || ''
+    })
+  }
 
-  if (loading) {
+  const handleSaveLabel = async () => {
+    if (!editingColumn || !schemaData) return
+
+    try {
+      const { error } = await supabase
+        .from('parameter_labels')
+        .upsert({
+          category_name: schemaData.category_name,
+          parameter_name: editingColumn,
+          label_ko: editData.label_ko.trim() || editingColumn,
+          label_en: editData.label_en.trim() || editingColumn,
+          unit: editData.unit.trim() || null
+        })
+
+      if (error) throw error
+
+      // 로컬 상태 업데이트
+      setSchemaData(prev => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          columns: prev.columns.map(col =>
+            col.column_name === editingColumn
+              ? {
+                  ...col,
+                  has_label: true,
+                  label_ko: editData.label_ko.trim() || editingColumn,
+                  label_en: editData.label_en.trim() || editingColumn,
+                  unit: editData.unit.trim() || null
+                }
+              : col
+          )
+        }
+      })
+
+      setEditingColumn(null)
+      showSnackbar('Label updated successfully', 'success')
+    } catch (error) {
+      console.error('Error updating label:', error)
+      showSnackbar('Failed to update label', 'error')
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingColumn(null)
+    setEditData({ label_ko: '', label_en: '', unit: '' })
+  }
+
+  const getDataTypeColor = (dataType: string) => {
+    switch (dataType) {
+      case 'text': return 'primary'
+      case 'numeric': return 'success'
+      case 'boolean': return 'warning'
+      case 'timestamp with time zone': return 'info'
+      case 'integer': return 'success'
+      default: return 'default'
+    }
+  }
+
+  if (loading && !schemaData) {
     return (
       <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <Typography>Loading...</Typography>
@@ -279,15 +348,25 @@ export default function AdminTableColumnsPage() {
 
   return (
     <Box sx={{ p: 4, backgroundColor: '#F8F9FB', minHeight: '100vh' }}>
-      <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
+      <Box sx={{ maxWidth: '1400px', mx: 'auto' }}>
         {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" component="h1" sx={{ fontWeight: 600, mb: 1 }}>
-            Table Column Management
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Configure table columns for each product category
-          </Typography>
+        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h5" component="h1" sx={{ fontWeight: 600, mb: 1 }}>
+              Automatic Table Column Management
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Automatically detects database columns and manages their display configuration
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={loadTableSchema}
+            disabled={!selectedCategory || loading}
+          >
+            Refresh Schema
+          </Button>
         </Box>
 
         {/* Category Selection */}
@@ -312,334 +391,201 @@ export default function AdminTableColumnsPage() {
                 ))}
               </Select>
             </FormControl>
+            {schemaData && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                <strong>Database Table:</strong> <code>{schemaData.table_name}</code> • 
+                <strong> Category:</strong> <code>{schemaData.category_name}</code> •
+                <strong> Columns:</strong> {schemaData.columns.length}
+              </Alert>
+            )}
           </CardContent>
         </Card>
 
-        {/* Add New Column */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 3 }}>
-              Add New Column
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Column Name"
-                  placeholder="e.g., scan_width"
-                  value={newColumn.column_name}
-                  onChange={(e) => setNewColumn({ ...newColumn, column_name: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Display Label"
-                  placeholder="e.g., Scan Width"
-                  value={newColumn.column_label}
-                  onChange={(e) => setNewColumn({ ...newColumn, column_label: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Column Type</InputLabel>
-                  <Select
-                    value={newColumn.column_type}
-                    label="Column Type"
-                    onChange={(e) => setNewColumn({ ...newColumn, column_type: e.target.value as 'basic' | 'specification' })}
-                  >
-                    <MenuItem value="basic">Basic Field</MenuItem>
-                    <MenuItem value="specification">Specification Field</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Width"
-                  placeholder="e.g., 150px, 20%"
-                  value={newColumn.column_width}
-                  onChange={(e) => setNewColumn({ ...newColumn, column_width: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Sort Order"
-                  value={newColumn.sort_order}
-                  onChange={(e) => setNewColumn({ ...newColumn, sort_order: Number(e.target.value) })}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 1 }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={newColumn.is_visible}
-                        onChange={(e) => setNewColumn({ ...newColumn, is_visible: e.target.checked })}
-                      />
-                    }
-                    label="Visible"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={newColumn.is_sortable}
-                        onChange={(e) => setNewColumn({ ...newColumn, is_sortable: e.target.checked })}
-                      />
-                    }
-                    label="Sortable"
-                  />
-                </Box>
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  variant="contained"
-                  onClick={handleAddColumn}
-                  startIcon={<AddIcon />}
-                  sx={{ mt: 2 }}
-                >
-                  Add Column
-                </Button>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
+        {/* Column Management Table */}
+        {schemaData && (
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <TableIcon sx={{ mr: 1 }} />
+                <Typography variant="h6">
+                  Database Columns ({schemaData.columns.length})
+                </Typography>
+              </Box>
 
-        {/* Column List */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 3 }}>
-              Table Columns
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {columnConfigs.map((column, index) => (
-              <Paper key={column.id} sx={{ p: 3, border: '1px solid #E8ECEF' }}>
-                {editingColumn?.id === column.id ? (
-                  // Edit Mode
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField
-                      fullWidth
-                      label="Column Label"
-                      value={editingColumn.column_label}
-                      onChange={(e) => setEditingColumn({ ...editingColumn, column_label: e.target.value })}
-                    />
-                    <TextField
-                      fullWidth
-                      label="Width"
-                      placeholder="e.g., 150px"
-                      value={editingColumn.column_width || ''}
-                      onChange={(e) => setEditingColumn({ ...editingColumn, column_width: e.target.value })}
-                    />
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Sort Order"
-                      value={editingColumn.sort_order}
-                      onChange={(e) => setEditingColumn({ ...editingColumn, sort_order: Number(e.target.value) })}
-                    />
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={editingColumn.is_visible}
-                            onChange={(e) => setEditingColumn({ ...editingColumn, is_visible: e.target.checked })}
-                          />
-                        }
-                        label="Visible"
-                      />
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={editingColumn.is_sortable}
-                            onChange={(e) => setEditingColumn({ ...editingColumn, is_sortable: e.target.checked })}
-                          />
-                        }
-                        label="Sortable"
-                      />
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                      <Button
-                        variant="contained"
-                        color="success"
-                        onClick={() => handleUpdateColumn(editingColumn)}
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        onClick={() => setEditingColumn(null)}
-                      >
-                        Cancel
-                      </Button>
-                    </Box>
-                  </Box>
-                ) : (
-                  // View Mode
-                  <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 500 }}>
-                            {column.column_label}
-                          </Typography>
-                          {!column.is_visible && (
+              <TableContainer component={Paper} sx={{ border: '1px solid #E8ECEF' }}>
+                <Table>
+                  <TableHead sx={{ backgroundColor: '#F8F9FB' }}>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 600 }}>Column Name</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Data Type</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Korean Label</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>English Label</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Unit</TableCell>
+                      <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Visible</TableCell>
+                      <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Order</TableCell>
+                      <TableCell sx={{ fontWeight: 600, textAlign: 'center' }}>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {schemaData.columns
+                      .sort((a, b) => a.display_order - b.display_order)
+                      .map((column, index) => (
+                        <TableRow key={column.column_name} hover>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 500 }}>
+                                {column.column_name}
+                              </Typography>
+                              {!column.has_label && (
+                                <Chip size="small" label="No Label" color="warning" variant="outlined" />
+                              )}
+                            </Box>
+                          </TableCell>
+                          
+                          <TableCell>
                             <Chip
-                              icon={<HiddenIcon />}
-                              label="Hidden"
                               size="small"
+                              label={column.data_type}
+                              color={getDataTypeColor(column.data_type)}
                               variant="outlined"
                             />
+                          </TableCell>
+
+                          {editingColumn === column.column_name ? (
+                            // Edit mode
+                            <>
+                              <TableCell>
+                                <TextField
+                                  size="small"
+                                  value={editData.label_ko}
+                                  onChange={(e) => setEditData({ ...editData, label_ko: e.target.value })}
+                                  placeholder={column.column_name}
+                                  fullWidth
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <TextField
+                                  size="small"
+                                  value={editData.label_en}
+                                  onChange={(e) => setEditData({ ...editData, label_en: e.target.value })}
+                                  placeholder={column.column_name}
+                                  fullWidth
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <TextField
+                                  size="small"
+                                  value={editData.unit}
+                                  onChange={(e) => setEditData({ ...editData, unit: e.target.value })}
+                                  placeholder="mm, px, %"
+                                  fullWidth
+                                />
+                              </TableCell>
+                            </>
+                          ) : (
+                            // View mode
+                            <>
+                              <TableCell>
+                                <Typography variant="body2">
+                                  {column.label_ko || (
+                                    <span style={{ color: '#999', fontStyle: 'italic' }}>
+                                      {column.column_name}
+                                    </span>
+                                  )}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2">
+                                  {column.label_en || (
+                                    <span style={{ color: '#999', fontStyle: 'italic' }}>
+                                      {column.column_name}
+                                    </span>
+                                  )}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2">
+                                  {column.unit || '-'}
+                                </Typography>
+                              </TableCell>
+                            </>
                           )}
-                          {basicColumns.includes(column.column_name) && (
-                            <Chip
-                              label="Basic"
+
+                          <TableCell align="center">
+                            <Switch
+                              checked={column.is_visible}
+                              onChange={() => handleToggleVisibility(column.column_name, column.is_visible)}
                               size="small"
                               color="primary"
-                              variant="outlined"
                             />
-                          )}
-                        </Box>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                          Name: {column.column_name} | Type: {column.column_type} | Width: {column.column_width || 'auto'} | Order: {column.sort_order}
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                          <Chip
-                            icon={column.is_visible ? <VisibleIcon /> : <HiddenIcon />}
-                            label={column.is_visible ? 'Visible' : 'Hidden'}
-                            color={column.is_visible ? 'success' : 'default'}
-                            size="small"
-                          />
-                          <Chip
-                            label={column.is_sortable ? 'Sortable' : 'Not Sortable'}
-                            variant="outlined"
-                            size="small"
-                          />
-                        </Box>
-                      </Box>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => moveColumn(column.id, 'up')}
-                          disabled={index === 0}
-                        >
-                          <ArrowUpIcon />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => moveColumn(column.id, 'down')}
-                          disabled={index === columnConfigs.length - 1}
-                        >
-                          <ArrowDownIcon />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => setEditingColumn(column)}
-                          color="primary"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => confirmDeleteColumn(column.id)}
-                          color="error"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    </Box>
-                  </Box>
-                )}
-              </Paper>
-            ))}
-            </Box>
-          </CardContent>
-        </Card>
+                          </TableCell>
 
-        {/* Preview */}
-        <Card sx={{ mt: 3 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 3 }}>
-              Table Preview
-            </Typography>
-            <TableContainer component={Paper} sx={{ border: '1px solid #E8ECEF' }}>
-              <Table size="small">
-                <TableHead sx={{ backgroundColor: '#F8F9FB' }}>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600 }}>비교</TableCell>
-                    {columnConfigs
-                      .filter(col => col.is_visible)
-                      .sort((a, b) => a.sort_order - b.sort_order)
-                      .map(col => (
-                        <TableCell 
-                          key={col.id}
-                          sx={{ 
-                            fontWeight: 600,
-                            width: col.column_width || 'auto',
-                          }}
-                        >
-                          {col.column_label}
-                          {col.is_sortable && <Typography component="span" sx={{ ml: 1 }}>↕</Typography>}
-                        </TableCell>
-                      ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      <input type="checkbox" />
-                    </TableCell>
-                    {columnConfigs
-                      .filter(col => col.is_visible)
-                      .sort((a, b) => a.sort_order - b.sort_order)
-                      .map(col => (
-                        <TableCell key={col.id}>
-                          <Typography variant="body2" color="text.secondary">
-                            Sample Data
-                          </Typography>
-                        </TableCell>
-                      ))}
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </CardContent>
-        </Card>
+                          <TableCell align="center">
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                              <Typography variant="body2" sx={{ minWidth: '20px' }}>
+                                {column.display_order}
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleMoveColumn(column.column_name, 'up')}
+                                  disabled={index === 0}
+                                  sx={{ p: 0.25 }}
+                                >
+                                  <ArrowUpIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleMoveColumn(column.column_name, 'down')}
+                                  disabled={index === schemaData.columns.length - 1}
+                                  sx={{ p: 0.25 }}
+                                >
+                                  <ArrowDownIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            </Box>
+                          </TableCell>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog
-          open={deleteDialog.open}
-          onClose={() => setDeleteDialog({ open: false, columnId: null })}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>Confirm Delete</DialogTitle>
-          <DialogContent>
-            <Typography>
-              Are you sure you want to delete this column configuration? This action cannot be undone.
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button 
-              onClick={() => setDeleteDialog({ open: false, columnId: null })}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => {
-                if (deleteDialog.columnId) {
-                  handleDeleteColumn(deleteDialog.columnId)
-                }
-                setDeleteDialog({ open: false, columnId: null })
-              }}
-              variant="contained"
-              color="error"
-            >
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+                          <TableCell align="center">
+                            {editingColumn === column.column_name ? (
+                              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                <Tooltip title="Save">
+                                  <IconButton size="small" onClick={handleSaveLabel} color="success">
+                                    <SaveIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Cancel">
+                                  <IconButton size="small" onClick={handleCancelEdit}>
+                                    <CancelIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            ) : (
+                              <Tooltip title="Edit Labels">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleEditLabel(column)}
+                                  color="primary"
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {schemaData.columns.length === 0 && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  No columns found in the database table.
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Snackbar */}
         <Snackbar

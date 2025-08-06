@@ -25,6 +25,8 @@ import {
   Category as SeriesIcon,
   FilterList as FilterIcon,
   ViewColumn as TableColumnsIcon,
+  Upload as UploadIcon,
+  Settings as MetadataIcon,
 } from '@mui/icons-material';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -41,6 +43,7 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin' },
   { text: 'Products', icon: <ProductsIcon />, path: '/admin/products' },
   { text: 'All Products', icon: <AllProductsIcon />, path: '/admin/products/all' },
+  { text: 'CSV Upload', icon: <UploadIcon />, path: '/admin/products/csv-upload' },
   { text: 'Series', icon: <SeriesIcon />, path: '/admin/series' },
   { text: 'Newsletter', icon: <EmailIcon />, path: '/admin/newsletter' },
   { text: 'Downloads', icon: <DownloadIcon />, path: '/admin/downloads' },

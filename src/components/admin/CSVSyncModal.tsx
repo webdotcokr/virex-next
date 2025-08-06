@@ -224,8 +224,10 @@ export default function CSVSyncModal({
       // Call the CSV upload API directly
       const formData = new FormData();
       formData.append('file', csvFile!);
+      // Add categoryId if available (could be extracted from operations)
+      // formData.append('categoryId', 'YOUR_CATEGORY_ID');
 
-      const response = await fetch('/api/admin/products/csv-upload', {
+      const response = await fetch('/api/admin/csv-import', {
         method: 'POST',
         body: formData,
       });
@@ -363,7 +365,7 @@ export default function CSVSyncModal({
                     key={category}
                     size="small"
                     variant="text"
-                    href={`/api/admin/csv-template?category=${encodeURIComponent(category)}&sample=true`}
+                    href={`/api/admin/csv-import?category=${encodeURIComponent(category)}&sample=true`}
                     download={`${category.toLowerCase().replace(/\s+/g, '_')}_template.csv`}
                     sx={{ textTransform: 'none', fontSize: '0.75rem' }}
                   >

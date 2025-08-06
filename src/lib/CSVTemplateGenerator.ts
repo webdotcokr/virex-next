@@ -293,7 +293,7 @@ export class CSVTemplateGenerator {
   /**
    * Generate sample CSV data for a category
    */
-  static generateSampleData(categoryName: string): Record<string, any>[] {
+  static generateSampleData(categoryName: string): Record<string, unknown>[] {
     const template = this.getCategoryTemplate(categoryName);
     
     if (!template) {
@@ -310,7 +310,7 @@ export class CSVTemplateGenerator {
       }];
     }
 
-    const sampleData: Record<string, any> = {
+    const sampleData: Record<string, unknown> = {
       part_number: 'SAMPLE-001',
       category_name: categoryName,
       maker_name: 'Sample Maker',

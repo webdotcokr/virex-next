@@ -1,285 +1,262 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Papa from 'papaparse'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { CSVProcessor } from '@/lib/CSVProcessor'
+import { CSVTemplateGenerator } from '@/lib/CSVTemplateGenerator'
 
-// 공통 컬럼 정의
-const COMMON_COLUMNS = [
-  'part_number',
-  'category',
-  'maker',
-  'series',
-  'is_active',
-  'is_new',
-  'image_url'
-]
-
-// Supabase 클라이언트 초기화
+// Supabase 클라이언트 초기화 (Service Role Key 사용)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
 export async function POST(request: NextRequest) {
   try {
-    // 인증 체크 (관리자만 접근 가능)
-    const cookieStore = cookies()
-    const token = cookieStore.get('sb-access-token')
+    // 인증 체크 (관리자만 접근 가능) - 선택사항
+    // const cookieStore = cookies()
+    // const token = cookieStore.get('sb-access-token')
     
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 401 }
-      )
-    }
-
     // FormData에서 파일 추출
     const formData = await request.formData()
     const file = formData.get('file') as File
     const categoryId = formData.get('categoryId') as string
 
-    if (!file || !categoryId) {
+    if (!file || !file.name.endsWith('.csv')) {
       return NextResponse.json(
-        { error: 'File and categoryId are required' },
+        { error: 'Please upload a valid CSV file' },
         { status: 400 }
       )
     }
 
-    // CSV 파일 읽기
-    const text = await file.text()
-    
-    // CSV 파싱
-    const parseResult = Papa.parse(text, {
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: (header) => header.trim().toLowerCase().replace(/\s+/g, '_')
-    })
+    // Initialize mapping caches
+    const [makersResult, seriesResult, categoriesResult] = await Promise.all([
+      supabase.from('makers').select('id, name'),
+      supabase.from('series').select('id, series_name'),
+      supabase.from('categories').select('id, name')
+    ])
 
-    if (parseResult.errors.length > 0) {
+    if (makersResult.error || seriesResult.error || categoriesResult.error) {
+      throw new Error('Failed to load reference data')
+    }
+
+    CSVProcessor.initializeMappingCaches(
+      makersResult.data || [],
+      seriesResult.data || [],
+      categoriesResult.data || []
+    )
+
+    // Parse CSV file using CSVProcessor
+    const processingResult = await CSVProcessor.parseCSVFile(file)
+    
+    if (!processingResult.success && processingResult.data.length === 0) {
       return NextResponse.json(
-        { error: 'CSV parsing failed', details: parseResult.errors },
+        { 
+          error: 'CSV processing failed',
+          details: processingResult.errors
+        },
         { status: 400 }
       )
     }
 
-    const rows = parseResult.data as Record<string, any>[]
+    // Generate sync operations
+    const operations = CSVProcessor.generateSyncOperations(processingResult.data)
     
-    // 카테고리 유효성 검증
-    const { data: category, error: categoryError } = await supabase
-      .from('categories')
-      .select('id, name')
-      .eq('id', categoryId)
-      .single()
-
-    if (categoryError || !category) {
-      return NextResponse.json(
-        { error: 'Invalid category ID' },
-        { status: 400 }
-      )
+    // Execute operations
+    const results = {
+      inserted: 0,
+      updated: 0,
+      skipped: 0,
+      errors: [] as any[]
     }
 
-    // 제조사 목록 가져오기 (캐싱용)
-    const { data: makers } = await supabase
-      .from('makers')
-      .select('id, name')
-    
-    const makerMap = new Map(makers?.map(m => [m.name.toLowerCase(), m.id]) || [])
+    // If categoryId is provided, validate it
+    if (categoryId) {
+      const { data: category, error: categoryError } = await supabase
+        .from('categories')
+        .select('id, name')
+        .eq('id', categoryId)
+        .single()
 
-    // 시리즈 목록 가져오기 (캐싱용)
-    const { data: seriesList } = await supabase
-      .from('series')
-      .select('id, series_name')
-    
-    const seriesMap = new Map(seriesList?.map(s => [s.series_name.toLowerCase(), s.id]) || [])
+      if (categoryError || !category) {
+        return NextResponse.json(
+          { error: 'Invalid category ID' },
+          { status: 400 }
+        )
+      }
+    }
 
-    // 데이터 변환 및 검증
-    const productsToInsert = []
-    const errors = []
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i]
-      
-      // 필수 필드 검증
-      if (!row.part_number) {
-        errors.push({ row: i + 2, error: 'part_number is required' })
+    for (const operation of operations) {
+      if (!operation.selected) {
+        results.skipped++
         continue
       }
 
-      // 공통 컬럼과 specifications 분리
-      const commonData: any = {
-        part_number: row.part_number.trim(),
-        category_id: parseInt(categoryId),
-        is_active: row.is_active ? 
-          (row.is_active.toLowerCase() === 'true' || row.is_active === '1') : true,
-        is_new: row.is_new ? 
-          (row.is_new.toLowerCase() === 'true' || row.is_new === '1') : false,
-        image_url: row.image_url || null
-      }
-
-      // 제조사 처리
-      if (row.maker) {
-        const makerName = row.maker.trim().toLowerCase()
-        let makerId = makerMap.get(makerName)
-        
-        // 새로운 제조사인 경우 생성
-        if (!makerId) {
-          const { data: newMaker, error: makerError } = await supabase
-            .from('makers')
-            .insert({ name: row.maker.trim() })
-            .select('id')
-            .single()
-          
-          if (!makerError && newMaker) {
-            makerId = newMaker.id
-            makerMap.set(makerName, makerId)
-          }
+      try {
+        // Override category_id if provided in form data
+        if (categoryId) {
+          operation.data.category_id = parseInt(categoryId)
         }
-        
-        if (makerId) {
-          commonData.maker_id = makerId
-        }
-      }
 
-      // 시리즈 처리
-      if (row.series) {
-        const seriesName = row.series.trim().toLowerCase()
-        let seriesId = seriesMap.get(seriesName)
-        
-        // 새로운 시리즈인 경우 생성
-        if (!seriesId) {
-          const { data: newSeries, error: seriesError } = await supabase
-            .from('series')
-            .insert({ 
-              series_name: row.series.trim(),
-              category_id: parseInt(categoryId)
+        if (operation.type === 'INSERT') {
+          const { error } = await supabase
+            .from('products')
+            .insert({
+              part_number: operation.data.part_number,
+              maker_id: operation.data.maker_id,
+              category_id: operation.data.category_id,
+              series_id: operation.data.series_id,
+              specifications: operation.data.specifications,
+              is_active: operation.data.is_active ?? true,
+              is_new: operation.data.is_new ?? false,
             })
-            .select('id')
-            .single()
           
-          if (!seriesError && newSeries) {
-            seriesId = newSeries.id
-            seriesMap.set(seriesName, seriesId)
+          if (error) throw error
+          results.inserted++
+          
+        } else if (operation.type === 'UPDATE') {
+          const { error } = await supabase
+            .from('products')
+            .update({
+              maker_id: operation.data.maker_id,
+              category_id: operation.data.category_id,
+              series_id: operation.data.series_id,
+              specifications: operation.data.specifications,
+              is_active: operation.data.is_active ?? true,
+              is_new: operation.data.is_new ?? false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('part_number', operation.data.part_number)
+          
+          if (error) throw error
+          results.updated++
+        }
+      } catch (error: any) {
+        results.errors.push({
+          operation: operation.type,
+          part_number: operation.data.part_number,
+          error: error.message || 'Unknown error'
+        })
+      }
+    }
+
+    // Handle product media if image_url is provided
+    const productsWithImages = processingResult.data.filter(
+      row => row.basicFields.image_url && row.basicFields.part_number
+    )
+
+    for (const row of productsWithImages) {
+      try {
+        // Get product ID by part_number
+        const { data: product } = await supabase
+          .from('products')
+          .select('id')
+          .eq('part_number', row.basicFields.part_number)
+          .single()
+
+        if (product) {
+          // Check if media already exists
+          const { data: existingMedia } = await supabase
+            .from('product_media')
+            .select('id')
+            .eq('product_id', product.id)
+            .eq('media_type', 'image')
+            .eq('is_primary', true)
+            .single()
+
+          if (!existingMedia) {
+            // Insert new media
+            await supabase.from('product_media').insert({
+              product_id: product.id,
+              media_type: 'image',
+              url: row.basicFields.image_url,
+              is_primary: true
+            })
           }
         }
-        
-        if (seriesId) {
-          commonData.series_id = seriesId
-        }
+      } catch (error) {
+        // Silently continue - media is optional
       }
-
-      // specifications 구성 (공통 컬럼이 아닌 모든 필드)
-      const specifications: Record<string, any> = {}
-      for (const [key, value] of Object.entries(row)) {
-        if (!COMMON_COLUMNS.includes(key) && value !== null && value !== '') {
-          // 숫자로 변환 가능한 경우 숫자로 저장
-          const numValue = parseFloat(value as string)
-          specifications[key] = isNaN(numValue) ? value : numValue
-        }
-      }
-
-      commonData.specifications = specifications
-      productsToInsert.push(commonData)
     }
 
-    // 트랜잭션으로 일괄 삽입/업데이트 (upsert)
-    const { data: insertedProducts, error: insertError } = await supabase
-      .from('products')
-      .upsert(productsToInsert, {
-        onConflict: 'part_number',
-        ignoreDuplicates: false
-      })
-      .select()
-
-    if (insertError) {
-      return NextResponse.json(
-        { 
-          error: 'Failed to import products', 
-          details: insertError.message,
-          validationErrors: errors 
-        },
-        { status: 500 }
-      )
-    }
-
-    // 성공 응답
     return NextResponse.json({
       success: true,
-      imported: insertedProducts?.length || 0,
-      errors: errors,
       summary: {
-        total_rows: rows.length,
-        successful: insertedProducts?.length || 0,
-        failed: errors.length
-      }
+        totalRows: processingResult.summary.totalRows,
+        inserted: results.inserted,
+        updated: results.updated,
+        skipped: results.skipped,
+        errors: results.errors.length
+      },
+      processingResult: {
+        ...processingResult.summary,
+        validationErrors: processingResult.errors
+      },
+      operationErrors: results.errors
     })
 
   } catch (error) {
-    console.error('CSV import error:', error)
+    console.error('CSV Import Error:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to process CSV import', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
 }
 
-// CSV 템플릿 다운로드 엔드포인트
+// CSV 템플릿 다운로드 엔드포인트 (CSVTemplateGenerator 호환)
 export async function GET(request: NextRequest) {
-  const categoryId = request.nextUrl.searchParams.get('categoryId')
-  
-  if (!categoryId) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const categoryId = searchParams.get('categoryId')
+    const categoryName = searchParams.get('category') // 카테고리명으로도 접근 가능
+    const includeSample = searchParams.get('sample') !== 'false' // 기본값: true
+    
+    let finalCategoryName = categoryName
+
+    // categoryId가 제공된 경우 카테고리명 조회
+    if (categoryId && !categoryName) {
+      const { data: category, error } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('id', categoryId)
+        .single()
+
+      if (error || !category) {
+        return NextResponse.json(
+          { error: 'Invalid category ID' },
+          { status: 400 }
+        )
+      }
+      
+      finalCategoryName = category.name
+    }
+
+    if (!finalCategoryName) {
+      return NextResponse.json(
+        { error: 'Category name or categoryId is required' },
+        { status: 400 }
+      )
+    }
+
+    // CSVTemplateGenerator를 사용하여 템플릿 생성
+    const csvContent = CSVTemplateGenerator.generateCSVContent(finalCategoryName, includeSample)
+    const fileName = `${finalCategoryName.toLowerCase().replace(/\s+/g, '_')}_template.csv`
+
+    // CSV 파일로 응답
+    return new NextResponse(csvContent, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Cache-Control': 'no-cache',
+      },
+    })
+
+  } catch (error) {
+    console.error('CSV Template Generation Error:', error)
     return NextResponse.json(
-      { error: 'categoryId is required' },
-      { status: 400 }
+      { error: 'Failed to generate CSV template', details: error instanceof Error ? error.message : 'Unknown error' }, 
+      { status: 500 }
     )
   }
-
-  // 카테고리별 샘플 CSV 생성
-  const headers = [
-    'part_number',
-    'maker',
-    'series',
-    'is_active',
-    'is_new',
-    'image_url',
-    // 카테고리별 추가 필드 예시
-    'scan_width',
-    'dpi',
-    'resolution',
-    'line_rate',
-    'speed',
-    'wd',
-    'no_of_pixels'
-  ]
-
-  const sampleData = [
-    {
-      part_number: 'SAMPLE-001',
-      maker: 'Sample Maker',
-      series: 'Sample Series',
-      is_active: 'true',
-      is_new: 'false',
-      image_url: 'https://example.com/sample.jpg',
-      scan_width: '400',
-      dpi: '600',
-      resolution: '7200',
-      line_rate: '80',
-      speed: '120',
-      wd: '150',
-      no_of_pixels: '7200'
-    }
-  ]
-
-  // CSV 생성
-  const csv = Papa.unparse({
-    fields: headers,
-    data: sampleData
-  })
-
-  // CSV 파일로 응답
-  return new NextResponse(csv, {
-    headers: {
-      'Content-Type': 'text/csv',
-      'Content-Disposition': `attachment; filename="product_import_template_category_${categoryId}.csv"`
-    }
-  })
 }

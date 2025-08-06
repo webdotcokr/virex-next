@@ -32,7 +32,8 @@ export default function ProductSortBar({
 
   const handleSearchKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSearchSubmit(e as any)
+      e.preventDefault()
+      onSearch?.(searchTerm)
     }
   }
 
