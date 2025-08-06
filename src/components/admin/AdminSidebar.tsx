@@ -23,6 +23,8 @@ import {
   Article as NewsIcon,
   NewReleases as NewProductsIcon,
   Category as SeriesIcon,
+  FilterList as FilterIcon,
+  ViewColumn as TableColumnsIcon,
 } from '@mui/icons-material';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -46,6 +48,8 @@ const menuItems = [
   { text: 'Makers', icon: <MakersIcon />, path: '/admin/makers' },
   { text: 'News & Media', icon: <NewsIcon />, path: '/admin/news' },
   { text: 'New Products', icon: <NewProductsIcon />, path: '/admin/new-products' },
+  { text: 'Filters', icon: <FilterIcon />, path: '/admin/filters' },
+  { text: 'Table Columns', icon: <TableColumnsIcon />, path: '/admin/table-columns' },
 ];
 
 export default function AdminSidebar({ open, onClose, isMobile }: AdminSidebarProps) {

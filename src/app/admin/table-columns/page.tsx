@@ -1,6 +1,45 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Switch,
+  FormControlLabel,
+  Grid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Alert,
+  Snackbar,
+} from '@mui/material'
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Add as AddIcon,
+  KeyboardArrowUp as ArrowUpIcon,
+  KeyboardArrowDown as ArrowDownIcon,
+  Visibility as VisibleIcon,
+  VisibilityOff as HiddenIcon,
+} from '@mui/icons-material'
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/lib/supabase'
 
@@ -22,6 +61,12 @@ export default function AdminTableColumnsPage() {
     sort_order: 0,
     column_width: ''
   })
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'success' | 'error' | 'warning' | 'info',
+  })
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, columnId: null as number | null })
 
   useEffect(() => {
     loadCategories()
@@ -72,7 +117,11 @@ export default function AdminTableColumnsPage() {
 
   const handleAddColumn = async () => {
     if (!selectedCategory || !newColumn.column_name || !newColumn.column_label) {
-      alert('Please fill in all required fields')
+      setSnackbar({
+        open: true,
+        message: 'Please fill in all required fields',
+        severity: 'warning',
+      })
       return
     }
 
@@ -100,10 +149,18 @@ export default function AdminTableColumnsPage() {
         column_width: ''
       })
       
-      alert('Column added successfully')
+      setSnackbar({
+        open: true,
+        message: 'Column added successfully!',
+        severity: 'success',
+      })
     } catch (error) {
       console.error('Error adding column:', error)
-      alert('Failed to add column')
+      setSnackbar({
+        open: true,
+        message: 'Failed to add column',
+        severity: 'error',
+      })
     }
   }
 
@@ -124,16 +181,22 @@ export default function AdminTableColumnsPage() {
       
       loadColumnConfigs()
       setEditingColumn(null)
-      alert('Column updated successfully')
+      setSnackbar({
+        open: true,
+        message: 'Column updated successfully!',
+        severity: 'success',
+      })
     } catch (error) {
       console.error('Error updating column:', error)
-      alert('Failed to update column')
+      setSnackbar({
+        open: true,
+        message: 'Failed to update column',
+        severity: 'error',
+      })
     }
   }
 
   const handleDeleteColumn = async (columnId: number) => {
-    if (!confirm('Are you sure you want to delete this column configuration?')) return
-
     try {
       const { error } = await supabase
         .from('table_column_configs')
@@ -143,11 +206,23 @@ export default function AdminTableColumnsPage() {
       if (error) throw error
       
       setColumnConfigs(columnConfigs.filter(c => c.id !== columnId))
-      alert('Column deleted successfully')
+      setSnackbar({
+        open: true,
+        message: 'Column deleted successfully!',
+        severity: 'success',
+      })
     } catch (error) {
       console.error('Error deleting column:', error)
-      alert('Failed to delete column')
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete column',
+        severity: 'error',
+      })
     }
+  }
+
+  const confirmDeleteColumn = (columnId: number) => {
+    setDeleteDialog({ open: true, columnId })
   }
 
   const moveColumn = async (columnId: number, direction: 'up' | 'down') => {
@@ -195,261 +270,392 @@ export default function AdminTableColumnsPage() {
   const basicColumns = ['maker_name', 'series', 'part_number']
 
   if (loading) {
-    return <div className="p-8">Loading...</div>
+    return (
+      <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Typography>Loading...</Typography>
+      </Box>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Table Column Management</h1>
+    <Box sx={{ p: 4, backgroundColor: '#F8F9FB', minHeight: '100vh' }}>
+      <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 600, mb: 1 }}>
+            Table Column Management
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Configure table columns for each product category
+          </Typography>
+        </Box>
 
         {/* Category Selection */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Select Category</h2>
-          <select
-            value={selectedCategory || ''}
-            onChange={(e) => setSelectedCategory(Number(e.target.value))}
-            className="w-full p-2 border rounded"
-          >
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Select Category
+            </Typography>
+            <FormControl fullWidth>
+              <InputLabel id="category-select-label">Category</InputLabel>
+              <Select
+                labelId="category-select-label"
+                id="category-select"
+                value={selectedCategory || ''}
+                label="Category"
+                onChange={(e) => setSelectedCategory(Number(e.target.value))}
+              >
+                {categories.map(category => (
+                  <MenuItem key={category.id} value={category.id}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </CardContent>
+        </Card>
 
         {/* Add New Column */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Add New Column</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Column Name (e.g., scan_width)"
-              value={newColumn.column_name}
-              onChange={(e) => setNewColumn({ ...newColumn, column_name: e.target.value })}
-              className="p-2 border rounded"
-            />
-            <input
-              type="text"
-              placeholder="Display Label (e.g., Scan Width)"
-              value={newColumn.column_label}
-              onChange={(e) => setNewColumn({ ...newColumn, column_label: e.target.value })}
-              className="p-2 border rounded"
-            />
-            <select
-              value={newColumn.column_type}
-              onChange={(e) => setNewColumn({ ...newColumn, column_type: e.target.value as 'basic' | 'specification' })}
-              className="p-2 border rounded"
-            >
-              <option value="basic">Basic Field</option>
-              <option value="specification">Specification Field</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Width (e.g., 150px, 20%)"
-              value={newColumn.column_width}
-              onChange={(e) => setNewColumn({ ...newColumn, column_width: e.target.value })}
-              className="p-2 border rounded"
-            />
-            <input
-              type="number"
-              placeholder="Sort Order"
-              value={newColumn.sort_order}
-              onChange={(e) => setNewColumn({ ...newColumn, sort_order: Number(e.target.value) })}
-              className="p-2 border rounded"
-            />
-            <div className="flex items-center gap-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={newColumn.is_visible}
-                  onChange={(e) => setNewColumn({ ...newColumn, is_visible: e.target.checked })}
-                  className="mr-2"
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 3 }}>
+              Add New Column
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Column Name"
+                  placeholder="e.g., scan_width"
+                  value={newColumn.column_name}
+                  onChange={(e) => setNewColumn({ ...newColumn, column_name: e.target.value })}
                 />
-                Visible
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={newColumn.is_sortable}
-                  onChange={(e) => setNewColumn({ ...newColumn, is_sortable: e.target.checked })}
-                  className="mr-2"
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Display Label"
+                  placeholder="e.g., Scan Width"
+                  value={newColumn.column_label}
+                  onChange={(e) => setNewColumn({ ...newColumn, column_label: e.target.value })}
                 />
-                Sortable
-              </label>
-            </div>
-          </div>
-          <button
-            onClick={handleAddColumn}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Add Column
-          </button>
-        </div>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Column Type</InputLabel>
+                  <Select
+                    value={newColumn.column_type}
+                    label="Column Type"
+                    onChange={(e) => setNewColumn({ ...newColumn, column_type: e.target.value as 'basic' | 'specification' })}
+                  >
+                    <MenuItem value="basic">Basic Field</MenuItem>
+                    <MenuItem value="specification">Specification Field</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Width"
+                  placeholder="e.g., 150px, 20%"
+                  value={newColumn.column_width}
+                  onChange={(e) => setNewColumn({ ...newColumn, column_width: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Sort Order"
+                  value={newColumn.sort_order}
+                  onChange={(e) => setNewColumn({ ...newColumn, sort_order: Number(e.target.value) })}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 1 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={newColumn.is_visible}
+                        onChange={(e) => setNewColumn({ ...newColumn, is_visible: e.target.checked })}
+                      />
+                    }
+                    label="Visible"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={newColumn.is_sortable}
+                        onChange={(e) => setNewColumn({ ...newColumn, is_sortable: e.target.checked })}
+                      />
+                    }
+                    label="Sortable"
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  onClick={handleAddColumn}
+                  startIcon={<AddIcon />}
+                  sx={{ mt: 2 }}
+                >
+                  Add Column
+                </Button>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
 
         {/* Column List */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Table Columns</h2>
-          <div className="space-y-2">
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 3 }}>
+              Table Columns
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {columnConfigs.map((column, index) => (
-              <div key={column.id} className="border rounded-lg p-4">
+              <Paper key={column.id} sx={{ p: 3, border: '1px solid #E8ECEF' }}>
                 {editingColumn?.id === column.id ? (
                   // Edit Mode
-                  <div className="space-y-2">
-                    <input
-                      type="text"
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                      fullWidth
+                      label="Column Label"
                       value={editingColumn.column_label}
                       onChange={(e) => setEditingColumn({ ...editingColumn, column_label: e.target.value })}
-                      className="w-full p-2 border rounded"
                     />
-                    <input
-                      type="text"
+                    <TextField
+                      fullWidth
+                      label="Width"
+                      placeholder="e.g., 150px"
                       value={editingColumn.column_width || ''}
                       onChange={(e) => setEditingColumn({ ...editingColumn, column_width: e.target.value })}
-                      placeholder="Width (e.g., 150px)"
-                      className="w-full p-2 border rounded"
                     />
-                    <input
+                    <TextField
+                      fullWidth
                       type="number"
+                      label="Sort Order"
                       value={editingColumn.sort_order}
                       onChange={(e) => setEditingColumn({ ...editingColumn, sort_order: Number(e.target.value) })}
-                      className="w-full p-2 border rounded"
                     />
-                    <div className="flex gap-4">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={editingColumn.is_visible}
-                          onChange={(e) => setEditingColumn({ ...editingColumn, is_visible: e.target.checked })}
-                          className="mr-2"
-                        />
-                        Visible
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={editingColumn.is_sortable}
-                          onChange={(e) => setEditingColumn({ ...editingColumn, is_sortable: e.target.checked })}
-                          className="mr-2"
-                        />
-                        Sortable
-                      </label>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={editingColumn.is_visible}
+                            onChange={(e) => setEditingColumn({ ...editingColumn, is_visible: e.target.checked })}
+                          />
+                        }
+                        label="Visible"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={editingColumn.is_sortable}
+                            onChange={(e) => setEditingColumn({ ...editingColumn, is_sortable: e.target.checked })}
+                          />
+                        }
+                        label="Sortable"
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                      <Button
+                        variant="contained"
+                        color="success"
                         onClick={() => handleUpdateColumn(editingColumn)}
-                        className="bg-green-600 text-white px-3 py-1 rounded"
                       >
                         Save
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="outlined"
                         onClick={() => setEditingColumn(null)}
-                        className="bg-gray-600 text-white px-3 py-1 rounded"
                       >
                         Cancel
-                      </button>
-                    </div>
-                  </div>
+                      </Button>
+                    </Box>
+                  </Box>
                 ) : (
                   // View Mode
-                  <div className="flex justify-between items-center">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{column.column_label}</span>
-                        {!column.is_visible && <span className="text-xs bg-gray-200 px-2 py-1 rounded">Hidden</span>}
-                        {basicColumns.includes(column.column_name) && (
-                          <span className="text-xs bg-blue-100 px-2 py-1 rounded">Basic</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        Name: {column.column_name} | 
-                        Type: {column.column_type} | 
-                        Width: {column.column_width || 'auto'} | 
-                        Order: {column.sort_order}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {column.is_visible ? '✓ Visible' : '✗ Hidden'} | 
-                        {column.is_sortable ? '✓ Sortable' : '✗ Not Sortable'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => moveColumn(column.id, 'up')}
-                        disabled={index === 0}
-                        className="bg-gray-300 hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 px-2 py-1 rounded text-sm"
-                      >
-                        ↑
-                      </button>
-                      <button
-                        onClick={() => moveColumn(column.id, 'down')}
-                        disabled={index === columnConfigs.length - 1}
-                        className="bg-gray-300 hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 px-2 py-1 rounded text-sm"
-                      >
-                        ↓
-                      </button>
-                      <button
-                        onClick={() => setEditingColumn(column)}
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteColumn(column.id)}
-                        className="bg-red-600 text-white px-3 py-1 rounded text-sm"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
+                  <Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                            {column.column_label}
+                          </Typography>
+                          {!column.is_visible && (
+                            <Chip
+                              icon={<HiddenIcon />}
+                              label="Hidden"
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
+                          {basicColumns.includes(column.column_name) && (
+                            <Chip
+                              label="Basic"
+                              size="small"
+                              color="primary"
+                              variant="outlined"
+                            />
+                          )}
+                        </Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                          Name: {column.column_name} | Type: {column.column_type} | Width: {column.column_width || 'auto'} | Order: {column.sort_order}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                          <Chip
+                            icon={column.is_visible ? <VisibleIcon /> : <HiddenIcon />}
+                            label={column.is_visible ? 'Visible' : 'Hidden'}
+                            color={column.is_visible ? 'success' : 'default'}
+                            size="small"
+                          />
+                          <Chip
+                            label={column.is_sortable ? 'Sortable' : 'Not Sortable'}
+                            variant="outlined"
+                            size="small"
+                          />
+                        </Box>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => moveColumn(column.id, 'up')}
+                          disabled={index === 0}
+                        >
+                          <ArrowUpIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => moveColumn(column.id, 'down')}
+                          disabled={index === columnConfigs.length - 1}
+                        >
+                          <ArrowDownIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => setEditingColumn(column)}
+                          color="primary"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => confirmDeleteColumn(column.id)}
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                  </Box>
                 )}
-              </div>
+              </Paper>
             ))}
-          </div>
-        </div>
+            </Box>
+          </CardContent>
+        </Card>
 
         {/* Preview */}
-        <div className="bg-white rounded-lg shadow-md p-6 mt-8">
-          <h2 className="text-xl font-semibold mb-4">Table Preview</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2 text-sm font-semibold">비교</th>
-                  {columnConfigs
-                    .filter(col => col.is_visible)
-                    .sort((a, b) => a.sort_order - b.sort_order)
-                    .map(col => (
-                      <th
-                        key={col.id}
-                        className="text-left p-2 text-sm font-semibold"
-                        style={{ width: col.column_width || 'auto' }}
-                      >
-                        {col.column_label}
-                        {col.is_sortable && <span className="ml-1">↕</span>}
-                      </th>
-                    ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b">
-                  <td className="p-2 text-sm">
-                    <input type="checkbox" />
-                  </td>
-                  {columnConfigs
-                    .filter(col => col.is_visible)
-                    .sort((a, b) => a.sort_order - b.sort_order)
-                    .map(col => (
-                      <td key={col.id} className="p-2 text-sm text-gray-600">
-                        Sample Data
-                      </td>
-                    ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Card sx={{ mt: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 3 }}>
+              Table Preview
+            </Typography>
+            <TableContainer component={Paper} sx={{ border: '1px solid #E8ECEF' }}>
+              <Table size="small">
+                <TableHead sx={{ backgroundColor: '#F8F9FB' }}>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>비교</TableCell>
+                    {columnConfigs
+                      .filter(col => col.is_visible)
+                      .sort((a, b) => a.sort_order - b.sort_order)
+                      .map(col => (
+                        <TableCell 
+                          key={col.id}
+                          sx={{ 
+                            fontWeight: 600,
+                            width: col.column_width || 'auto',
+                          }}
+                        >
+                          {col.column_label}
+                          {col.is_sortable && <Typography component="span" sx={{ ml: 1 }}>↕</Typography>}
+                        </TableCell>
+                      ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      <input type="checkbox" />
+                    </TableCell>
+                    {columnConfigs
+                      .filter(col => col.is_visible)
+                      .sort((a, b) => a.sort_order - b.sort_order)
+                      .map(col => (
+                        <TableCell key={col.id}>
+                          <Typography variant="body2" color="text.secondary">
+                            Sample Data
+                          </Typography>
+                        </TableCell>
+                      ))}
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialog.open}
+          onClose={() => setDeleteDialog({ open: false, columnId: null })}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to delete this column configuration? This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button 
+              onClick={() => setDeleteDialog({ open: false, columnId: null })}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (deleteDialog.columnId) {
+                  handleDeleteColumn(deleteDialog.columnId)
+                }
+                setDeleteDialog({ open: false, columnId: null })
+              }}
+              variant="contained"
+              color="error"
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Snackbar */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        >
+          <Alert 
+            onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
+            severity={snackbar.severity}
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    </Box>
   )
 }

@@ -1,6 +1,38 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Switch,
+  FormControlLabel,
+  Grid,
+  Divider,
+  Alert,
+  Snackbar,
+  Paper,
+} from '@mui/material'
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Add as AddIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+} from '@mui/icons-material'
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/lib/supabase'
 
@@ -25,6 +57,13 @@ export default function AdminFiltersPage() {
     sort_order: 0,
     default_expanded: true
   })
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'success' | 'error' | 'warning' | 'info',
+  })
+  const [expandedFilters, setExpandedFilters] = useState<Record<number, boolean>>({})
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, filterId: null as number | null })
 
   useEffect(() => {
     loadCategories()
@@ -105,7 +144,11 @@ export default function AdminFiltersPage() {
 
   const handleAddFilter = async () => {
     if (!selectedCategory || !newFilter.filter_name || !newFilter.filter_label) {
-      alert('Please fill in all required fields')
+      setSnackbar({
+        open: true,
+        message: 'Please fill in all required fields',
+        severity: 'warning',
+      })
       return
     }
 
@@ -153,10 +196,18 @@ export default function AdminFiltersPage() {
         default_expanded: true
       })
       
-      alert('Filter added successfully')
+      setSnackbar({
+        open: true,
+        message: 'Filter added successfully!',
+        severity: 'success',
+      })
     } catch (error) {
       console.error('Error adding filter:', error)
-      alert('Failed to add filter')
+      setSnackbar({
+        open: true,
+        message: 'Failed to add filter',
+        severity: 'error',
+      })
     }
   }
 
@@ -177,16 +228,22 @@ export default function AdminFiltersPage() {
       
       loadFilterConfigs()
       setEditingFilter(null)
-      alert('Filter updated successfully')
+      setSnackbar({
+        open: true,
+        message: 'Filter updated successfully!',
+        severity: 'success',
+      })
     } catch (error) {
       console.error('Error updating filter:', error)
-      alert('Failed to update filter')
+      setSnackbar({
+        open: true,
+        message: 'Failed to update filter',
+        severity: 'error',
+      })
     }
   }
 
   const handleDeleteFilter = async (filterId: number) => {
-    if (!confirm('Are you sure you want to delete this filter?')) return
-
     try {
       const { error } = await supabase
         .from('filter_configs')
@@ -196,11 +253,23 @@ export default function AdminFiltersPage() {
       if (error) throw error
       
       setFilterConfigs(filterConfigs.filter(f => f.id !== filterId))
-      alert('Filter deleted successfully')
+      setSnackbar({
+        open: true,
+        message: 'Filter deleted successfully!',
+        severity: 'success',
+      })
     } catch (error) {
       console.error('Error deleting filter:', error)
-      alert('Failed to delete filter')
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete filter',
+        severity: 'error',
+      })
     }
+  }
+
+  const confirmDeleteFilter = (filterId: number) => {
+    setDeleteDialog({ open: true, filterId })
   }
 
   const handleAddOption = async (filterId: number, value: string, label: string) => {
@@ -225,7 +294,11 @@ export default function AdminFiltersPage() {
       })
     } catch (error) {
       console.error('Error adding option:', error)
-      alert('Failed to add option')
+      setSnackbar({
+        open: true,
+        message: 'Failed to add option',
+        severity: 'error',
+      })
     }
   }
 
@@ -244,7 +317,11 @@ export default function AdminFiltersPage() {
       })
     } catch (error) {
       console.error('Error deleting option:', error)
-      alert('Failed to delete option')
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete option',
+        severity: 'error',
+      })
     }
   }
 
@@ -269,7 +346,11 @@ export default function AdminFiltersPage() {
       })
     } catch (error) {
       console.error('Error adding slider config:', error)
-      alert('Failed to initialize slider settings')
+      setSnackbar({
+        open: true,
+        message: 'Failed to initialize slider settings',
+        severity: 'error',
+      })
     }
   }
 
@@ -294,218 +375,293 @@ export default function AdminFiltersPage() {
       })
     } catch (error) {
       console.error('Error updating slider config:', error)
-      alert('Failed to update slider settings')
+      setSnackbar({
+        open: true,
+        message: 'Failed to update slider settings',
+        severity: 'error',
+      })
     }
   }
 
   if (loading) {
-    return <div className="p-8">Loading...</div>
+    return (
+      <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Typography>Loading...</Typography>
+      </Box>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Filter Management</h1>
+    <Box sx={{ p: 4, backgroundColor: '#F8F9FB', minHeight: '100vh' }}>
+      <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 600, mb: 1 }}>
+            Filter Management
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Configure filters for each product category
+          </Typography>
+        </Box>
 
         {/* Category Selection */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Select Category</h2>
-          <select
-            value={selectedCategory || ''}
-            onChange={(e) => setSelectedCategory(Number(e.target.value))}
-            className="w-full p-2 border rounded"
-          >
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Select Category
+            </Typography>
+            <FormControl fullWidth>
+              <InputLabel id="category-select-label">Category</InputLabel>
+              <Select
+                labelId="category-select-label"
+                id="category-select"
+                value={selectedCategory || ''}
+                label="Category"
+                onChange={(e) => setSelectedCategory(Number(e.target.value))}
+              >
+                {categories.map(category => (
+                  <MenuItem key={category.id} value={category.id}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </CardContent>
+        </Card>
 
         {/* Add New Filter */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Add New Filter</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Filter Name (e.g., scan_width)"
-              value={newFilter.filter_name}
-              onChange={(e) => setNewFilter({ ...newFilter, filter_name: e.target.value })}
-              className="p-2 border rounded"
-            />
-            <input
-              type="text"
-              placeholder="Display Label (e.g., Scan Width)"
-              value={newFilter.filter_label}
-              onChange={(e) => setNewFilter({ ...newFilter, filter_label: e.target.value })}
-              className="p-2 border rounded"
-            />
-            <select
-              value={newFilter.filter_type}
-              onChange={(e) => setNewFilter({ ...newFilter, filter_type: e.target.value as 'checkbox' | 'slider' })}
-              className="p-2 border rounded"
-            >
-              <option value="checkbox">Checkbox</option>
-              <option value="slider">Slider</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Unit (e.g., mm, dpi)"
-              value={newFilter.filter_unit}
-              onChange={(e) => setNewFilter({ ...newFilter, filter_unit: e.target.value })}
-              className="p-2 border rounded"
-            />
-            <input
-              type="number"
-              placeholder="Sort Order"
-              value={newFilter.sort_order}
-              onChange={(e) => setNewFilter({ ...newFilter, sort_order: Number(e.target.value) })}
-              className="p-2 border rounded"
-            />
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={newFilter.default_expanded}
-                onChange={(e) => setNewFilter({ ...newFilter, default_expanded: e.target.checked })}
-                className="mr-2"
-              />
-              Default Expanded
-            </label>
-          </div>
-          <button
-            onClick={handleAddFilter}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Add Filter
-          </button>
-        </div>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 3 }}>
+              Add New Filter
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Filter Name"
+                  placeholder="e.g., scan_width"
+                  value={newFilter.filter_name}
+                  onChange={(e) => setNewFilter({ ...newFilter, filter_name: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Display Label"
+                  placeholder="e.g., Scan Width"
+                  value={newFilter.filter_label}
+                  onChange={(e) => setNewFilter({ ...newFilter, filter_label: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Filter Type</InputLabel>
+                  <Select
+                    value={newFilter.filter_type}
+                    label="Filter Type"
+                    onChange={(e) => setNewFilter({ ...newFilter, filter_type: e.target.value as 'checkbox' | 'slider' })}
+                  >
+                    <MenuItem value="checkbox">Checkbox</MenuItem>
+                    <MenuItem value="slider">Slider</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Unit"
+                  placeholder="e.g., mm, dpi"
+                  value={newFilter.filter_unit}
+                  onChange={(e) => setNewFilter({ ...newFilter, filter_unit: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Sort Order"
+                  value={newFilter.sort_order}
+                  onChange={(e) => setNewFilter({ ...newFilter, sort_order: Number(e.target.value) })}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={newFilter.default_expanded}
+                      onChange={(e) => setNewFilter({ ...newFilter, default_expanded: e.target.checked })}
+                    />
+                  }
+                  label="Default Expanded"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  onClick={handleAddFilter}
+                  startIcon={<AddIcon />}
+                  sx={{ mt: 2 }}
+                >
+                  Add Filter
+                </Button>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
 
         {/* Filter List */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Filters</h2>
-          <div className="space-y-4">
+        <Card>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 3 }}>
+              Filters
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {filterConfigs.map(filter => (
-              <div key={filter.id} className="border rounded-lg p-4">
+              <Paper key={filter.id} sx={{ p: 3, border: '1px solid #E8ECEF' }}>
                 {editingFilter?.id === filter.id ? (
                   // Edit Mode
-                  <div className="space-y-2">
-                    <input
-                      type="text"
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                      fullWidth
+                      label="Filter Label"
                       value={editingFilter.filter_label}
                       onChange={(e) => setEditingFilter({ ...editingFilter, filter_label: e.target.value })}
-                      className="w-full p-2 border rounded"
                     />
-                    <input
-                      type="text"
+                    <TextField
+                      fullWidth
+                      label="Unit"
+                      placeholder="Unit"
                       value={editingFilter.filter_unit || ''}
                       onChange={(e) => setEditingFilter({ ...editingFilter, filter_unit: e.target.value })}
-                      placeholder="Unit"
-                      className="w-full p-2 border rounded"
                     />
-                    <input
+                    <TextField
+                      fullWidth
                       type="number"
+                      label="Sort Order"
                       value={editingFilter.sort_order}
                       onChange={(e) => setEditingFilter({ ...editingFilter, sort_order: Number(e.target.value) })}
-                      className="w-full p-2 border rounded"
                     />
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={editingFilter.is_active}
-                        onChange={(e) => setEditingFilter({ ...editingFilter, is_active: e.target.checked })}
-                        className="mr-2"
-                      />
-                      Active
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={editingFilter.default_expanded}
-                        onChange={(e) => setEditingFilter({ ...editingFilter, default_expanded: e.target.checked })}
-                        className="mr-2"
-                      />
-                      Default Expanded
-                    </label>
-                    <div className="flex gap-2">
-                      <button
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={editingFilter.is_active}
+                          onChange={(e) => setEditingFilter({ ...editingFilter, is_active: e.target.checked })}
+                        />
+                      }
+                      label="Active"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={editingFilter.default_expanded}
+                          onChange={(e) => setEditingFilter({ ...editingFilter, default_expanded: e.target.checked })}
+                        />
+                      }
+                      label="Default Expanded"
+                    />
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                      <Button
+                        variant="contained"
+                        color="success"
                         onClick={() => handleUpdateFilter(editingFilter)}
-                        className="bg-green-600 text-white px-3 py-1 rounded"
                       >
                         Save
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="outlined"
                         onClick={() => setEditingFilter(null)}
-                        className="bg-gray-600 text-white px-3 py-1 rounded"
                       >
                         Cancel
-                      </button>
-                    </div>
-                  </div>
+                      </Button>
+                    </Box>
+                  </Box>
                 ) : (
                   // View Mode
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold">
-                          {filter.filter_label} 
-                          {filter.filter_unit && <span className="text-gray-500 ml-2">({filter.filter_unit})</span>}
-                        </h3>
-                        <p className="text-sm text-gray-600">
+                  <Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="h6" sx={{ mb: 1 }}>
+                          {filter.filter_label}
+                          {filter.filter_unit && (
+                            <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                              ({filter.filter_unit})
+                            </Typography>
+                          )}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                           Name: {filter.filter_name} | Type: {filter.filter_type} | Order: {filter.sort_order}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {filter.is_active ? '✓ Active' : '✗ Inactive'} | 
-                          {filter.default_expanded ? ' ✓ Default Expanded' : ' ✗ Default Collapsed'}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                          <Chip
+                            label={filter.is_active ? 'Active' : 'Inactive'}
+                            color={filter.is_active ? 'success' : 'default'}
+                            size="small"
+                          />
+                          <Chip
+                            label={filter.default_expanded ? 'Default Expanded' : 'Default Collapsed'}
+                            variant="outlined"
+                            size="small"
+                          />
+                        </Box>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton
+                          size="small"
                           onClick={() => setEditingFilter(filter)}
-                          className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                          color="primary"
                         >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteFilter(filter.id)}
-                          className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => confirmDeleteFilter(filter.id)}
+                          color="error"
                         >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
 
                     {/* Filter Options (for checkbox type) */}
                     {filter.filter_type === 'checkbox' && (
-                      <div className="mt-4 pl-4 border-l-2 border-gray-200">
-                        <h4 className="font-medium mb-2">Options:</h4>
-                        <div className="space-y-1">
+                      <Box sx={{ mt: 3, pl: 2, borderLeft: '3px solid #566BDA' }}>
+                        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 500 }}>
+                          Options:
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
                           {filterOptions[filter.id]?.map(option => (
-                            <div key={option.id} className="flex justify-between items-center text-sm">
-                              <span>{option.option_label} (value: {option.option_value})</span>
-                              <button
+                            <Box key={option.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, backgroundColor: '#F8F9FB', borderRadius: 1 }}>
+                              <Typography variant="body2">
+                                {option.option_label} (value: {option.option_value})
+                              </Typography>
+                              <IconButton
+                                size="small"
                                 onClick={() => handleDeleteOption(option.id, filter.id)}
-                                className="text-red-600 hover:text-red-800"
+                                color="error"
                               >
-                                Remove
-                              </button>
-                            </div>
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
                           ))}
-                        </div>
-                        <div className="mt-2 flex gap-2">
-                          <input
-                            type="text"
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <TextField
+                            size="small"
                             placeholder="Value"
-                            className="flex-1 p-1 border rounded text-sm"
                             id={`value-${filter.id}`}
+                            sx={{ flex: 1 }}
                           />
-                          <input
-                            type="text"
+                          <TextField
+                            size="small"
                             placeholder="Label"
-                            className="flex-1 p-1 border rounded text-sm"
                             id={`label-${filter.id}`}
+                            sx={{ flex: 1 }}
                           />
-                          <button
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="success"
                             onClick={() => {
                               const valueInput = document.getElementById(`value-${filter.id}`) as HTMLInputElement
                               const labelInput = document.getElementById(`label-${filter.id}`) as HTMLInputElement
@@ -515,67 +671,124 @@ export default function AdminFiltersPage() {
                                 labelInput.value = ''
                               }
                             }}
-                            className="bg-green-600 text-white px-3 py-1 rounded text-sm"
                           >
                             Add
-                          </button>
-                        </div>
-                      </div>
+                          </Button>
+                        </Box>
+                      </Box>
                     )}
 
                     {/* Slider Settings (for slider type) */}
                     {filter.filter_type === 'slider' && (
-                      <div className="mt-4 pl-4 border-l-2 border-gray-200">
-                        <h4 className="font-medium mb-2">Slider Settings:</h4>
-                        <div className="grid grid-cols-3 gap-2">
-                          <div>
-                            <label className="text-xs text-gray-600">Min Value</label>
-                            <input
+                      <Box sx={{ mt: 3, pl: 2, borderLeft: '3px solid #566BDA' }}>
+                        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 500 }}>
+                          Slider Settings:
+                        </Typography>
+                        <Grid container spacing={2}>
+                          <Grid item xs={4}>
+                            <TextField
+                              fullWidth
+                              size="small"
                               type="number"
+                              label="Min Value"
                               placeholder="0"
                               value={sliderConfigs[filter.id]?.min_value || ''}
                               onChange={(e) => handleUpdateSliderConfig(filter.id, 'min_value', Number(e.target.value))}
-                              className="w-full p-1 border rounded text-sm"
                             />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600">Max Value</label>
-                            <input
+                          </Grid>
+                          <Grid item xs={4}>
+                            <TextField
+                              fullWidth
+                              size="small"
                               type="number"
+                              label="Max Value"
                               placeholder="100"
                               value={sliderConfigs[filter.id]?.max_value || ''}
                               onChange={(e) => handleUpdateSliderConfig(filter.id, 'max_value', Number(e.target.value))}
-                              className="w-full p-1 border rounded text-sm"
                             />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600">Step</label>
-                            <input
+                          </Grid>
+                          <Grid item xs={4}>
+                            <TextField
+                              fullWidth
+                              size="small"
                               type="number"
+                              label="Step"
                               placeholder="1"
                               value={sliderConfigs[filter.id]?.step_value || ''}
                               onChange={(e) => handleUpdateSliderConfig(filter.id, 'step_value', Number(e.target.value))}
-                              className="w-full p-1 border rounded text-sm"
                             />
-                          </div>
-                        </div>
+                          </Grid>
+                        </Grid>
                         {!sliderConfigs[filter.id] && (
-                          <button
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="success"
                             onClick={() => handleAddSliderConfig(filter.id)}
-                            className="mt-2 bg-green-600 text-white px-3 py-1 rounded text-sm"
+                            sx={{ mt: 2 }}
                           >
                             Initialize Slider Settings
-                          </button>
+                          </Button>
                         )}
-                      </div>
+                      </Box>
                     )}
-                  </div>
+                  </Box>
                 )}
-              </div>
+              </Paper>
             ))}
-          </div>
-        </div>
-      </div>
-    </div>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialog.open}
+          onClose={() => setDeleteDialog({ open: false, filterId: null })}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to delete this filter? This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button 
+              onClick={() => setDeleteDialog({ open: false, filterId: null })}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (deleteDialog.filterId) {
+                  handleDeleteFilter(deleteDialog.filterId)
+                }
+                setDeleteDialog({ open: false, filterId: null })
+              }}
+              variant="contained"
+              color="error"
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Snackbar */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        >
+          <Alert 
+            onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
+            severity={snackbar.severity}
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    </Box>
   )
 }

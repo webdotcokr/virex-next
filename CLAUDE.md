@@ -728,6 +728,251 @@ const seriesData = {
 **문제**: 평면적인 DB 컬럼을 중첩된 객체로 변환 필요
 **해결**: 변환 로직으로 features, strengths, apps, textItems 배열 생성
 
+# 🎯 상품 페이지 동적 필터/컬럼 관리 시스템 완전 구현 (2025년 8월 최신)
+
+## 📋 구현 개요
+기존 정적 필터/컬럼 시스템을 완전히 리팩토링하여 관리자가 웹 인터페이스를 통해 동적으로 관리할 수 있는 시스템으로 전환했습니다. CSV 자동 임포트 기능과 함께 완전한 상품 관리 생태계를 구축했습니다.
+
+## ✅ 새로 구현된 주요 기능들
+
+### 1. 동적 필터/컬럼 관리 DB 스키마
+**새로 생성된 테이블:**
+- `filter_configs` - 카테고리별 필터 설정 (필터명, 라벨, 타입, 단위 등)
+- `filter_options` - 체크박스 타입 필터의 옵션값들
+- `filter_slider_configs` - 슬라이더 타입 필터의 최솟값/최댓값/스텝값
+- `table_column_configs` - 테이블 컬럼 설정 (표시여부, 순서, 너비, 정렬가능여부)
+
+**스키마 특징:**
+- 카테고리별 독립적 설정 가능
+- 필터 타입 확장 가능 (checkbox, slider)
+- 완전한 정규화 구조
+- 정렬 순서 및 활성화 상태 관리
+
+### 2. Admin 필터 관리 페이지 (/admin/filters)
+**주요 기능:**
+- **카테고리별 필터 설정**: 각 카테고리마다 독립적인 필터 구성
+- **필터 타입 지원**: Checkbox 및 Slider 타입 완전 지원
+- **동적 UI 렌더링**: 필터 타입에 따른 설정 UI 자동 변경
+- **실시간 옵션 관리**: 체크박스 옵션 추가/삭제
+- **슬라이더 설정**: 최솟값, 최댓값, 스텝값 설정
+
+**핵심 해결 과제:**
+- **Slider 타입 UI 구현**: 사용자 피드백에 따라 min/max/step 입력 필드 제공
+- **자동 설정 생성**: Slider 타입 필터 생성 시 기본 설정 자동 생성
+- **실시간 업데이트**: 설정 변경 즉시 DB 반영
+
+```typescript
+// Slider 설정 UI 예시
+{filter.filter_type === 'slider' && (
+  <div className="slider-settings">
+    <input type="number" placeholder="Min Value" />
+    <input type="number" placeholder="Max Value" />
+    <input type="number" placeholder="Step" />
+  </div>
+)}
+```
+
+### 3. Admin 테이블 컬럼 관리 페이지 (/admin/table-columns)
+**주요 기능:**
+- **컬럼 표시/숨김**: 카테고리별 컬럼 가시성 제어
+- **순서 조정**: 드래그 앤 드롭 또는 화살표 버튼으로 컬럼 순서 변경
+- **너비 설정**: 각 컬럼별 커스텀 너비 (px, % 등)
+- **정렬 가능 여부**: 컬럼별 정렬 기능 활성화/비활성화
+- **실시간 미리보기**: 설정 변경사항을 테이블로 즉시 확인
+
+**컬럼 타입:**
+- **Basic**: 제품 기본 정보 (maker_name, series, part_number)
+- **Specification**: JSONB specifications 필드의 특정 값
+
+### 4. CSV 자동 임포트 시스템 (/api/admin/csv-import)
+**핵심 기능:**
+- **자동 필드 분리**: 공통 컬럼과 specifications 필드 자동 구분
+- **동적 스펙 변환**: 비공통 컬럼을 JSONB로 자동 변환
+- **제조사/시리즈 자동 생성**: 없는 제조사/시리즈 자동 생성
+- **Upsert 로직**: part_number 기반 업데이트 또는 삽입
+
+**공통 컬럼:**
+```typescript
+const COMMON_COLUMNS = [
+  'part_number', 'category', 'maker', 'series', 
+  'is_active', 'is_new', 'image_url'
+]
+```
+
+**사용 예시:**
+```bash
+curl -X POST /api/admin/csv-import \
+  -F "file=@products.csv" \
+  -F "categoryId=9"
+```
+
+### 5. 동적 제품 페이지 렌더링
+**FilterSidebar 리팩토링:**
+- 정적 설정 파일 → DB 기반 동적 로딩
+- 카테고리 변경 시 필터 자동 업데이트
+- 슬라이더/체크박스 타입별 UI 렌더링
+- 필터 확장/축소 상태 관리
+
+**ProductTable 리팩토링:**
+- 정적 컬럼 → DB 기반 동적 컬럼
+- 컬럼 순서, 너비, 정렬 가능 여부 적용  
+- NEW 뱃지 스타일링 추가
+- is_new 제품 우선 표시
+
+**성능 최적화:**
+- `useMemo`로 계산 결과 캐싱
+- `useCallback`으로 핸들러 메모이제이션
+- 카테고리 변경 시에만 설정 리로드
+
+## 🔧 기술적 구현 세부사항
+
+### 데이터 플로우
+```
+Admin 설정 변경
+↓
+filter_configs/table_column_configs 업데이트
+↓
+사용자 카테고리 변경
+↓
+FilterSidebar/ProductTable에서 설정 로드
+↓
+동적 UI 렌더링
+```
+
+### 핵심 컴포넌트 구조
+```typescript
+// FilterSidebar.tsx
+const FilterSidebar = () => {
+  const [dynamicFilters, setDynamicFilters] = useState<FilterConfig[]>([])
+  const [filterOptions, setFilterOptions] = useState<Record<number, FilterOption[]>>({})
+  
+  useEffect(() => {
+    loadFilters() // 카테고리별 필터 설정 로드
+  }, [filters.categories])
+  
+  // 필터 타입별 렌더링
+  {filter.filter_type === 'checkbox' && renderCheckboxes(filter, options)}
+  {filter.filter_type === 'slider' && renderSlider(filter)}
+}
+```
+
+### Supabase 스키마 설계
+```sql
+-- 필터 설정 테이블
+CREATE TABLE filter_configs (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  category_id BIGINT NOT NULL,
+  filter_name TEXT NOT NULL,
+  filter_label TEXT NOT NULL,
+  filter_type TEXT NOT NULL CHECK (filter_type IN ('checkbox', 'slider')),
+  filter_unit TEXT,
+  sort_order INTEGER DEFAULT 0,
+  default_expanded BOOLEAN DEFAULT TRUE,
+  is_active BOOLEAN DEFAULT TRUE
+);
+
+-- 슬라이더 설정 테이블
+CREATE TABLE filter_slider_configs (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  filter_config_id BIGINT NOT NULL REFERENCES filter_configs(id) ON DELETE CASCADE,
+  min_value NUMERIC NOT NULL,
+  max_value NUMERIC NOT NULL,
+  step_value NUMERIC NOT NULL
+);
+```
+
+## 🎨 주요 개선사항
+
+### 1. 사용자 피드백 완전 해결
+**문제**: "slider로 선택할때 이에맞게 입력하는항목들이 최솟값,최댓값,tic?(드래그할 때 움직이는 최소단위)로 변경되어야하는데"
+**해결**: Slider 타입 선택 시 min/max/step 전용 UI 제공
+
+### 2. 관리 편의성 극대화  
+- 코드 변경 없이 새로운 카테고리/필터 추가 가능
+- 웹 인터페이스를 통한 실시간 설정 변경
+- 설정 변경사항 즉시 반영
+
+### 3. 확장성 확보
+- 새로운 필터 타입 쉽게 추가 가능
+- 카테고리별 독립적 설정
+- JSONB 기반 유연한 스펙 관리
+
+## 📊 데이터 마이그레이션 가이드
+
+### 1. 기존 정적 설정 → DB 이전
+```sql
+-- CIS 카테고리 필터 설정 예시
+INSERT INTO filter_configs (category_id, filter_name, filter_label, filter_type, filter_unit) VALUES
+(9, 'scan_width', 'Scan Width', 'checkbox', 'mm'),
+(9, 'dpi', 'DPI', 'slider', 'dpi'),
+(9, 'speed', 'Speed', 'checkbox', 'MHz');
+```
+
+### 2. CSV 데이터 준비
+```csv
+part_number,maker,series,is_active,is_new,image_url,scan_width,dpi,resolution
+ARL-22CH-12D,Vieworks,ARL,true,false,https://example.com/image.jpg,400,600,7200
+```
+
+### 3. 자동 임포트 실행
+```bash
+curl -X POST /api/admin/csv-import \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@products.csv" \
+  -F "categoryId=9"
+```
+
+## 🚀 성능 및 사용성 개선
+
+### 성능 최적화
+- **지연 로딩**: 카테고리 변경 시에만 설정 리로드
+- **메모이제이션**: React 성능 최적화 기법 전면 적용
+- **인덱싱**: JSONB 필드에 GIN 인덱스 적용 가능
+
+### 사용성 개선
+- **직관적 UI**: 필터 타입별 맞춤형 설정 인터페이스
+- **실시간 미리보기**: 설정 변경사항 즉시 확인
+- **에러 핸들링**: 명확한 에러 메시지 및 복구 방안
+
+## 🎯 주요 달성 사항
+
+1. **완전한 동적 시스템**: 정적 설정 파일에서 DB 기반 동적 관리로 전환
+2. **관리자 친화적**: 코드 지식 없이도 필터/컬럼 관리 가능
+3. **확장성 확보**: 새로운 카테고리/필터 타입 쉽게 추가
+4. **성능 최적화**: React 성능 최적화 및 효율적 DB 쿼리
+5. **사용자 피드백 반영**: Slider UI 문제 완전 해결
+6. **CSV 자동화**: 대량 제품 데이터 자동 임포트 시스템
+
+## 🔗 주요 파일 및 경로
+
+### Admin 페이지
+- `/src/app/admin/filters/page.tsx` - 필터 관리 인터페이스
+- `/src/app/admin/table-columns/page.tsx` - 컬럼 관리 인터페이스
+
+### API 엔드포인트  
+- `/src/app/api/admin/csv-import/route.ts` - CSV 임포트 API
+
+### 리팩토링된 컴포넌트
+- `/src/domains/product/components/FilterSidebar.tsx` - 동적 필터 사이드바
+- `/src/domains/product/components/ProductTable.tsx` - 동적 테이블
+
+### 스타일링
+- `/src/app/(portal)/products/products.module.css` - NEW 뱃지 스타일 추가
+
+### 타입 정의
+- `/src/lib/supabase.ts` - 새 테이블 타입 정의
+
+## 🌐 사용 방법
+
+### 관리자 접근
+- **필터 관리**: `http://localhost:3002/admin/filters`
+- **컬럼 관리**: `http://localhost:3002/admin/table-columns`
+
+### CSV 데이터 업로드
+1. CSV 파일 준비 (공통 컬럼 + 스펙 컬럼)
+2. Admin 페이지에서 파일 업로드
+3. 자동으로 제품 데이터 및 필터 설정 생성
+
 ---
 
 # Using Gemini CLI for Large Codebase Analysis
