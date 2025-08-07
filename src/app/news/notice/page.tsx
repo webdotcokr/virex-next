@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PageContentContainer from '@/components/PageContentContainer';
-import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/supabase';
+import Pagination from '@/components/ui/Pagination';
 
 type NewsItem = Database['public']['Tables']['news']['Row'];
 
@@ -16,87 +16,27 @@ const NoticePage = () => {
   const [totalCount, setTotalCount] = useState(0);
   const itemsPerPage = 10;
 
-  const page_title_en = "Leading your vision to success";
-  const page_title_ko = "뉴스";
-
-  const breadcrumbs = [
-    { label: "Home", href: "/" },
-    { label: "뉴스", href: "/news" },
-    { label: "공지사항" }
-  ];
-
-  useEffect(() => {
-    const abortController = new AbortController();
-    
-    const fetchNewsData = async () => {
-      try {
-        setLoading(true);
-        setError(null); // Reset error state
-        
-        const { data, error, count } = await supabase
-          .from('news')
-          .select('*', { count: 'exact' })
-          .eq('category_id', 1) // 공지사항 카테고리
-          .order('is_featured', { ascending: false })
-          .order('created_at', { ascending: false })
-          .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
-
-        if (error) {
-          console.error('❌ Supabase error:', error);
-          throw error;
-        }
-
-        // AbortController 체크
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        setNews(data || []);
-        setTotalCount(count || 0);
-      } catch (err) {
-        console.error('❌ Error fetching news:', err);
-        
-        if (!abortController.signal.aborted) {
-          setError(err instanceof Error ? err.message : '뉴스를 불러오는데 실패했습니다.');
-          setNews([]); // Reset data on error
-          setTotalCount(0);
-        }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchNewsData();
-
-    // Cleanup function
-    return () => {
-      abortController.abort();
-    };
-  }, [currentPage]);
-
   const fetchNews = async () => {
-    // 수동 새로고침용 함수
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      setError(null);
+      const response = await fetch(`/api/news?category=1&page=${currentPage}&limit=${itemsPerPage}`);
       
-      const { data, error, count } = await supabase
-        .from('news')
-        .select('*', { count: 'exact' })
-        .eq('category_id', 1)
-        .order('is_featured', { ascending: false })
-        .order('created_at', { ascending: false })
-        .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
-
-      if (error) throw error;
-
-      setNews(data || []);
-      setTotalCount(count || 0);
-    } catch (err) {
-      console.error('❌ Error fetching news:', err);
-      setError(err instanceof Error ? err.message : '뉴스를 불러오는데 실패했습니다.');
+      if (!response.ok) {
+        throw new Error('데이터를 불러올 수 없습니다.');
+      }
+      
+      const result = await response.json();
+      
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      
+      setNews(result.data || []);
+      setTotalCount(result.count || 0);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || '데이터를 불러올 수 없습니다.');
       setNews([]);
       setTotalCount(0);
     } finally {
@@ -104,82 +44,43 @@ const NoticePage = () => {
     }
   };
 
+  useEffect(() => {
+    fetchNews();
+  }, [currentPage]);
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
+    return new Date(dateString).toLocaleDateString('ko-KR');
   };
 
-  const maxPage = Math.ceil(totalCount / itemsPerPage);
-
-  const renderPagination = () => {
-    const pages = [];
-    const startPage = Math.max(1, currentPage - 5);
-    const endPage = Math.min(maxPage, currentPage + 5);
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => setCurrentPage(i)}
-          className={`px-3 py-1 mx-1 ${
-            i === currentPage
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          } rounded`}
-        >
-          {i}
-        </button>
-      );
-    }
-
-    return (
-      <div className="flex justify-center items-center mt-6">
-        {currentPage > 1 && (
-          <button
-            onClick={() => setCurrentPage(currentPage - 1)}
-            className="px-3 py-1 mx-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded"
-          >
-            이전
-          </button>
-        )}
-        {pages}
-        {currentPage < maxPage && (
-          <button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            className="px-3 py-1 mx-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded"
-          >
-            다음
-          </button>
-        )}
-      </div>
-    );
-  };
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   return (
     <div>
       <PageContentContainer
         backgroundClass="company-header-background"
         backgroundImage="/img/bg-news.webp"
-        breadcrumbs={breadcrumbs}
-        titleEn={page_title_en}
-        titleKo={page_title_ko}
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "뉴스", href: "/news" },
+          { label: "공지사항" }
+        ]}
+        titleEn="Leading your vision to success"
+        titleKo="뉴스"
       >
-        <div className="content-title">
-          <h2>공지사항</h2>
-        </div>
-        
-        <div id="general-article-list-header">
-          <div className="cnt-area">
-            <span className="cnt-label">TOTAL</span>
-            <span className="cnt-value">{totalCount}</span>
+        <div className="page-container">
+          <div className="content-title">
+            <h2>공지사항</h2>
           </div>
-        </div>
+          
+          <div id="general-article-list-header">
+            <div className="cnt-area">
+              <span className="cnt-label">TOTAL</span>
+              <span className="cnt-value">{totalCount}</span>
+            </div>
+          </div>
 
-        {loading ? (
+          {loading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
             <p className="mt-2">로딩 중...</p>
@@ -187,12 +88,6 @@ const NoticePage = () => {
         ) : error ? (
           <div className="text-center py-8 text-red-600">
             <p>{error}</p>
-            <button 
-              onClick={fetchNews} 
-              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              다시 시도
-            </button>
           </div>
         ) : (
           <>
@@ -240,9 +135,16 @@ const NoticePage = () => {
               </tbody>
             </table>
 
-            {maxPage > 1 && renderPagination()}
+            <div className="flex justify-center mt-6">
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
           </>
-        )}
+          )}
+        </div>
       </PageContentContainer>
     </div>
   );

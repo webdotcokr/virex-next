@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PageContentContainer from '@/components/PageContentContainer';
-import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/supabase';
 
 type NewsItem = Database['public']['Tables']['news']['Row'];
@@ -14,93 +13,39 @@ const MediaPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const itemsPerPage = 12; // Grid layout에 적합한 수량
-
-  const page_title_en = "Leading your vision to success";
-  const page_title_ko = "뉴스";
-
-  const breadcrumbs = [
-    { label: "Home", href: "/" },
-    { label: "뉴스", href: "/news" },
-    { label: "미디어" }
-  ];
-
-  useEffect(() => {
-    const abortController = new AbortController();
-    
-    const fetchMediaData = async () => {
-      try {
-        setLoading(true);
-        setError(null); // Reset error state
-        
-        const { data, error, count } = await supabase
-          .from('news')
-          .select('*', { count: 'exact' })
-          .eq('category_id', 2) // 미디어 카테고리
-          .order('created_at', { ascending: false })
-          .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
-
-        if (error) {
-          console.error('❌ Supabase error:', error);
-          throw error;
-        }
-
-        // AbortController 체크
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        setMedia(data || []);
-        setTotalCount(count || 0);
-      } catch (err) {
-        console.error('❌ Error fetching media:', err);
-        
-        if (!abortController.signal.aborted) {
-          setError(err instanceof Error ? err.message : '미디어를 불러오는데 실패했습니다.');
-          setMedia([]); // Reset data on error
-          setTotalCount(0);
-        }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchMediaData();
-
-    // Cleanup function
-    return () => {
-      abortController.abort();
-    };
-  }, [currentPage]);
+  const itemsPerPage = 12;
 
   const fetchMedia = async () => {
-    // 수동 새로고침용 함수
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      setError(null);
+      const response = await fetch(`/api/news?category=2&page=${currentPage}&limit=${itemsPerPage}`);
       
-      const { data, error, count } = await supabase
-        .from('news')
-        .select('*', { count: 'exact' })
-        .eq('category_id', 2)
-        .order('created_at', { ascending: false })
-        .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
-
-      if (error) throw error;
-
-      setMedia(data || []);
-      setTotalCount(count || 0);
-    } catch (err) {
-      console.error('❌ Error fetching media:', err);
-      setError(err instanceof Error ? err.message : '미디어를 불러오는데 실패했습니다.');
+      if (!response.ok) {
+        throw new Error('미디어를 불러올 수 없습니다.');
+      }
+      
+      const result = await response.json();
+      
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      
+      setMedia(result.data || []);
+      setTotalCount(result.count || 0);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || '미디어를 불러올 수 없습니다.');
       setMedia([]);
       setTotalCount(0);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchMedia();
+  }, [currentPage]);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
@@ -162,22 +107,27 @@ const MediaPage = () => {
       <PageContentContainer
         backgroundClass="company-header-background"
         backgroundImage="/img/bg-news.webp"
-        breadcrumbs={breadcrumbs}
-        titleEn={page_title_en}
-        titleKo={page_title_ko}
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "뉴스", href: "/news" },
+          { label: "미디어" }
+        ]}
+        titleEn="Leading your vision to success"
+        titleKo="뉴스"
       >
-        <div className="content-title">
-          <h2>미디어</h2>
-        </div>
-        
-        <div id="general-article-list-header">
-          <div className="cnt-area">
-            <span className="cnt-label">TOTAL</span>
-            <span className="cnt-value">{totalCount}</span>
+        <div className="page-container">
+          <div className="content-title">
+            <h2>미디어</h2>
           </div>
-        </div>
+          
+          <div id="general-article-list-header">
+            <div className="cnt-area">
+              <span className="cnt-label">TOTAL</span>
+              <span className="cnt-value">{totalCount}</span>
+            </div>
+          </div>
 
-        {loading ? (
+          {loading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
             <p className="mt-2">로딩 중...</p>
@@ -231,16 +181,17 @@ const MediaPage = () => {
                         <div className="grid-item-date mt-26px text-gray-500 text-sm">
                           {formatDate(item.created_at)}
                         </div>
-                        </div>
                       </div>
-                    </Link>
-                  ))
+                    </div>
+                  </Link>
+                ))
               )}
             </div>
 
             {maxPage > 1 && renderPagination()}
           </>
-        )}
+          )}
+        </div>
 
         <style jsx>{`
           .grid-container {

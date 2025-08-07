@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PageContentContainer from '@/components/PageContentContainer';
-import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/supabase';
 
 type NewsItem = Database['public']['Tables']['news']['Row'];
@@ -42,46 +41,26 @@ const NoticeDetailPage = () => {
         return;
       }
 
-      // 먼저 현재 조회수를 가져온 후 증가
-      const { data: currentData } = await supabase
-        .from('news')
-        .select('view_count')
-        .eq('id', parseInt(id))
-        .single();
-
-      if (currentData) {
-        const newViewCount = (currentData.view_count || 0) + 1;
-        const { error: updateError } = await supabase
-          .from('news')
-          .update({ 
-            view_count: newViewCount,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', parseInt(id));
-
-        if (updateError) {
-          console.warn('조회수 업데이트 실패:', updateError);
-        }
+      // 게시물 조회
+      const response = await fetch(`/api/news/${id}`);
+      
+      if (!response.ok) {
+        throw new Error('기사를 불러올 수 없습니다.');
+      }
+      
+      const result = await response.json();
+      
+      if (result.error) {
+        throw new Error(result.error);
       }
 
-      // 게시물 조회
-      const { data, error } = await supabase
-        .from('news')
-        .select('*')
-        .eq('id', parseInt(id))
-        .eq('category_id', 1) // 공지사항만
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          setError('게시물이 없습니다.');
-        } else {
-          setError('데이터 조회 오류입니다.');
-        }
+      // category_id 체크 (공지사항만)
+      if (result.data?.category_id !== 1) {
+        setError('게시물이 없습니다.');
         return;
       }
 
-      setArticle(data);
+      setArticle(result.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : '오류가 발생했습니다.');
     } finally {
@@ -158,8 +137,9 @@ const NoticeDetailPage = () => {
         titleEn={page_title_en}
         titleKo={page_title_ko}
       >
-        <div id="general-article-view">
-          <div className="article-view-header">
+        <div className="page-container">
+          <div id="general-article-view">
+            <div className="article-view-header">
             <h2 className="article-view-title">
               {article.is_featured && (
                 <span style={{ color: '#e74c3c' }}>[공지] </span>
@@ -194,14 +174,9 @@ const NoticeDetailPage = () => {
             </div>
           </div>
         </div>
+        </div>
 
         <style jsx>{`
-          #general-article-view {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 20px;
-          }
-          
           .article-view-header {
             border-bottom: 2px solid #e5e7eb;
             padding-bottom: 20px;
@@ -247,12 +222,12 @@ const NoticeDetailPage = () => {
           
           .article-view-content :global(img) {
             max-width: 100%;
+            width: 100%;
             height: auto;
             margin: 20px 0;
           }
           
           .article-view-footer {
-            border-top: 1px solid #e5e7eb;
             padding-top: 24px;
             text-align: center;
           }
@@ -282,7 +257,7 @@ const NoticeDetailPage = () => {
           
           @media (max-width: 768px) {
             #general-article-view {
-              padding: 20px 16px;
+              padding: 20px 0;
             }
             
             .article-view-title {
