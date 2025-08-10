@@ -120,62 +120,62 @@ export class ProductService {
       console.log('Products fetched successfully:', products?.length || 0, 'products')
       
       // Transform products data for frontend compatibility
-      // 모든 컬럼을 그대로 유지하여 반환
       let transformedProducts = (products || []).map(product => {
+        // Separate common fields from specifications
+        const { id, part_number, series_id, is_active, is_new, image_url, created_at, updated_at, series, ...specifications } = product
+        
         return {
-          ...product, // 모든 원본 필드 유지
+          id,
+          part_number,
+          series_id,
+          is_active,
+          is_new,
+          image_url,
+          created_at,
+          updated_at,
           // Add legacy fields for compatibility
-          partnumber: product.part_number,
-          name: product.part_number,
+          partnumber: part_number,
+          name: part_number,
           category: { id: categoryId, name: this.getCategoryName(categoryId) },
-          maker_name: product.maker || 'Unknown',
-          series_name: product.series?.series_name || product.series || '',
+          maker_name: 'Unknown', // No maker in new structure
+          series_name: series?.series_name || '',
+          // All other fields go to specifications
+          specifications
         }
       })
 
-      // Apply parameter filters directly on product fields
+      // Apply specification-based parameter filters using metadata
       if (Object.keys(parameters).length > 0) {
+        // Get filter configs for the category to determine filter types
+        const categoryName = this.getCategoryNameFromId(categoryId)
+        const filterConfigs = await this.getCategoryFilterConfig(categoryName)
+        
         transformedProducts = transformedProducts.filter(product => {
+          if (!product.specifications) return false
+          
           return Object.entries(parameters).every(([paramName, paramValues]) => {
-            const fieldValue = product[paramName]
-            if (fieldValue === undefined || fieldValue === null) return false
+            const specValue = product.specifications[paramName]
+            if (specValue === undefined || specValue === null) return false
             
-            // Parse array format "[min,max]" from filter values
-            if (typeof paramValues === 'string' && paramValues.startsWith('[') && paramValues.endsWith(']')) {
-              try {
-                const rangeStr = paramValues.substring(1, paramValues.length - 1)
-                const [minStr, maxStr] = rangeStr.split(',')
-                const min = parseFloat(minStr)
-                const max = parseFloat(maxStr)
-                const numValue = parseFloat(String(fieldValue))
-                return !isNaN(numValue) && numValue >= min && numValue <= max
-              } catch (e) {
-                console.warn('Failed to parse range filter:', paramValues, e)
-                return false
-              }
-            }
+            // Find filter config for this parameter
+            const filterConfig = filterConfigs.find(config => config.filter_name === paramName)
             
-            // Handle NOT IN pattern "!value1,value2,value3"
-            if (typeof paramValues === 'string' && paramValues.startsWith('!')) {
-              const excludeValues = paramValues.substring(1).split(',').map(v => v.trim())
-              return !excludeValues.includes(String(fieldValue))
-            }
-            
-            // Handle range filters for numeric values (legacy support)
-            if (typeof fieldValue === 'number') {
+            if (filterConfig?.filter_type === 'slider' || filterConfig?.filter_type === 'range') {
+              // Handle numeric range filters
               if (Array.isArray(paramValues) && paramValues.length === 2) {
                 const [min, max] = paramValues as [number, number]
-                return fieldValue >= min && fieldValue <= max
+                const numValue = parseFloat(String(specValue))
+                return !isNaN(numValue) && numValue >= min && numValue <= max
               }
-            }
-            
-            // Handle checkbox filters (string matching)
-            if (Array.isArray(paramValues)) {
-              return paramValues.some(value => 
-                String(fieldValue).toLowerCase().includes(String(value).toLowerCase())
-              )
             } else {
-              return String(fieldValue).toLowerCase().includes(String(paramValues).toLowerCase())
+              // Handle checkbox filters (string matching)
+              if (Array.isArray(paramValues)) {
+                return paramValues.some(value => 
+                  String(specValue).toLowerCase().includes(String(value).toLowerCase())
+                )
+              } else {
+                return String(specValue).toLowerCase().includes(String(paramValues).toLowerCase())
+              }
             }
             
             return false
@@ -240,14 +240,11 @@ export class ProductService {
       'part_number': 'part_number',
       'maker_name': 'maker_id', // Will need to handle joins properly
       'series': 'series_id',
-      'series_name': 'series_id', // Map series_name to series_id
       'created_at': 'created_at',
       'updated_at': 'updated_at'
     }
     
-    // If not in columnMap, return the original column name
-    // This allows sorting by specification fields like scan_width, dpi, resolution etc.
-    return columnMap[sort] || sort
+    return columnMap[sort] || 'part_number'
   }
 
   /**
@@ -284,18 +281,17 @@ export class ProductService {
   private static generateAvailableFilters(products: Product[]): Record<string, unknown> {
     const filters: Record<string, Set<unknown>> = {}
     
-    // Skip certain fields that shouldn't be filters
-    const skipFields = ['id', 'created_at', 'updated_at', 'series', 'category', 'partnumber', 'name']
-    
     products.forEach(product => {
-      Object.entries(product).forEach(([key, value]) => {
-        if (!skipFields.includes(key) && value !== null && value !== undefined && value !== '') {
-          if (!filters[key]) {
-            filters[key] = new Set()
+      if (product.specifications) {
+        Object.entries(product.specifications).forEach(([key, value]) => {
+          if (value !== null && value !== undefined && value !== '') {
+            if (!filters[key]) {
+              filters[key] = new Set()
+            }
+            filters[key].add(value)
           }
-          filters[key].add(value)
-        }
-      })
+        })
+      }
     })
     
     // Convert Sets to Arrays for JSON serialization
@@ -467,8 +463,6 @@ export class ProductService {
    */
   static async getProductByPartNumber(partNumber: string): Promise<Product | null> {
     try {
-      console.log('🔍 getProductByPartNumber called with:', partNumber)
-      
       // Search across all category tables for the part_number
       const categoryIds = Object.keys(CATEGORY_TABLE_MAPPING).map(Number)
       let product: any = null
@@ -489,12 +483,6 @@ export class ProductService {
         if (!error && data) {
           product = data
           categoryId = catId
-          console.log('✅ Product found in table:', tableName, 'categoryId:', categoryId)
-          console.log('📦 Product data:', { 
-            id: product.id, 
-            part_number: product.part_number, 
-            series_id: product.series_id 
-          })
           break
         }
       }
@@ -505,14 +493,11 @@ export class ProductService {
 
       // Separately fetch series data if series_id exists
       let seriesData = undefined
-      console.log('🔍 Product series_id:', product.series_id)
-      
       if (product.series_id) {
-        console.log('📡 Fetching series data for series_id:', product.series_id)
         const { data: series, error: seriesError } = await supabase
           .from('series')
           .select(`
-            id, series_name, intro_text, short_text, youtube_url,
+            id, series_name, category_id, intro_text, short_text, youtube_url,
             feature_image_url, feature_title_1, feature_desc_1, feature_title_2, feature_desc_2,
             feature_title_3, feature_desc_3, feature_title_4, feature_desc_4,
             strength_1, strength_2, strength_3, strength_4, strength_5, strength_6,
@@ -525,17 +510,7 @@ export class ProductService {
           .eq('id', product.series_id)
           .single()
 
-        if (seriesError) {
-          console.error('❌ Series fetch error:', seriesError)
-        } else if (!series) {
-          console.log('⚠️ No series data returned for series_id:', product.series_id)
-        } else if (series) {
-          console.log('✅ Series data fetched successfully:', {
-            id: series.id,
-            series_name: series.series_name,
-            has_intro: !!series.intro_text,
-            has_features: !!series.feature_title_1
-          })
+        if (!seriesError && series) {
           seriesData = {
             series_name: series.series_name || '',
             intro_text: series.intro_text || '',
@@ -611,7 +586,7 @@ export class ProductService {
       // Separate common fields from specifications
       const { id, part_number, series_id, is_active, is_new, image_url, created_at, updated_at, series, ...specifications } = product
 
-      const result = {
+      return {
         id,
         part_number,
         series_id,
@@ -630,16 +605,6 @@ export class ProductService {
         related_products: relatedProducts,
         specifications
       }
-      
-      console.log('📤 Returning product with series_data:', {
-        has_series_data: !!result.series_data,
-        series_name: result.series_data?.series_name,
-        has_intro: !!result.series_data?.intro_text,
-        has_features: !!result.series_data?.features?.length,
-        related_products_count: result.related_products?.length || 0
-      })
-      
-      return result
     } catch (error) {
       console.error('ProductService.getProductByPartNumber error:', error)
       return null

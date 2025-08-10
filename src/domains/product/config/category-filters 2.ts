@@ -181,11 +181,11 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "resolution",
         defaultExpanded: true,
         options: [
-            { display: "16385 이상", value: "[16385,99999]" },
-            { display: "8193 ~ 16384", value: "[8193,16384]" },
-            { display: "4097 ~ 8192", value: "[4097,8192]" },
-            { display: "2049 ~ 4096", value: "[2049,4096]" },
-            { display: "2048 이하", value: "[0,2048]" }
+            { display: "16385 이상", value: ">=16385" },
+            { display: "8193 ~ 16384", value: "BETWEEN 8193 AND 16384" },
+            { display: "4097 ~ 8192", value: "BETWEEN 4097 AND 8192" },
+            { display: "2049 ~ 4096", value: "BETWEEN 2049 AND 4096" },
+            { display: "2048 이하", value: "<=2048" }
         ]
       },
       {
@@ -193,10 +193,10 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         param: "no_of_line",
         options: [
-            { display: "257 이상", value: "[257,99999]" },
-            { display: "193 ~ 256", value: "[193,256]" },
-            { display: "65 ~ 192", value: "[65,192]" },
-            { display: "64 이하", value: "[0,64]" }
+            { display: "257 이상", value: ">=257" },
+            { display: "193 ~ 256", value: "BETWEEN 193 AND 256" },
+            { display: "65 ~ 192", value: "BETWEEN 65 AND 192" },
+            { display: "64 이하", value: "<=64" }
         ]
       },
       {
@@ -218,9 +218,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "pixel_size",
         unit: "μm",
         options: [
-            { display: "10μm 이상", value: "[10,999]" },
-            { display: "5 ~ 10μm 미만", value: "[5,9.99]" },
-            { display: "5μm 미만", value: "[0,4.99]" }
+            { display: "10μm 이상", value: ">=10" },
+            { display: "5 ~ 10μm 미만", value: "<=5 AND p_item4 <10" },
+            { display: "5μm 미만", value: "<5" }
         ]
       },
       {
@@ -243,7 +243,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
           { display: "CoaXPress10", value: "CoaXPress10" },
           { display: "CoaXPress6", value: "CoaXPress6" },
           { display: "Camera Link", value: "Camera Link" },
-          { display: "ETC", value: "!Camera Link HS,CoaXPress12,CoaXPress10,CoaXPress6,Camera Link" }
+          { display: "ETC", value: "NOT IN ('Camera Link HS','CoaXPress12','CoaXPress10','CoaXPress6','Camera Link')" }
         ]
       },
       {
@@ -253,7 +253,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         options: [
           { display: "Teledyne Dalsa", value: "Teledyne Dalsa" },
           { display: "i-TEK", value: "i-TEK" },
-          { display: "ETC", value: "!Teledyne Dalsa,i-TEK" }
+          { display: "ETC", value: "NOT IN ('Teledyne Dalsa','i-TEK')" }
         ]
       }
     ]
@@ -282,11 +282,11 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "resolution",
         defaultExpanded: true,
         options: [
-            { display: "16385 이상", value: "[16385,99999]" },
-            { display: "8193 ~ 16384", value: "[8193,16384]" },
-            { display: "4097 ~ 8192", value: "[4097,8192]" },
-            { display: "2049 ~ 4096", value: "[2049,4096]" },
-            { display: "2048 이하", value: "[0,2048]" }
+            { display: "16385 이상", value: ">=16385" },
+            { display: "8193 ~ 16384", value: "BETWEEN 8193 AND 16384" },
+            { display: "4097 ~ 8192", value: "BETWEEN 4097 AND 8192" },
+            { display: "2049 ~ 4096", value: "BETWEEN 2049 AND 4096" },
+            { display: "2048 이하", value: "<=2048" }
         ]
       },
       {
@@ -294,8 +294,8 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         param: "no_of_line",
         options: [
-          { display: "5 이상", value: "[5,999]" },
-          { display: "2 ~ 4", value: "[2,4]" },
+          { display: "5 이상", value: ">=5" },
+          { display: "2 ~ 4", value: "BETWEEN 2 AND 4" },
           { display: "1", value: "1" }
         ]
       },
@@ -310,7 +310,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
             { display: "301 ~ 400kHz", value: "BETWEEN 301 AND 400" },
             { display: "201 ~ 300kHz", value: "BETWEEN 201 AND 300" },
             { display: "101 ~ 200kHz", value: "BETWEEN 101 AND 200" },
-            { display: "~ 100kHz", value: "[0,100]" }
+            { display: "~ 100kHz", value: "<=100" }
         ]
       },
       {
@@ -319,9 +319,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "pixel_size",
         unit: "μm",
         options: [
-              { display: "10μm 이상", value: "[10,999]" },
-              { display: "5μm ~ 10μm 미만", value: "[5,9.99]" },
-              { display: "5μm 미만", value: "[0,4.99]" },
+              { display: "10μm 이상", value: ">=10" },
+              { display: "5μm ~ 10μm 미만", value: ">=5 AND p_item5 <10" },
+              { display: "5μm 미만", value: "<5" },
         ]
       },
       {
@@ -344,7 +344,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
           { display: "Camera Link", value: "Camera Link" },
           { display: "SFP+", value: "SFP+" },
           { display: "GigE", value: "GigE" },
-          { display: "ETC", value: "!Camera Link HS,CoaXPress,Camera Link,SFP+,GigE" }
+          { display: "ETC", value: "NOT IN ('Camera Link HS','CoaXPress','Camera Link','SFP+','GigE')" }
         ]
       },
       {
@@ -354,7 +354,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         options: [
           { display: "Teledyne Dalsa", value: "Teledyne Dalsa" },
           { display: "i-TEK", value: "i-TEK" },
-          { display: "ETC", value: "!Teledyne Dalsa,i-TEK" }
+          { display: "ETC", value: "NOT IN ('Teledyne Dalsa','i-TEK')" }
         ]
       }
     ]
@@ -385,13 +385,13 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "mega_pixel",
         defaultExpanded: true,
         options: [
-            { display: "100MP 이상", value: "[100,9999]" },
-            { display: "50MP ~ 100MP 미만", value: "[50,99.99]" },
-            { display: "10MP ~ 50MP 미만", value: "[10,49.99]" },
-            { display: "5MP ~ 10MP 미만", value: "[5,9.99]" },
-            { display: "3MP ~ 5MP 미만", value: "[3,4.99]" },
-            { display: "1MP ~ 3MP 미만", value: "[1,2.99]" },
-            { display: "0.3MP ~ 1MP 미만", value: "[0.3,0.99]" }
+            { display: "100MP 이상", value: ">=100" },
+            { display: "50MP ~ 100MP 미만", value: ">=50 AND p_item1 <100" },
+            { display: "10MP ~ 50MP 미만", value: ">=10 AND p_item1 <50" },
+            { display: "5MP ~ 10MP 미만", value: ">=5 AND p_item1 <10" },
+            { display: "3MP ~ 5MP 미만", value: ">=3 AND p_item1 <5" },
+            { display: "1MP ~ 3MP 미만", value: ">=1 AND p_item1 <3" },
+            { display: "0.3MP ~ 1MP 미만", value: ">=0.3 AND p_item1 <1" }
         ]
       },
       {
@@ -400,12 +400,12 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "frame_rate",
         defaultExpanded: true,
         options: [
-            { display: "300fps 이상", value: "[300,9999]" },
-            { display: "200fps ~ 300fps 미만", value: "[200,299.99]" },
-            { display: "100fps ~ 200fps 미만", value: "[100,199.99]" },
-            { display: "50fps ~ 100fps 미만", value: "[50,99.99]" },
-            { display: "10fps ~ 50fps 미만", value: "[10,49.99]" },
-            { display: "10fps 미만", value: "[0,9.99]" }
+            { display: "300fps 이상", value: ">=300" },
+            { display: "200fps ~ 300fps 미만", value: ">=200 AND p_item2 <300" },
+            { display: "100fps ~ 200fps 미만", value: ">=100 AND p_item2 <200" },
+            { display: "50fps ~ 100fps 미만", value: ">=50 AND p_item2 <100" },
+            { display: "10fps ~ 50fps 미만", value: ">=10 AND p_item2 < 50" },
+            { display: "10fps 미만", value: "<10" }
         ]
       },
       {
@@ -414,9 +414,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "pixel_size",
         unit: "μm",
         options: [
-            { display: "10μm이상", value: "[10,999]" },
-            { display: "5μm ~ 10μm 미만", value: "[5,9.99]" },
-            { display: "5μm 미만", value: "[0,4.99]" }
+            { display: "10μm이상", value: ">=10" },
+            { display: "5μm ~ 10μm 미만", value: ">=5 AND p_item4 <10" },
+            { display: "5μm 미만", value: "<5" }
         ]
       },
       {
@@ -453,7 +453,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
           { display: "Teledyne Lumenera", value: "Teledyne Lumenera" },
           { display: "Daheng Imaging", value: "Daheng Imaging" },
           { display: "i-TEK", value: "i-TEK" },
-          { display: "ETC", value: "!Teledyne Dalsa,Teledyne FLIR,Teledyne Lumenera,Daheng Imaging,i-TEK" }
+          { display: "ETC", value: "NOT IN ('Teledyne Dalsa','Teledyne FLIR','Teledyne Lumenera','Daheng Imaging','i-TEK')" }
         ]
       }
     ]
@@ -505,9 +505,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         param: "f_number",
         options: [
-              { display: "~ 4.0미만", value: "[0,3.99]" },
-              { display: "4.0~5.6미만", value: "[4,5.59]" },
-              { display: "5.6이상", value: "[5.6,999]" }
+              { display: "~ 4.0미만", value: "<4" },
+              { display: "4.0~5.6미만", value: ">= 4 AND f_number < 5.6" },
+              { display: "5.6이상", value: ">=5.6" }
         ]
       },
       {
@@ -517,7 +517,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         options: [
           { display: "Schneider", value: "Schneider" },
           { display: "Dzoptics", value: "Dzoptics" },
-          { display: "ETC", value: "!Schneider,Dzoptics" }
+          { display: "ETC", value: "NOT IN ('Schneider','Dzoptics')" }
         ]
       }
     ]
@@ -554,14 +554,14 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         param: "image_circle",
         options: [
-              { display: "45mm 이상", value: "[45,999]" },
-              { display: "35mm 이상 ~45mm 미만", value: "[35,44.99]" },
-              { display: "21.3mm(4/3\") 이상 ~35mm 미만", value: "[21.3,34.99]" },
-              { display: "18.4mm(1.1\") 이상 ~21.3mm (4/3\") 미만", value: "[18.4,21.29]" },
-              { display: "16mm(1\") 이상 ~18.4mm (1.1\") 미만", value: "[16,18.39]" },
-              { display: "11.4mm(2/3\") 이상 ~16mm (1\") 미만", value: "[11.4,15.99]" },
-              { display: "8mm(1/2\") 이상 ~11.4mm (2/3\") 미만", value: "[8,11.39]" },
-              { display: "8mm(1/2\")미만", value: "[0,7.99]" }
+              { display: "45mm 이상", value: ">=45" },
+              { display: "35mm 이상 ~45mm 미만", value: ">= 35 AND image_circle < 45" },
+              { display: "21.3mm(4/3\") 이상 ~35mm 미만", value: ">= 21.3 AND image_circle < 35" },
+              { display: "18.4mm(1.1\") 이상 ~21.3mm (4/3\") 미만", value: ">= 18.4 AND image_circle < 21.3" },
+              { display: "16mm(1\") 이상 ~18.4mm (1.1\") 미만", value: ">= 16 AND image_circle < 18.4" },
+              { display: "11.4mm(2/3\") 이상 ~16mm (1\") 미만", value: ">= 11.4 AND image_circle < 16" },
+              { display: "8mm(1/2\") 이상 ~11.4mm (2/3\") 미만", value: ">= 8 AND image_circle < 11.4" },
+              { display: "8mm(1/2\")미만", value: "<8" }
         ]
       },
       {
@@ -570,11 +570,11 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         param: "wd",
         options: [
-              { display: "65mm 미만", value: "[0,64.99]" },
-              { display: "66 ~ 110mm 미만", value: "[66,109.99]" },
-              { display: "111 ~ 200mm 미만", value: "[111,199.99]" },
-              { display: "201 ~ 300mm 미만", value: "[201,299.99]" },
-              { display: "301mm 이상", value: "[301,9999]" }
+              { display: "65mm 미만", value: "<65" },
+              { display: "66 ~ 110mm 미만", value: ">= 66 AND wd < 110" },
+              { display: "111 ~ 200mm 미만", value: ">= 111 AND wd < 200" },
+              { display: "201 ~ 300mm 미만", value: ">= 201 AND wd < 300" },
+              { display: "301mm 이상", value: ">=301" }
           ]
         },
       {
@@ -582,9 +582,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         param: "f_number",
         options: [
-              { display: "10 미만", value: "[0,9.99]" },
-              { display: "10 ~ 20 미만", value: "[10,19.99]" },
-              { display: "21 이상", value: "[21,999]" }
+              { display: "10 미만", value: "<10" },
+              { display: "10 ~ 20 미만", value: ">= 10 AND f_number < 20" },
+              { display: "21 이상", value: ">=21" }
         ]
       },
       {
@@ -594,7 +594,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         options: [
           { display: "Dzoptics", value: "Dzoptics" },
           { display: "NEW TRY", value: "NEW TRY" },
-          { display: "ETC", value: "!Dzoptics,NEW TRY" }
+          { display: "ETC", value: "NOT IN ('Dzoptics','NEW TRY')" }
         ]
       }
     ]
@@ -622,10 +622,10 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         defaultExpanded: true,
         options: [
-            { display: "50mm 이상", value: "[50,999]" },
-            { display: "25 ~ 50mm 미만", value: "[25,49.99]" },
-            { display: "6 ~ 25mm 미만", value: "[6,24.99]" },
-            { display: "~ 6mm미만", value: "[0,5.99]" }
+            { display: "50mm 이상", value: ">=50" },
+            { display: "25 ~ 50mm 미만", value: ">= 25 AND focal_length < 50" },
+            { display: "6 ~ 25mm 미만", value: ">= 6 AND focal_length < 25" },
+            { display: "~ 6mm미만", value: "<6" }
         ]
       },
       {
@@ -635,10 +635,10 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         defaultExpanded: true,
         options: [
-            { display: "18.4mm 이상", value: "[18.4,999]" },
-            { display: "16mm(1\") 이상 ~ 18.4mm(1.1\") 미만", value: "[16,18.39]" },
-            { display: "11.4mm(2/3\") 이상 ~ 16mm(1\") 미만", value: "[11.4,15.99]" },
-            { display: "8mm(1/2\") 이상 ~ 11.4mm(2/3\") 미만", value: "[8,11.39]" },
+            { display: "18.4mm 이상", value: ">=18.4" },
+            { display: "16mm(1\") 이상 ~ 18.4mm(1.1\") 미만", value: ">= 16 AND image_circle < 18.4" },
+            { display: "11.4mm(2/3\") 이상 ~ 16mm(1\") 미만", value: ">= 11.4 AND image_circle < 16" },
+            { display: "8mm(1/2\") 이상 ~ 11.4mm(2/3\") 미만", value: ">= 8 AND image_circle < 11.4" },
         ]
       },
       {
@@ -646,9 +646,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         param: "f_number",
         options: [
-            { display: "~ 2.2 미만", value: "[0,2.19]" },
-            { display: "2.2 ~ 3.0 미만", value: "[2.2,2.99]" },
-            { display: "3.0 이상", value: "[3,999]" }
+            { display: "~ 2.2 미만", value: "<2.2" },
+            { display: "2.2 ~ 3.0 미만", value: ">= 2.2 AND f_number < 3.0" },
+            { display: "3.0 이상", value: ">=3" }
         ]
       },
       {
@@ -657,7 +657,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "maker_name",
         options: [
           { display: "Dzoptics", value: "Dzoptics" },
-          { display: "ETC", value: "!Dzoptics" }
+          { display: "ETC", value: "NOT IN ('Dzoptics')" }
         ]
       }
     ]
@@ -804,7 +804,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
           { display: "2CH", value: "2" },
           { display: "4CH", value: "4" },
           { display: "8CH", value: "8" },
-          { display: "9CH 이상", value: "[9,999]" }
+          { display: "9CH 이상", value: ">=9" }
         ]
       },
       {
@@ -865,7 +865,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
           { display: "2CH", value: "2" },
           { display: "4CH", value: "4" },
           { display: "8CH", value: "8" },
-          { display: "9CH 이상", value: "[9,999]" }
+          { display: "9CH 이상", value: ">=9" }
         ]
       },
       {
@@ -973,11 +973,11 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         param: "mega_pixel",
         options: [
-            { display: "4096 이상", value: "[4096,99999]" },
-            { display: "2048 ~ 4095 미만", value: "[2048,4095]" },
-            { display: "27 ~ 50MP 미만", value: "[27,49.99]" },
-            { display: "5.2MP ~ 27MP 미만", value: "[5.2,26.99]" },
-            { display: "5.1MP 미만", value: "[0,5.09]" }
+            { display: "4096 이상", value: ">=4096" },
+            { display: "2048 ~ 4095 미만", value: ">=2048 AND p_item1 <4096" },
+            { display: "27 ~ 50MP 미만", value: ">=27 AND p_item1 <50" },
+            { display: "5.2MP ~ 27MP 미만", value: ">=5.2 AND p_item1 <27" },
+            { display: "5.1MP 미만", value: "<5.1" }
         ]
       },
       {
@@ -986,12 +986,12 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "frame_rate",
         unit: "fps/kHz",
         options: [
-            { display: "300fps 이상", value: "[300,9999]" },
-            { display: "200 ~ 300fps 미만", value: "[200,299.99]" },
-            { display: "100 ~ 200fps 미만", value: "[100,199.99]" },
-            { display: "50 ~ 100fps 미만", value: "[50,99.99]" },
-            { display: "10 ~ 50fps 미만", value: "[10,49.99]" },
-            { display: "10fps 미만", value: "[0,9.99]" }
+            { display: "300fps 이상", value: ">=300" },
+            { display: "200 ~ 300fps 미만", value: ">=200 AND p_item2 <300" },
+            { display: "100 ~ 200fps 미만", value: ">=100 AND p_item2 <200" },
+            { display: "50 ~ 100fps 미만", value: ">=50 AND p_item2 <100" },
+            { display: "10 ~ 50fps 미만", value: ">=10 AND p_item2 <50" },
+            { display: "10fps 미만", value: "<10" }
         ]
       },
       {
@@ -1000,9 +1000,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "pixel_size",
         unit: "μm",
         options: [
-            { display: "10μm 이상", value: "[10.01,999]" },
-            { display: "5 ~ 10μm 미만", value: "[5,9.99]" },
-            { display: "5μm 미만", value: "[0,4.99]" }
+            { display: "10μm 이상", value: ">10" },
+            { display: "5 ~ 10μm 미만", value: ">=5 AND p_item4 <10" },
+            { display: "5μm 미만", value: "<5" }
         ]
       },
       {
@@ -1014,7 +1014,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
           { display: "UV", value: "UV" },
           { display: "NIR", value: "NIR" },
           { display: "SWIR", value: "SWIR" },
-          { display: "ETC", value: "!UV,NIR,SWIR" }
+          { display: "ETC", value: "NOT IN ('UV','NIR','SWIR')" }
         ]
       },
       {
@@ -1042,7 +1042,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
           { display: "Daheng Imaging", value: "Daheng Imaging" },
           { display: "NIT", value: "NIT" },
           { display: "i-TEK", value: "i-TEK" },
-          { display: "ETC", value: "!Teledyne Dalsa,Teledyne FLIR,Daheng Imaging,NIT,i-TEK" }
+          { display: "ETC", value: "NOT IN ('Teledyne Dalsa','Teledyne FLIR','Daheng Imaging','NIT','i-TEK')" }
         ]
       }
     ]
@@ -1073,9 +1073,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "mega_pixel",
         defaultExpanded: true,
         options: [
-            { display: "12MP 이상", value: "[12,9999]" },
-            { display: "6 ~ 12MP 미만", value: "[6,11.99]" },
-            { display: "6MP 미만", value: "[0,5.99]" }
+            { display: "12MP 이상", value: ">=12" },
+            { display: "6 ~ 12MP 미만", value: ">=6 AND mega_pixel <12" },
+            { display: "6MP 미만", value: "<6" }
         ]
       },
       {
@@ -1083,12 +1083,12 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         type: "checkbox",
         param: "frame_rate",
         options: [
-            { display: "300fps 이상", value: "[300,9999]" },
-            { display: "200 ~ 300fps 미만", value: "[200,299.99]" },
-            { display: "100 ~ 200fps 미만", value: "[100,199.99]" },
-            { display: "50 ~ 100fps 미만", value: "[50,99.99]" },
-            { display: "10 ~ 50fps 미만", value: "[10,49.99]" },
-            { display: "10fps 미만", value: "[0,9.99]" }
+            { display: "300fps 이상", value: ">=300" },
+            { display: "200 ~ 300fps 미만", value: ">=200 AND frame_rate <300" },
+            { display: "100 ~ 200fps 미만", value: ">=100 AND frame_rate <200" },
+            { display: "50 ~ 100fps 미만", value: ">=50 AND frame_rate <100" },
+            { display: "10 ~ 50fps 미만", value: ">=10 AND frame_rate <50" },
+            { display: "10fps 미만", value: "<10" }
         ]
       },
       {
@@ -1097,9 +1097,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "pixel_size",
         unit: "μm",
         options: [
-            { display: "10μm 이상", value: "[10,999]" },
-            { display: "5 ~ 10μm 미만", value: "[5,9.99]" },
-            { display: "5μm 미만", value: "[0,4.99]" }
+            { display: "10μm 이상", value: ">= 10" },
+            { display: "5 ~ 10μm 미만", value: ">=5 AND pixel_size <10" },
+            { display: "5μm 미만", value: "<5" }
         ]
       },
       {
@@ -1120,7 +1120,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
           { display: "CoaXPress", value: "CoaXPress" },
           { display: "USB3.2", value: "USB3.2" },
           { display: "USB3.0", value: "USB3.0" },
-          { display: "ETC", value: "!CoaXPress,USB3.2,USB3.0" }
+          { display: "ETC", value: "NOT IN ('CoaXPress','USB3.2','USB3.0')" }
         ]
       },
       {

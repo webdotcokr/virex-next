@@ -32,6 +32,24 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
   const [showInquiryForm, setShowInquiryForm] = useState(false)
   const [activeSection, setActiveSection] = useState('intro')
 
+  // Debug logging
+  useEffect(() => {
+    console.log('🎨 ProductDetailView received product:', {
+      part_number: product.part_number,
+      has_series_data: !!product.series_data,
+      series_name: product.series_data?.series_name,
+      has_intro: !!product.series_data?.intro_text,
+      has_features: !!product.series_data?.features?.length,
+      related_products_count: product.related_products?.length || 0
+    })
+    
+    if (product.series_data) {
+      console.log('📊 Series data details:', product.series_data)
+    } else {
+      console.warn('⚠️ No series_data in product!')
+    }
+  }, [product])
+
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)
     if (element) {
