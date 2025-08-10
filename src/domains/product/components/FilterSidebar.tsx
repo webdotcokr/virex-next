@@ -64,6 +64,7 @@ export default function FilterSidebar({
 
   const loadFilters = async () => {
     try {
+      setLoading(true)
       // Get current category ID
       const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
       
@@ -75,7 +76,13 @@ export default function FilterSidebar({
         .eq('is_active', true)
         .order('sort_order')
 
-      if (configError) throw configError
+      if (configError) {
+        console.warn('Filter configs not available, using default filters:', configError)
+        // 필터 설정이 없을 경우 빈 배열로 처리
+        setDynamicFilters([])
+        setLoading(false)
+        return
+      }
       setDynamicFilters(filterConfigs || [])
 
       // Load options for checkbox filters

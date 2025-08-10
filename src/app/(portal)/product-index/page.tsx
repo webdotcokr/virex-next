@@ -31,7 +31,7 @@ export default function ProductIndexPage() {
         onCategoryClick={scrollToCategory}
       />
       
-      <div className={styles.container}>
+      <div className={`page-container ${styles.productIndexContainer}`}>
         {productCategories.map((category) => (
           <div 
             key={category.id}

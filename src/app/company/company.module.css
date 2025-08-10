@@ -3,9 +3,11 @@
 .content-body .company-content-wrapper {
     display: flex;
     flex-direction: column;
+    align-items: center;
     row-gap: 1rem;
-    max-width: var(--mw-container);
+    max-width: var(--container-width-xl);
     margin: 0 auto;
+    padding: 0 1rem;
     
     position: relative;
     text-align: center;
@@ -57,7 +59,7 @@
   
     .company-content-rounded-gray-background {
       background: url(/img/bg-round-gray.svg) no-repeat;
-      background-size: contain;
+      background-size: cover;
       width: 100%;
       height: 100%;
       position: absolute;
@@ -294,7 +296,7 @@
   
   /** Company > Global Partners */
   
-  .container[data-page="global-partners"] .content-subtitle {
+  .companyContainer[data-page="global-partners"] .content-subtitle {
     font-size: 1.125rem;
     font-style: normal;
     font-weight: 400;
@@ -419,21 +421,21 @@
   /* Media Query for Mobile */
   @media screen and (max-width: 47.9375rem) {
     /* Global Partners 모바일 스타일 */
-    .container[data-page="global-partners"] {
+    .companyContainer[data-page="global-partners"] {
       padding: 0 0.75rem;
     }
   
-    .container[data-page="global-partners"] .content-title {
+    .companyContainer[data-page="global-partners"] .content-title {
       margin-bottom: 1rem;
     }
   
-    .container[data-page="global-partners"] .content-subtitle {
+    .companyContainer[data-page="global-partners"] .content-subtitle {
       font-size: 0.9375rem;
       line-height: 1.5rem;
       margin-bottom: 1.5rem;
     }
   
-    .container[data-page="global-partners"] .content-subtitle br {
+    .companyContainer[data-page="global-partners"] .content-subtitle br {
       display: none;
     }
   
@@ -509,8 +511,8 @@
   }
   
   /** Company > Location */
-  .container {
-    max-width: var(--mw-container);
+  .companyContainer {
+    max-width: var(--container-width-xl);
     margin: 0 auto;
     padding: 0 1rem;
   }
@@ -520,23 +522,23 @@
     flex-direction: column;
   }
 
-  .container[data-page="location"] .location-container {
+  .companyContainer[data-page="location"] .location-container {
     display: flex;
     flex-direction: column;
   }
 
-  .container[data-page="location"] .content-title {
+  .companyContainer[data-page="location"] .content-title {
     margin-bottom: 1.5rem;
   }
 
-  .container[data-page="location"] .location-map { 
+  .companyContainer[data-page="location"] .location-map { 
     max-width: 100%;
     border-radius: 0.5rem;
     border: 1px solid var(--gray200);
   }
 
   /* 카카오맵 컨테이너 스타일 */
-  .container[data-page="location"] #daumRoughmapContainer1746683321855 {
+  .companyContainer[data-page="location"] #daumRoughmapContainer1746683321855 {
     width: 100%;
     height: 400px;
     border-radius: 0.5rem;
@@ -811,27 +813,27 @@
   }
 
   /* Location page mobile adjustments */
-  .container[data-page="location"] {
+  .companyContainer[data-page="location"] {
     padding: 0;
   }
 
-  .container[data-page="location"] .location-container {
+  .companyContainer[data-page="location"] .location-container {
     padding: 0 0.75rem;
   }
 
-  .container[data-page="location"] .content-title {
+  .companyContainer[data-page="location"] .content-title {
     margin-bottom: 1.5rem;
   }
 
   /* 카카오맵 모바일 스타일 */
-  .container[data-page="location"] #daumRoughmapContainer1746683321855 {
+  .companyContainer[data-page="location"] #daumRoughmapContainer1746683321855 {
     height: 260px;
     border: none;
     border-radius: 0.375rem;
   }
 
   /* 지도와 정보 사이 간격 조정 */
-  .container[data-page="location"] .mt-40px {
+  .companyContainer[data-page="location"] .mt-40px {
     margin-top: 2rem !important;
   }
 
@@ -889,7 +891,7 @@
     color: var(--gray900);
   }
 
-  .container[data-page="location"] .location-map {
+  .companyContainer[data-page="location"] .location-map {
     border: none;
     border-radius: 0.375rem;
   }

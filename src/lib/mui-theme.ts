@@ -133,6 +133,8 @@ export const adminTheme = createTheme({
         root: {
           border: 'none',
           borderRadius: '12px',
+          height: '100%',
+          minHeight: '400px',
           '& .MuiDataGrid-columnHeaders': {
             backgroundColor: '#F8F9FB',
             borderBottom: '1px solid #E8ECEF',

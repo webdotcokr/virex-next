@@ -263,7 +263,7 @@ function ProductsContent() {
       {/* Filter Overlay */}
       <div className={`${styles.filterOverlay} ${isMobileFilterOpen ? styles.active : ''}`} />
 
-      <div className={styles.container}>
+      <div className={styles.productsContainer}>
         {/* Filter Sidebar */}
         <FilterSidebar 
           categories={siblingCategories}

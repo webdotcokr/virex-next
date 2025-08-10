@@ -28,7 +28,7 @@ const LocationPage = () => {
         titleEn={page_title_en}
         titleKo={page_title_ko}
       >
-        <div className={`${styles['container']} ${styles['flex-col']}`} data-page="location">
+        <div className={`${styles['companyContainer']} ${styles['flex-col']}`} data-page="location">
           <div className="content-title mt-16px">
             <h2>오시는 길</h2>
           </div>

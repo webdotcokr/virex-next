@@ -79,7 +79,7 @@
     color: var(--white-light);
     font-size: 1rem;
     font-style: normal;
-    font-weight: 300;
+    font-weight: 400;
     line-height: 1.5rem;
     letter-spacing: -0.02813rem;
     margin-top: 0.75rem;
@@ -173,8 +173,8 @@
 }
 
 /* Main Container - 캡처본과 동일한 레이아웃 */
-.container {
-  max-width: 1200px;
+.productsContainer {
+  max-width: var(--container-width-lg);
   margin: 0 auto;
   padding: 20px;
   display: flex;
@@ -1170,7 +1170,7 @@
     display: flex;
   }
 
-  .container {
+  .productsContainer {
     flex-direction: column;
     padding: 1rem;
   }
@@ -1291,7 +1291,7 @@
 }
 
 @media (max-width: 480px) {
-  .container {
+  .productsContainer {
     padding: 0.5rem;
   }
 

@@ -1,19 +1,8 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { useFilterStore } from '@/lib/store'
-import { useTableMetadata, getVisibleColumns, getParameterLabel, getParameterUnit } from '@/lib/hooks/useTableMetadata'
 import styles from '../../../app/(portal)/products/products.module.css'
 import type { Product } from '../types'
-
-// 컬럼 설정 인터페이스 (간소화)
-interface ColumnConfig {
-  parameter_name: string;
-  label: string;
-  display_order: number;
-  unit?: string;
-  is_sortable: boolean;
-}
 
 interface ProductTableProps {
   products: Product[]
@@ -39,28 +28,42 @@ export default function ProductTable({
   isLoading = false
 }: ProductTableProps) {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
-  const { filters } = useFilterStore()
 
-  // 현재 카테고리 ID 계산
-  const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
-  
-  // 공유 메타데이터 훅 사용
-  const { metadata, loading } = useTableMetadata(currentCategoryId)
-
-  // 메타데이터에서 컬럼 설정 생성 (메모이제이션)
+  // 제품 데이터에서 동적으로 컬럼 생성
   const columnConfigs = useMemo(() => {
-    if (!metadata) return []
+    if (!products || products.length === 0) return []
     
-    const visibleColumns = getVisibleColumns(metadata)
+    // 첫 번째 제품의 키를 기반으로 컬럼 생성
+    const firstProduct = products[0]
+    const skipKeys = ['id', 'created_at', 'updated_at', 'category', 'partnumber', 'name', 'series']
     
-    return visibleColumns.map(config => ({
-      parameter_name: config.parameter_name,
-      label: getParameterLabel(config.parameter_name, metadata),
-      display_order: config.display_order,
-      unit: getParameterUnit(config.parameter_name, metadata),
-      is_sortable: true // 모든 컬럼이 정렬 가능하다고 가정
+    // 우선순위 컬럼 정의
+    const priorityColumns = ['part_number', 'maker', 'series_name', 'is_active', 'is_new']
+    const columns: string[] = []
+    
+    // 우선순위 컬럼 먼저 추가
+    priorityColumns.forEach(col => {
+      if (col in firstProduct) {
+        columns.push(col)
+      }
+    })
+    
+    // 나머지 컬럼 추가
+    Object.keys(firstProduct).forEach(key => {
+      if (!skipKeys.includes(key) && !priorityColumns.includes(key)) {
+        columns.push(key)
+      }
+    })
+    
+    return columns.map((key, index) => ({
+      parameter_name: key,
+      label: key.split('_').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' '),
+      display_order: index,
+      is_sortable: true
     }))
-  }, [metadata])
+  }, [products])
 
   const handleCompareChange = useCallback((productId: string, checked: boolean) => {
     if (checked && selectedProducts.length >= 4) {
@@ -99,7 +102,7 @@ export default function ProductTable({
     return { totalPages, displayData: paginatedProducts }
   }, [products, currentPage, itemsPerPage])
 
-  if (isLoading || loading) {
+  if (isLoading) {
     return (
       <div className={styles.productListWrapper}>
         <div className={styles.productListContainer}>
@@ -178,41 +181,23 @@ export default function ProductTable({
                         />
                       </td>
                       {columnConfigs.map((column) => {
-                        // Get the value based on parameter type
-                        let value = '-'
+                        // 제품 객체에서 직접 값 가져오기
+                        const value = product[column.parameter_name]
                         let displayValue: React.ReactNode = '-'
                         
-                        // 기본 필드들 처리
-                        if (['part_number', 'maker_name', 'series'].includes(column.parameter_name)) {
-                          switch (column.parameter_name) {
-                            case 'maker_name':
-                              value = product.maker_name || '-'
-                              displayValue = value
-                              break
-                            case 'series':
-                              value = product.series || '-'
-                              displayValue = value
-                              break
-                            case 'part_number':
-                              value = product.part_number
-                              displayValue = (
-                                <>
-                                  {product.is_new && <span className={styles.newBadge}>NEW</span>}
-                                  <span className={styles.modelName}>{value}</span>
-                                </>
-                              )
-                              break
-                          }
-                        } else {
-                          // Specification 필드들 처리
-                          const specValue = product.specifications?.[column.parameter_name]
-                          if (specValue !== null && specValue !== undefined) {
-                            value = String(specValue)
-                            // Unit 추가 (parameter_labels에서 가져온 unit 사용)
-                            displayValue = column.unit 
-                              ? `${value} ${column.unit}`
-                              : value
-                          }
+                        // 특별한 처리가 필요한 컬럼들
+                        if (column.parameter_name === 'part_number') {
+                          displayValue = (
+                            <>
+                              {product.is_new && <span className={styles.newBadge}>NEW</span>}
+                              <span className={styles.modelName}>{value || '-'}</span>
+                            </>
+                          )
+                        } else if (column.parameter_name === 'is_active' || column.parameter_name === 'is_new') {
+                          displayValue = value ? '✓' : '-'
+                        } else if (value !== null && value !== undefined) {
+                          // 일반 값 표시
+                          displayValue = String(value)
                         }
                         
                         return (

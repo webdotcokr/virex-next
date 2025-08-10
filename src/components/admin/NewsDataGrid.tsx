@@ -508,7 +508,13 @@ export default function NewsDataGrid() {
       </Box>
 
       {/* Data Grid */}
-      <Box sx={{ height: { xs: 400, md: 600 }, width: '100%' }}>
+      <Box sx={{ 
+        height: '600px',
+        minHeight: '600px', 
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
         <DataGrid
           rows={rows}
           columns={columns}

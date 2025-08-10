@@ -20,14 +20,14 @@ footer #newsletter {
 /* Main Hero Section */
 .pageContentContainer {
   background: url('/img/bg-main.jpg') center/cover no-repeat;
-  min-height: 30rem;
+  min-height: 33rem;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   position: relative;
 }
 
 .pageContent {
-  max-width: 1200px;
+  max-width: var(--container-width-xl);
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
@@ -71,6 +71,7 @@ footer #newsletter {
   gap: 2rem;
   margin-top: 3.125rem;
   color: white;
+  font-family: "Montserrat", sans-serif;
 }
 
 .arrowButtons {
@@ -155,6 +156,8 @@ footer #newsletter {
 
 .sliderImage {
   position: absolute;
+  top: 0;
+  right: 0;
   object-fit: cover;
   opacity: 0;
   transition: opacity 0.5s ease;
@@ -165,11 +168,7 @@ footer #newsletter {
 }
 
 /* Container */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
+/* .container 클래스 제거 - globals.css의 .page-container 사용 */
 
 .mainContents {
   padding: 80px 0;
@@ -177,7 +176,7 @@ footer #newsletter {
 
 /* Main Products Section */
 .mainProductsWrapper {
-  margin-bottom: 100px;
+  margin-bottom: 60px;
 }
 
 .mainProductsWrapper h2 {
@@ -270,11 +269,9 @@ footer #newsletter {
 
 /* New Products Section */
 .newProductsWrapper {
-  margin-top: 3.75rem;
   position: relative;
   width: 100%;
   overflow: visible;
-  margin-bottom: 100px;
 }
 
 .newProductsWrapper h2 {
@@ -287,7 +284,7 @@ footer #newsletter {
 
 .newProductsItemsContainer {
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--container-width-xl);
   margin: 0.625rem auto 0;
   overflow: hidden;
   position: relative;
@@ -439,13 +436,13 @@ footer #newsletter {
   width: 100%;
   background: #f8f9fa url(/img/bg-tech-info.svg) no-repeat bottom right;
   background-size: auto;
-  padding: 120px 0;
+  padding: 80px 0 100px 0;
 }
 
 .techInfoInnerWrapper {
   margin: 0 auto;
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--container-width-xl);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -469,7 +466,6 @@ footer #newsletter {
   flex-wrap: wrap;
   justify-content: space-between;
   width: 100%;
-  margin-top: 1.25rem;
   gap: 20px;
 }
 
@@ -696,7 +692,6 @@ footer #newsletter {
 }
 
 @media (max-width: 480px) {
-  .container,
   .techInfoInnerWrapper {
     padding: 0 16px;
   }

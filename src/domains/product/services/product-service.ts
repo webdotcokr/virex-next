@@ -120,62 +120,41 @@ export class ProductService {
       console.log('Products fetched successfully:', products?.length || 0, 'products')
       
       // Transform products data for frontend compatibility
+      // 모든 컬럼을 그대로 유지하여 반환
       let transformedProducts = (products || []).map(product => {
-        // Separate common fields from specifications
-        const { id, part_number, series_id, is_active, is_new, image_url, created_at, updated_at, series, ...specifications } = product
-        
         return {
-          id,
-          part_number,
-          series_id,
-          is_active,
-          is_new,
-          image_url,
-          created_at,
-          updated_at,
+          ...product, // 모든 원본 필드 유지
           // Add legacy fields for compatibility
-          partnumber: part_number,
-          name: part_number,
+          partnumber: product.part_number,
+          name: product.part_number,
           category: { id: categoryId, name: this.getCategoryName(categoryId) },
-          maker_name: 'Unknown', // No maker in new structure
-          series_name: series?.series_name || '',
-          // All other fields go to specifications
-          specifications
+          maker_name: product.maker || 'Unknown',
+          series_name: product.series?.series_name || product.series || '',
         }
       })
 
-      // Apply specification-based parameter filters using metadata
+      // Apply parameter filters directly on product fields
       if (Object.keys(parameters).length > 0) {
-        // Get filter configs for the category to determine filter types
-        const categoryName = this.getCategoryNameFromId(categoryId)
-        const filterConfigs = await this.getCategoryFilterConfig(categoryName)
-        
         transformedProducts = transformedProducts.filter(product => {
-          if (!product.specifications) return false
-          
           return Object.entries(parameters).every(([paramName, paramValues]) => {
-            const specValue = product.specifications[paramName]
-            if (specValue === undefined || specValue === null) return false
+            const fieldValue = product[paramName]
+            if (fieldValue === undefined || fieldValue === null) return false
             
-            // Find filter config for this parameter
-            const filterConfig = filterConfigs.find(config => config.filter_name === paramName)
-            
-            if (filterConfig?.filter_type === 'slider' || filterConfig?.filter_type === 'range') {
-              // Handle numeric range filters
+            // Handle range filters for numeric values
+            if (typeof fieldValue === 'number') {
               if (Array.isArray(paramValues) && paramValues.length === 2) {
                 const [min, max] = paramValues as [number, number]
-                const numValue = parseFloat(String(specValue))
-                return !isNaN(numValue) && numValue >= min && numValue <= max
+                return fieldValue >= min && fieldValue <= max
               }
+            }
+            
+            // Handle checkbox filters (string matching)
+            if (Array.isArray(paramValues)) {
+              return paramValues.some(value => 
+                String(fieldValue).toLowerCase().includes(String(value).toLowerCase())
+              )
             } else {
-              // Handle checkbox filters (string matching)
-              if (Array.isArray(paramValues)) {
-                return paramValues.some(value => 
-                  String(specValue).toLowerCase().includes(String(value).toLowerCase())
-                )
-              } else {
-                return String(specValue).toLowerCase().includes(String(paramValues).toLowerCase())
-              }
+              return String(fieldValue).toLowerCase().includes(String(paramValues).toLowerCase())
             }
             
             return false
@@ -281,17 +260,18 @@ export class ProductService {
   private static generateAvailableFilters(products: Product[]): Record<string, unknown> {
     const filters: Record<string, Set<unknown>> = {}
     
+    // Skip certain fields that shouldn't be filters
+    const skipFields = ['id', 'created_at', 'updated_at', 'series', 'category', 'partnumber', 'name']
+    
     products.forEach(product => {
-      if (product.specifications) {
-        Object.entries(product.specifications).forEach(([key, value]) => {
-          if (value !== null && value !== undefined && value !== '') {
-            if (!filters[key]) {
-              filters[key] = new Set()
-            }
-            filters[key].add(value)
+      Object.entries(product).forEach(([key, value]) => {
+        if (!skipFields.includes(key) && value !== null && value !== undefined && value !== '') {
+          if (!filters[key]) {
+            filters[key] = new Set()
           }
-        })
-      }
+          filters[key].add(value)
+        }
+      })
     })
     
     // Convert Sets to Arrays for JSON serialization

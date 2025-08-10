@@ -168,7 +168,7 @@ const partners: Partner[] = [
         titleEn={page_title_en}
         titleKo={page_title_ko}
       >
-    <div className={`${styles['container']} ${styles['flex-col']}`} data-page="global-partners">
+    <div className={`${styles['companyContainer']} ${styles['flex-col']}`} data-page="global-partners">
       <div className="content-title">
         <h2>파트너사</h2>
       </div>

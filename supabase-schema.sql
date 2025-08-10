@@ -1,152 +1,170 @@
--- Enable necessary extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Create a markdown document for the database structure
 
--- Categories table
-CREATE TABLE categories (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  slug VARCHAR(255) UNIQUE NOT NULL,
-  description TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+SELECT '# Database Structure Documentation
 
--- Products table
-CREATE TABLE products (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  partnumber VARCHAR(255) NOT NULL,
-  series VARCHAR(255) NOT NULL,
-  name VARCHAR(500) NOT NULL,
-  description TEXT,
-  category_id UUID REFERENCES categories(id) ON DELETE CASCADE,
-  is_new BOOLEAN DEFAULT FALSE,
-  image_url TEXT,
-  datasheet_url TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(partnumber, series)
-);
+## Overview
 
--- Product parameters table
-CREATE TABLE product_parameters (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  product_id UUID REFERENCES products(id) ON DELETE CASCADE,
-  parameter_name VARCHAR(255) NOT NULL,
-  parameter_value TEXT NOT NULL,
-  parameter_type VARCHAR(50) CHECK (parameter_type IN ('text', 'number', 'boolean', 'select')) DEFAULT 'text',
-  display_order INTEGER DEFAULT 0,
-  is_filterable BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+This document describes the database structure for the product catalog system. The database is designed with a specialized table structure where each product category has its own dedicated table (e.g., products_cis, products_line, products_area) to accommodate different column requirements.
 
--- User inquiries table
-CREATE TABLE inquiries (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  product_id UUID REFERENCES products(id) ON DELETE SET NULL,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) NOT NULL,
-  company VARCHAR(255),
-  phone VARCHAR(50),
-  message TEXT NOT NULL,
-  status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'contacted', 'completed', 'cancelled')),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+## Core Design Pattern
 
--- Newsletter subscriptions table
-CREATE TABLE newsletter_subscriptions (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  subscribed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  is_active BOOLEAN DEFAULT TRUE
-);
+The database follows a specialized structure where:
 
--- Indexes for better performance
-CREATE INDEX idx_products_partnumber ON products(partnumber);
-CREATE INDEX idx_products_series ON products(series);
-CREATE INDEX idx_products_category_id ON products(category_id);
-CREATE INDEX idx_products_is_new ON products(is_new);
-CREATE INDEX idx_products_created_at ON products(created_at);
-CREATE INDEX idx_product_parameters_product_id ON product_parameters(product_id);
-CREATE INDEX idx_product_parameters_name ON product_parameters(parameter_name);
-CREATE INDEX idx_product_parameters_filterable ON product_parameters(is_filterable);
-CREATE INDEX idx_inquiries_product_id ON inquiries(product_id);
-CREATE INDEX idx_inquiries_status ON inquiries(status);
+1. Different product types are stored in separate tables (products_cis, products_line, products_tdi, etc.)
+2. Each product table has its own unique set of technical specifications as columns
+3. Configuration tables manage display settings, filter options, and column visibility
 
--- Full-text search index for products
-CREATE INDEX idx_products_search ON products USING gin(to_tsvector('english', partnumber || ' ' || series || ' ' || name || ' ' || COALESCE(description, '')));
+## Product Tables
 
--- Update trigger for products updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
+The system uses separate tables for different product categories:
 
-CREATE TRIGGER update_products_updated_at 
-    BEFORE UPDATE ON products 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+| Product Table | Description |
+|---------------|-------------|
+| products_cis | Contact Image Sensor products |
+| products_line | Line scan camera products |
+| products_area | Area scan camera products |
+| products_tdi | TDI (Time Delay Integration) camera products |
+| products_invisible | Invisible/specialized camera products |
+| products_scientific | Scientific camera products |
+| products_large_format_lens | Large format lens products |
+| products_telecentric | Telecentric lens products |
+| products_fa_lens | Factory automation lens products |
+| products_3d_laser_profiler | 3D laser profiler products |
+| products_3d_stereo_camera | 3D stereo camera products |
+| products_light | Lighting products |
+| products_controller | Controller products |
+| products_frame_grabber | Frame grabber products |
+| products_gige_lan_card | GigE LAN card products |
+| products_usb_card | USB card products |
+| products_software | Software products |
+| products_cable | Cable products |
+| products_accessory | Accessory products |
 
--- Row Level Security (RLS) policies
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE product_parameters ENABLE ROW LEVEL SECURITY;
-ALTER TABLE inquiries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE newsletter_subscriptions ENABLE ROW LEVEL SECURITY;
+### Common Product Table Structure
 
--- Public read access for categories, products, and parameters
-CREATE POLICY "Allow public read access on categories" ON categories FOR SELECT USING (TRUE);
-CREATE POLICY "Allow public read access on products" ON products FOR SELECT USING (TRUE);
-CREATE POLICY "Allow public read access on product_parameters" ON product_parameters FOR SELECT USING (TRUE);
+Each product table has a similar base structure with these common fields:
 
--- Public insert access for inquiries and newsletter subscriptions
-CREATE POLICY "Allow public insert on inquiries" ON inquiries FOR INSERT WITH CHECK (TRUE);
-CREATE POLICY "Allow public insert on newsletter_subscriptions" ON newsletter_subscriptions FOR INSERT WITH CHECK (TRUE);
+```sql
+id                 BIGINT PRIMARY KEY
+part_number        TEXT UNIQUE NOT NULL
+series_id          BIGINT      -- Reference to the series table
+is_active          BOOLEAN DEFAULT true
+is_new             BOOLEAN DEFAULT false
+image_url          TEXT
+created_at         TIMESTAMP WITH TIME ZONE DEFAULT now()
+updated_at         TIMESTAMP WITH TIME ZONE DEFAULT now()
+maker              TEXT
+```
 
--- Admin-only access for CUD operations on main tables
-CREATE POLICY "Allow authenticated users full access on categories" ON categories FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated users full access on products" ON products FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated users full access on product_parameters" ON product_parameters FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated users read access on inquiries" ON inquiries FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated users update access on inquiries" ON inquiries FOR UPDATE USING (auth.role() = 'authenticated');
+Additionally, each product table contains specialized technical specification columns specific to that product category (e.g., resolution, mega_pixel, focal_length).
 
--- Sample data for development
-INSERT INTO categories (name, slug, description) VALUES 
-('전자부품', 'electronics', '다양한 전자 부품 및 모듈'),
-('센서', 'sensors', '온도, 압력, 광학 센서류'),
-('액추에이터', 'actuators', '모터, 서보, 솔레노이드'),
-('커넥터', 'connectors', '전기 연결용 커넥터류'),
-('케이블', 'cables', '신호 및 전원 케이블');
+## Configuration Tables
 
--- Sample products (you can expand this based on actual product data)
-INSERT INTO products (partnumber, series, name, description, category_id, is_new) 
-SELECT 
-  'VRX-' || LPAD((ROW_NUMBER() OVER())::text, 4, '0'),
-  'SERIES-' || (RANDOM() * 10)::INT,
-  'Sample Product ' || ROW_NUMBER() OVER(),
-  'This is a sample product description for development purposes.',
-  (SELECT id FROM categories ORDER BY RANDOM() LIMIT 1),
-  RANDOM() < 0.1
-FROM generate_series(1, 50);
+### Category-Related Configuration
 
--- Sample parameters for products
-INSERT INTO product_parameters (product_id, parameter_name, parameter_value, parameter_type, display_order, is_filterable)
-SELECT 
-  p.id,
-  'Voltage',
-  (RANDOM() * 24 + 1)::INT || 'V',
-  'text',
-  1,
-  TRUE
-FROM products p;
+| Table | Purpose |
+|-------|---------|
+| categories | Product categories hierarchy |
+| filter_configs | Filter configuration for product search/filtering |
+| filter_options | Available options for checkbox-type filters |
+| filter_slider_configs | Configuration for slider-type filters |
+| table_column_configs | Column visibility and display settings for product tables |
 
-INSERT INTO product_parameters (product_id, parameter_name, parameter_value, parameter_type, display_order, is_filterable)
-SELECT 
-  p.id,
-  'Operating Temperature',
-  '-40°C to +85°C',
-  'text',
-  2,
-  TRUE
-FROM products p;
+### Display and Parameter Configuration
+
+| Table | Purpose |
+|-------|---------|
+| parameter_labels | Multilingual labels for product parameters |
+| category_display_config | Display order and visibility for parameters by category |
+| filter_config | Filter configuration settings by category |
+
+## Series Table
+
+The `series` table contains information about product series which group related products:
+
+```sql
+id                 BIGINT PRIMARY KEY
+series_name        TEXT UNIQUE NOT NULL
+intro_text         TEXT
+short_text         TEXT
+youtube_url        TEXT
+feature_image_url  TEXT
+-- additional feature and descriptive fields
+```
+
+## Configuration System
+
+### Filter System
+
+1. `filter_configs` defines available filters for each category
+2. `filter_options` provides options for checkbox filters
+3. `filter_slider_configs` provides range settings for slider filters
+4. `filter_config` controls which filters are enabled and their display order
+
+### Column Display System
+
+1. `table_column_configs` defines which columns to display for each category
+2. `category_display_config` controls parameter display order and visibility
+3. `parameter_labels` provides multilingual labels for parameters
+
+## Administrative Tools
+
+The database includes tables for website content management:
+
+- `news` for news articles
+- `downloads` and `download_categories` for downloadable content
+- `newsletter_subscriptions` for managing newsletter subscribers
+- `inquiries` for customer inquiries
+
+## Authentication and User Management
+
+The system uses Supabase authentication with:
+
+- `auth.users` for authentication data
+- `member_profiles` linked to auth.users for additional user information
+- `tbl_member_level` for user role management
+
+## File Management
+
+The `files` table manages uploaded files with:
+
+```sql
+id          BIGINT PRIMARY KEY
+file_name   TEXT NOT NULL
+file_path   TEXT NOT NULL
+file_size   BIGINT
+mime_type   TEXT
+created_at  TIMESTAMP WITH TIME ZONE DEFAULT now()
+updated_at  TIMESTAMP WITH TIME ZONE DEFAULT now()
+```
+
+## Design Rationale
+
+This database design was chosen to accommodate:
+
+1. Products with vastly different technical specifications
+2. Flexible admin configuration of display and search options
+3. Multilingual parameter labels and descriptions
+4. Efficient querying of product data by category
+
+The use of separate product tables allows for:
+- Custom columns per product type without excessive NULL values
+- Targeted indexing strategies
+- Category-specific validation rules
+- Easier maintainability for category-specific queries
+
+## Working with the Database
+
+When developing features:
+
+1. Identify the product category being worked with
+2. Query the appropriate products_* table
+3. Use configuration tables to determine display settings
+4. Respect the is_active and is_visible flags when displaying data
+5. Use parameter_labels for displaying localized field names
+
+For administrator interfaces:
+1. Provide access to configuration tables for controlling display options
+2. Allow management of filter settings through filter_* tables
+3. Support order management and visibility toggling for parameters
+' AS documentation;

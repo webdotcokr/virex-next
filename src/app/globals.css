@@ -29,6 +29,9 @@
 
   /** Sizes*/
   --mw-container: 87.5rem; /* 1400px */
+  --container-width-xl: 87.5rem; /* 1400px - 대형 콘텐츠용 */
+  --container-width-lg: 75rem; /* 1200px - 일반 콘텐츠용 */
+  --container-width-md: 64rem; /* 1024px - 중형 콘텐츠용 */
 
   /** Fonts */
   --ft-default: "Pretendard", sans-serif;
@@ -361,6 +364,7 @@ header {
   z-index: 1000;
   background-color: transparent;
   transition: all 0.3s ease;
+  margin-bottom: -5.3875rem
 }
 
 header.scrolled {
@@ -614,7 +618,6 @@ header .horizontal-menu .top-menu-item.active a {
   width: 100%;
   min-height: 23rem;
   padding-top: 3rem;
-  margin-top: -5.3875rem;
   margin-bottom: 70px;
   position: relative;
   z-index: 1;
@@ -1316,6 +1319,35 @@ footer #footer-bottom #footer-copyright {
   overflow: visible !important; /* Ensure visibility */
   position: relative; /* Make it a positioning context */
 	margin-top: 2.19rem;
+}
+
+/* 통합 본문 폭 관리 유틸리티 클래스 */
+.page-container {
+  width: 100%;
+  max-width: var(--container-width-xl);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.page-container-xl {
+  width: 100%;
+  max-width: var(--container-width-xl);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.page-container-md {
+  width: 100%;
+  max-width: var(--container-width-md);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.content-wrapper {
+  width: 100%;
+  max-width: var(--container-width-lg);
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
   .content-title {
@@ -3798,7 +3830,7 @@ header.scrolled #search-bar .close-icon {
 /* Fix megamenu container positioning for seamless hover */
 #megamenu-container {
   position: absolute !important;
-  top: 100% !important; /* Position right below header */
+  top: 0 !important; /* Position right below header */
   left: 0 !important;
   width: 100% !important;
   z-index: 999 !important;

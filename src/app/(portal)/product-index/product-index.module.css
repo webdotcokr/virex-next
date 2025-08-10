@@ -138,10 +138,9 @@
 }
 
 /* Container */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px 60px;
+/* .container 클래스 제거 - globals.css의 .page-container 사용 */
+.productIndexContainer {
+  padding: 0 0 60px;
 }
 
 /* Category Section */
@@ -279,8 +278,8 @@
     font-size: 0.875rem;
   }
 
-  .container {
-    padding: 0 15px 40px;
+  .productIndexContainer {
+    padding: 0 0 40px;
   }
 
   .categorySection {

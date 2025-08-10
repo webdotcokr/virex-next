@@ -155,10 +155,7 @@ export default function Home() {
               귀사 비즈니스에 가장 적합한 비전 시스템을 제공합니다.<br/>
               실시간 대응과 맞춤형 기술 지원으로 문제 없는 운영을 보장합니다.
             </div>
-          </div>
-          
-          <div className={styles.mainSliderWrapper}>
-            <div className={styles.mainSliderController}>
+                        <div className={styles.mainSliderController}>
               <div className={styles.arrowButtons}>
                 <button 
                   className={styles.leftArrow}
@@ -180,6 +177,9 @@ export default function Home() {
                 <span className={`${styles.txtSlide2} ${currentSlide === 2 ? styles.active : ''}`}>02</span>
               </div>
             </div>
+          </div>
+          
+          <div className={styles.mainSliderWrapper}>
             <div className={styles.mainSliderContents}>
               <img 
                 src="/img/main-carousel/01.png" 
@@ -198,7 +198,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className={styles.container}>
+      <div className="page-container">
         <div className={styles.mainContents}>
           {/* Main Products Section */}
           <div className={styles.mainProductsWrapper}>
