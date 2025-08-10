@@ -133,6 +133,23 @@ export class ProductService {
         }
       })
 
+      // Store total count BEFORE applying parameter filters for accurate pagination
+      // Get total count for pagination (with same filters EXCEPT parameters)
+      let totalQuery = supabase
+        .from(tableName)
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+      
+      // Apply same search logic to total count
+      if (search && search.trim()) {
+        const searchTerm = search.trim()
+        totalQuery = totalQuery.ilike('part_number', `%${searchTerm}%`)
+      } else if (partnumber && partnumber.trim()) {
+        totalQuery = totalQuery.ilike('part_number', `%${partnumber.trim()}%`)
+      }
+
+      const { count: totalBeforeParamFilter } = await totalQuery
+
       // Apply parameter filters directly on product fields
       if (Object.keys(parameters).length > 0) {
         transformedProducts = transformedProducts.filter(product => {
@@ -183,24 +200,20 @@ export class ProductService {
         })
       }
 
-      // Get total count for pagination (with same filters)
-      let totalQuery = supabase
-        .from(tableName)
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true)
-      
-      // Apply same search logic to total count
-      if (search && search.trim()) {
-        const searchTerm = search.trim()
-        totalQuery = totalQuery.ilike('part_number', `%${searchTerm}%`)
-      } else if (partnumber && partnumber.trim()) {
-        totalQuery = totalQuery.ilike('part_number', `%${partnumber.trim()}%`)
-      }
-
-      const { count: totalCount } = await totalQuery
-      const total = totalCount || 0
+      // Use the total count from before parameter filtering for accurate pagination
+      const total = totalBeforeParamFilter || 0
       const hasNextPage = (page * limit) < total
       const hasPreviousPage = page > 1
+
+      console.log('📊 Product Service - Pagination info:', {
+        total,
+        page,
+        limit,
+        productsOnPage: transformedProducts.length,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage,
+        hasPreviousPage
+      })
 
       return {
         products: transformedProducts,

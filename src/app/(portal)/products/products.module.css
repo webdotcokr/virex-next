@@ -491,11 +491,11 @@
 }
 
 .productList th {
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   text-align: left;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--gray700);
-  border-bottom: 1px solid var(--gray200);
+  border-bottom: 1px solid #111;
   white-space: nowrap;
   position: relative;
 }
@@ -506,6 +506,7 @@
 }
 
 .sortIcon {
+  display: inline-block;
   width: 16px;
   height: 16px;
   margin-left: 0.5rem;
@@ -528,7 +529,7 @@
 }
 
 .productList td {
-  padding: .8rem 1rem;
+  padding: .6rem 1.5rem;
   border-bottom: 1px solid var(--gray200);
   vertical-align: middle;
 }
@@ -616,13 +617,12 @@
 
 .productList th,
 .productList td {
-  text-align: center;
+  text-align: left;
   vertical-align: middle;
   border-bottom: 1px solid var(--gray200);
   font-size: 16px;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .productList th:last-child,

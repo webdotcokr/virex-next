@@ -21,6 +21,7 @@ function ProductsContent() {
   const searchParams = useSearchParams()
   const { filters, setFiltersFromUrl } = useFilterStore()
   const [products, setProducts] = useState<Product[]>([])
+  const [totalProducts, setTotalProducts] = useState(0)
   const [siblingCategories, setSiblingCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true) // 초기 로딩 true로 설정
   const [error, setError] = useState<string | null>(null)
@@ -91,9 +92,11 @@ function ProductsContent() {
         })
 
         setProducts(productResult.products)
+        setTotalProducts(productResult.total)
         
         console.log('✅ Products data loaded successfully:', {
           productsCount: productResult.products.length,
+          totalProducts: productResult.total,
           siblingsCount: siblings.length,
           breadcrumbsCount: breadcrumbsData.length
         })
@@ -103,6 +106,7 @@ function ProductsContent() {
         setError(err instanceof Error ? err.message : 'Failed to load data')
         // Reset data on error
         setProducts([])
+        setTotalProducts(0)
         setSiblingCategories([])
         setBreadcrumbs([])
       } finally {
@@ -287,6 +291,7 @@ function ProductsContent() {
           {/* Products Table */}
           <ProductTable
             products={products}
+            total={totalProducts}
             currentPage={currentPage}
             itemsPerPage={itemsPerPage}
             sortBy={sortBy}

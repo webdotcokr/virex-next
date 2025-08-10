@@ -3,9 +3,11 @@
 import { useState, useMemo, useCallback } from 'react'
 import styles from '../../../app/(portal)/products/products.module.css'
 import type { Product } from '../types'
+import Pagination from '@/components/ui/Pagination'
 
 interface ProductTableProps {
   products: Product[]
+  total?: number
   currentPage?: number
   itemsPerPage?: number
   sortBy?: string
@@ -18,6 +20,7 @@ interface ProductTableProps {
 
 export default function ProductTable({ 
   products,
+  total,
   currentPage = 1,
   itemsPerPage = 20,
   sortBy,
@@ -35,10 +38,14 @@ export default function ProductTable({
     
     // 첫 번째 제품의 키를 기반으로 컬럼 생성
     const firstProduct = products[0]
-    const skipKeys = ['id', 'created_at', 'updated_at', 'category', 'partnumber', 'name', 'series']
+    // 관리자 전용 필드들을 skipKeys에 포함
+    const skipKeys = [
+      'id', 'created_at', 'updated_at', 'category', 'partnumber', 'name', 'series',
+      'is_active', 'is_new', 'series_id', 'image_url', 'is_discontinued'
+    ]
     
-    // 우선순위 컬럼 정의
-    const priorityColumns = ['part_number', 'maker', 'series_name', 'is_active', 'is_new']
+    // 우선순위 컬럼 정의 (관리자 필드 제외)
+    const priorityColumns = ['part_number', 'maker', 'series_name']
     const columns: string[] = []
     
     // 우선순위 컬럼 먼저 추가
@@ -94,13 +101,24 @@ export default function ProductTable({
 
   // Calculate pagination with memoization
   const { totalPages, displayData } = useMemo(() => {
-    const totalPages = Math.ceil(products.length / itemsPerPage)
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    const paginatedProducts = products.slice(startIndex, endIndex)
+    // Use the total prop if provided, otherwise fall back to products.length
+    const actualTotal = total !== undefined ? total : products.length
+    const totalPages = Math.ceil(actualTotal / itemsPerPage)
     
-    return { totalPages, displayData: paginatedProducts }
-  }, [products, currentPage, itemsPerPage])
+    // Products are already paginated from the server, so use them directly
+    const displayProducts = products
+    
+    console.log('🔢 ProductTable - Pagination calculation:', {
+      total: actualTotal,
+      productsLength: products.length,
+      itemsPerPage,
+      currentPage,
+      totalPages,
+      displayDataLength: displayProducts.length
+    })
+    
+    return { totalPages, displayData: displayProducts }
+  }, [products, total, currentPage, itemsPerPage])
 
   if (isLoading) {
     return (
@@ -193,8 +211,6 @@ export default function ProductTable({
                               <span className={styles.modelName}>{value || '-'}</span>
                             </>
                           )
-                        } else if (column.parameter_name === 'is_active' || column.parameter_name === 'is_new') {
-                          displayValue = value ? '✓' : '-'
                         } else if (value !== null && value !== undefined) {
                           // 일반 값 표시
                           displayValue = String(value)
@@ -215,37 +231,12 @@ export default function ProductTable({
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className={styles.pagination}>
-          {currentPage > 1 && (
-            <button 
-              onClick={() => onPageChange?.(currentPage - 1)}
-              className={styles.paginationButton}
-            >
-              이전
-            </button>
-          )}
-          
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => onPageChange?.(page)}
-              className={`${styles.paginationButton} ${page === currentPage ? styles.current : ''}`}
-            >
-              {page}
-            </button>
-          ))}
-          
-          {currentPage < totalPages && (
-            <button 
-              onClick={() => onPageChange?.(currentPage + 1)}
-              className={styles.paginationButton}
-            >
-              다음
-            </button>
-          )}
-        </div>
-      )}
+      <Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={(page) => onPageChange?.(page)}
+        showEllipsis={true}
+      />
     </>
   )
 }
