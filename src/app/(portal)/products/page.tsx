@@ -77,15 +77,67 @@ const getCategoryInfo = (categoryId: string) => {
   }
 }
 
-// Mock 시블링 카테고리 (주요 카테고리들)
-const mockSiblingCategories: Category[] = [
-  { id: '9', name: 'CIS', enName: 'CIS', slug: 'cis' },
-  { id: '10', name: 'TDI', enName: 'TDI', slug: 'tdi' },
-  { id: '11', name: 'Line', enName: 'Line', slug: 'line' },
-  { id: '12', name: 'Area', enName: 'Area', slug: 'area' },
-  { id: '13', name: 'Invisible', enName: 'Invisible', slug: 'invisible' },
-  { id: '14', name: 'Scientific', enName: 'Scientific', slug: 'scientific' }
-]
+// 카테고리 그룹 정의 (parent_id 기반)
+const CATEGORY_GROUPS: Record<string, Category[]> = {
+  // 카메라 그룹 (parent_id: 2)
+  cameras: [
+    { id: '9', name: 'CIS', enName: 'CIS', slug: 'cis' },
+    { id: '10', name: 'TDI', enName: 'TDI', slug: 'tdi' },
+    { id: '11', name: 'Line', enName: 'Line', slug: 'line' },
+    { id: '12', name: 'Area', enName: 'Area', slug: 'area' },
+    { id: '13', name: 'Invisible', enName: 'Invisible', slug: 'invisible' },
+    { id: '14', name: 'Scientific', enName: 'Scientific', slug: 'scientific' }
+  ],
+  // 렌즈 그룹 (parent_id: 3)
+  lenses: [
+    { id: '15', name: 'Large Format', enName: 'Large Format', slug: 'large-format' },
+    { id: '16', name: 'Telecentric', enName: 'Telecentric', slug: 'telecentric' },
+    { id: '17', name: 'FA Lens', enName: 'FA Lens', slug: 'fa-lens' }
+  ],
+  // 3D 그룹
+  '3d': [
+    { id: '18', name: '3D Laser Profiler', enName: '3D Laser Profiler', slug: '3d-laser-profiler' },
+    { id: '19', name: '3D Stereo Camera', enName: '3D Stereo Camera', slug: '3d-stereo-camera' }
+  ],
+  // 조명 및 컨트롤러 그룹
+  lighting: [
+    { id: '20', name: 'Light', enName: 'Light', slug: 'light' },
+    { id: '21', name: 'Controller', enName: 'Controller', slug: 'controller' },
+    { id: '22', name: 'Controller', enName: 'Controller', slug: 'controller' }
+  ],
+  // 인터페이스 카드 그룹
+  interface: [
+    { id: '23', name: 'Frame Grabber', enName: 'Frame Grabber', slug: 'frame-grabber' },
+    { id: '24', name: 'GigE Lan Card', enName: 'GigE Lan Card', slug: 'gige-lan-card' },
+    { id: '25', name: 'USB Card', enName: 'USB Card', slug: 'usb-card' }
+  ],
+  // 액세서리 그룹
+  accessories: [
+    { id: '26', name: 'Cable', enName: 'Cable', slug: 'cable' },
+    { id: '27', name: 'Accessory', enName: 'Accessory', slug: 'accessory' }
+  ],
+  // 기타
+  others: [
+    { id: '4', name: 'Auto Focus Module', enName: 'Auto Focus Module', slug: 'af-module' },
+    { id: '7', name: 'Software', enName: 'Software', slug: 'software' }
+  ]
+}
+
+// 카테고리 ID로 그룹 찾기
+const getCategoryGroup = (categoryId: string): string => {
+  for (const [groupName, categories] of Object.entries(CATEGORY_GROUPS)) {
+    if (categories.some(cat => cat.id === categoryId)) {
+      return groupName
+    }
+  }
+  return 'cameras' // 기본값
+}
+
+// 카테고리 ID로 형제 카테고리 가져오기
+const getSiblingCategories = (categoryId: string): Category[] => {
+  const groupName = getCategoryGroup(categoryId)
+  return CATEGORY_GROUPS[groupName] || CATEGORY_GROUPS.cameras
+}
 
 // Mock 브레드크럼 생성
 const getBreadcrumbs = (categoryId: string) => {
@@ -135,6 +187,7 @@ function ProductsContent() {
   const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
   const categoryInfo = getCategoryInfo(currentCategoryId)
   const breadcrumbs = getBreadcrumbs(currentCategoryId)
+  const siblingCategories = getSiblingCategories(currentCategoryId)
 
   // Series 데이터 로딩 및 매핑 함수
   const loadSeriesData = useCallback(async () => {
@@ -423,7 +476,7 @@ function ProductsContent() {
       breadcrumbs={breadcrumbs}
       categoryNavigation={
         <CategoryTabs 
-          categories={mockSiblingCategories} 
+          categories={siblingCategories} 
           selectedCategories={filters.categories}
         />
       }
@@ -440,7 +493,7 @@ function ProductsContent() {
       <div className={styles.productsContainer}>
         {/* Filter Sidebar */}
         <FilterSidebar 
-          categories={mockSiblingCategories}
+          categories={siblingCategories}
           categoryName={categoryInfo.name}
           selectedCategory={CATEGORY_NAME_MAP[currentCategoryId] || 'CIS'}
           isMobile={false}
