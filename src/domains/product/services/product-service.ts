@@ -9,12 +9,13 @@ const CATEGORY_TABLE_MAPPING: Record<number, string> = {
   12: 'products_area',      // Area
   13: 'products_invisible', // Invisible
   14: 'products_scientific',// Scientific
-  15: 'products_large_format_lens', // Large Format Lens
+  // 15: 'products_large_format_lens', // Large Format Lens - 테이블 없음
   16: 'products_telecentric',       // Telecentric
   17: 'products_fa_lens',           // FA Lens
   18: 'products_3d_laser_profiler', // 3D Laser Profiler
   19: 'products_3d_stereo_camera',  // 3D Stereo Camera
   20: 'products_light',             // Light
+  // 21: 'products_af_module',         // AF Module - 테이블 없음
   22: 'products_controller',        // Controller
   23: 'products_frame_grabber',     // Frame Grabber
   24: 'products_gige_lan_card',     // GigE LAN Card
@@ -23,6 +24,9 @@ const CATEGORY_TABLE_MAPPING: Record<number, string> = {
   26: 'products_cable',             // Cable
   27: 'products_accessory'          // Accessory
 }
+
+// spectrum 컬럼이 있는 카테고리 IDs
+const CATEGORIES_WITH_SPECTRUM = [9, 10, 11, 12, 13, 14, 19] // CIS, TDI, Line, Area, Invisible, Scientific, 3D Stereo Camera
 
 export class ProductService {
   static async getProducts(filters: Partial<FilterState> = {}): Promise<ProductSearchResult> {
@@ -71,6 +75,9 @@ export class ProductService {
 
     try {
       // Get products from category-specific table with related data
+      // Check if category has spectrum column
+      const hasSpectrum = CATEGORIES_WITH_SPECTRUM.includes(categoryId)
+      
       let query = supabase
         .from(tableName)
         .select(`
@@ -114,7 +121,27 @@ export class ProductService {
       if (error) {
         console.error('Products fetch error:', error)
         console.error('Query details:', { categories, partnumber, series, search, parameters, sort, order, page, limit })
-        throw new Error(`Failed to fetch products: ${error.message || JSON.stringify(error)}`)
+        
+        // Check for common errors and provide fallback
+        if (error.code === '42P01') {
+          console.error(`Table ${tableName} does not exist for category ${categoryId}`)
+          return {
+            products: [],
+            total: 0,
+            filters: {},
+            page,
+            limit,
+            hasNextPage: false,
+            hasPreviousPage: false
+          }
+        }
+        
+        if (error.code === '42703') {
+          console.error(`Column error in table ${tableName}: ${error.message}`)
+          // Try to continue with available data
+        } else {
+          throw new Error(`Failed to fetch products: ${error.message || JSON.stringify(error)}`)
+        }
       }
 
       console.log('Products fetched successfully:', products?.length || 0, 'products')
