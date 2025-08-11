@@ -227,38 +227,85 @@ class HTTPSupabaseClient {
                 negativeConditions.push(`${key}.neq.${excludeValue}`)
               })
             } else {
-              // 범위 토큰 처리 (10-49 형태)
-              const rangeTokenMatch = typeof v === 'string' ? v.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/) : null;
-              if (rangeTokenMatch) {
-                const [, minStr, maxStr] = rangeTokenMatch;
-                const min = parseFloat(minStr);
-                const max = parseFloat(maxStr);
+              console.log(`  🔍 Processing non-bracket value: "${v}" (type: ${typeof v})`);
+              
+              // 먼저 쉼표로 분리된 다중 값인지 확인 (잘못 합쳐진 경우 처리)
+              if (typeof v === 'string' && v.includes(',')) {
+                console.log(`  🚨 Comma-separated value detected: "${v}"`);
+                const splitValues = v.split(',').map(sv => sv.trim());
+                console.log(`  🔄 Split into:`, splitValues);
                 
-                if (!isNaN(min) && !isNaN(max) && min <= max) {
-                  // 범위 조건: (field >= min AND field <= max)
-                  const condition = `and(${key}.gte.${min},${key}.lte.${max})`;
-                  console.log(`  🎯 Array range token: "${v}" → "${condition}"`);
-                  rangeConditions.push(condition);
-                } else {
-                  console.log(`  ❌ Invalid array range token: "${v}"`);
-                  exactConditions.push(`${key}.eq.${v}`);
-                }
+                // 각 분리된 값을 재귀적으로 처리
+                splitValues.forEach(splitValue => {
+                  // 범위 토큰 처리 (10-49.99 형태)
+                  const rangeTokenMatch = splitValue.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
+                  if (rangeTokenMatch) {
+                    const [, minStr, maxStr] = rangeTokenMatch;
+                    const min = parseFloat(minStr);
+                    const max = parseFloat(maxStr);
+                    
+                    if (!isNaN(min) && !isNaN(max) && min <= max) {
+                      const condition = `and(${key}.gte.${min},${key}.lte.${max})`;
+                      console.log(`  🎯 Split range token: "${splitValue}" → "${condition}"`);
+                      rangeConditions.push(condition);
+                    } else {
+                      console.log(`  ❌ Invalid split range token: "${splitValue}"`);
+                      exactConditions.push(`${key}.eq.${splitValue}`);
+                    }
+                  } else {
+                    // 비교 연산자 또는 정확한 값
+                    const comparisonMatch = splitValue.match(/^(>=|<=|>|<)(\d+(?:\.\d+)?)$/);
+                    if (comparisonMatch) {
+                      const [, operator, numValue] = comparisonMatch;
+                      const operatorMap: Record<string, string> = { 
+                        '>=': 'gte', 
+                        '<=': 'lte', 
+                        '>': 'gt', 
+                        '<': 'lt' 
+                      };
+                      console.log(`  🔄 Split comparison: "${splitValue}" → "${key}.${operatorMap[operator]}.${numValue}"`);
+                      exactConditions.push(`${key}.${operatorMap[operator]}.${numValue}`);
+                    } else {
+                      console.log(`  📝 Split exact value: "${splitValue}"`);
+                      exactConditions.push(`${key}.eq.${splitValue}`);
+                    }
+                  }
+                });
               } else {
-                // 비교 연산자 또는 정확한 값 처리
-                const comparisonMatch = typeof v === 'string' ? v.match(/^(>=|<=|>|<)(\d+(?:\.\d+)?)$/) : null;
-                if (comparisonMatch) {
-                  const [, operator, numValue] = comparisonMatch;
-                  const operatorMap: Record<string, string> = { 
-                    '>=': 'gte', 
-                    '<=': 'lte', 
-                    '>': 'gt', 
-                    '<': 'lt' 
-                  };
-                  console.log(`  🔄 Array comparison: "${v}" → "${key}.${operatorMap[operator]}.${numValue}"`);
-                  exactConditions.push(`${key}.${operatorMap[operator]}.${numValue}`);
+                // 범위 토큰 처리 (10-49 형태)
+                const rangeTokenMatch = typeof v === 'string' ? v.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/) : null;
+                if (rangeTokenMatch) {
+                  const [, minStr, maxStr] = rangeTokenMatch;
+                  const min = parseFloat(minStr);
+                  const max = parseFloat(maxStr);
+                  
+                  if (!isNaN(min) && !isNaN(max) && min <= max) {
+                    // 범위 조건: (field >= min AND field <= max)
+                    const condition = `and(${key}.gte.${min},${key}.lte.${max})`;
+                    console.log(`  🎯 Array range token: "${v}" → "${condition}"`);
+                    rangeConditions.push(condition);
+                  } else {
+                    console.log(`  ❌ Invalid array range token: "${v}"`);
+                    exactConditions.push(`${key}.eq.${v}`);
+                  }
                 } else {
-                  // 정확한 값
-                  exactConditions.push(`${key}.eq.${v}`);
+                  // 비교 연산자 또는 정확한 값 처리
+                  const comparisonMatch = typeof v === 'string' ? v.match(/^(>=|<=|>|<)(\d+(?:\.\d+)?)$/) : null;
+                  if (comparisonMatch) {
+                    const [, operator, numValue] = comparisonMatch;
+                    const operatorMap: Record<string, string> = { 
+                      '>=': 'gte', 
+                      '<=': 'lte', 
+                      '>': 'gt', 
+                      '<': 'lt' 
+                    };
+                    console.log(`  🔄 Array comparison: "${v}" → "${key}.${operatorMap[operator]}.${numValue}"`);
+                    exactConditions.push(`${key}.${operatorMap[operator]}.${numValue}`);
+                  } else {
+                    // 정확한 값
+                    console.log(`  📝 Array exact value: "${v}"`);
+                    exactConditions.push(`${key}.eq.${v}`);
+                  }
                 }
               }
             }
@@ -295,11 +342,27 @@ class HTTPSupabaseClient {
                 } else {
                   console.log(`  ❌ Range match failed for: "${condition}"`)
                 }
-              } else {
+              } else if (condition.includes('.')) {
                 // 정확한 값: field.eq.value
-                const [field, op, val] = condition.split('.')
-                params.append(field, `${op}.${val}`)
-                console.log(`  📤 Added exact param: ${field}=${op}.${val}`)
+                const conditionParts = condition.split('.')
+                if (conditionParts.length >= 3) {
+                  const [field, op, ...valueParts] = conditionParts
+                  const val = valueParts.join('.') // 값에 점이 포함될 수 있음을 고려
+                  
+                  // 잘못된 형태(쉼표 포함) 감지
+                  if (val.includes(',')) {
+                    console.log(`  🚨 Invalid condition with comma detected: "${condition}"`)
+                    console.log(`  🔄 This should have been handled as multiple conditions`)
+                    // 이 경우는 이미 위에서 처리되었어야 함
+                  } else {
+                    params.append(field, `${op}.${val}`)
+                    console.log(`  📤 Added exact param: ${field}=${op}.${val}`)
+                  }
+                } else {
+                  console.log(`  ❌ Invalid condition format: "${condition}"`)
+                }
+              } else {
+                console.log(`  ❌ Unrecognized condition format: "${condition}"`)
               }
             } else {
               // 다중 조건: OR로 결합
