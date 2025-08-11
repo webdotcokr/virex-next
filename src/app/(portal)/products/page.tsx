@@ -24,7 +24,7 @@ const CATEGORY_TABLE_MAP: Record<string, string> = {
   '12': 'products_area',    // Area Camera
   '13': 'products_invisible', // Invisible Camera
   '14': 'products_scientific', // Scientific Camera
-  '15': 'products_large_format', // Large Format Lens
+  '15': 'products_large_format_lens', // Large Format Lens
   '16': 'products_telecentric', // Telecentric Lens
   '17': 'products_fa_lens', // FA Lens
   '18': 'products_3d_laser_profiler', // 3D Laser Profiler

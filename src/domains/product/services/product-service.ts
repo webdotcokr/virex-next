@@ -9,7 +9,7 @@ const CATEGORY_TABLE_MAPPING: Record<number, string> = {
   12: 'products_area',      // Area
   13: 'products_invisible', // Invisible
   14: 'products_scientific',// Scientific
-  // 15: 'products_large_format_lens', // Large Format Lens - 테이블 없음
+  15: 'products_large_format_lens', // Large Format Lens
   16: 'products_telecentric',       // Telecentric
   17: 'products_fa_lens',           // FA Lens
   18: 'products_3d_laser_profiler', // 3D Laser Profiler

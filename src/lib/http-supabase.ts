@@ -651,7 +651,7 @@ export const httpQueries = {
   async getProductByPartNumber(partNumber: string) {
     const tables = [
       'products_cis', 'products_tdi', 'products_line', 'products_area', 
-      'products_invisible', 'products_scientific', 'products_large_format',
+      'products_invisible', 'products_scientific', 'products_large_format_lens',
       'products_telecentric', 'products_fa_lens', 'products_3d_laser_profiler',
       'products_3d_stereo_camera', 'products_light', 'products_controller',
       'products_frame_grabber', 'products_gige_lan_card', 'products_usb_card',
@@ -677,7 +677,7 @@ export const httpQueries = {
             'products_area': { id: '12', name: 'Area' },
             'products_invisible': { id: '13', name: 'Invisible' },
             'products_scientific': { id: '14', name: 'Scientific' },
-            'products_large_format': { id: '15', name: 'Large Format' },
+            'products_large_format_lens': { id: '15', name: 'Large Format Lens' },
             'products_telecentric': { id: '16', name: 'Telecentric' },
             'products_fa_lens': { id: '17', name: 'FA Lens' },
             'products_3d_laser_profiler': { id: '18', name: '3D Laser Profiler' },
