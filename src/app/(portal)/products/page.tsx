@@ -1,9 +1,10 @@
 'use client'
 
-import { Suspense, useEffect, useState, useCallback } from 'react'
+import { Suspense, useEffect, useState, useCallback, useTransition } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useFilterStore } from '@/lib/store'
 import { httpQueries } from '@/lib/http-supabase'
+import { CategoryService } from '@/domains/product/services/category-service'
 import ProductsPageLayout from '@/domains/product/components/ProductsPageLayout'
 import CategoryTabs from '@/domains/product/components/CategoryTabs'
 import ProductTable from '@/domains/product/components/ProductTable'
@@ -185,9 +186,69 @@ function ProductsContent() {
 
   // 현재 선택된 카테고리 정보
   const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
-  const categoryInfo = getCategoryInfo(currentCategoryId)
+  const fallbackCategoryInfo = getCategoryInfo(currentCategoryId) // Mock 데이터 (fallback)
   const breadcrumbs = getBreadcrumbs(currentCategoryId)
   const siblingCategories = getSiblingCategories(currentCategoryId)
+  
+  // 카테고리 정보 state (초기값으로 fallback 사용)
+  const [categoryInfo, setCategoryInfo] = useState(fallbackCategoryInfo)
+  const [isPending, startTransition] = useTransition()
+  
+  // DB에서 카테고리 정보 로드
+  useEffect(() => {
+    let mounted = true // cleanup을 위한 플래그
+    
+    const loadCategoryInfo = async () => {
+      // 먼저 fallback 데이터로 즉시 업데이트 (텍스트는 즉시 변경)
+      const fallback = getCategoryInfo(currentCategoryId)
+      
+      // 즉시 텍스트 업데이트 (배경은 유지)
+      setCategoryInfo(prev => ({
+        ...fallback,
+        backgroundImage: prev.backgroundImage // 이전 배경 유지
+      }))
+      
+      try {
+        const dbCategory: any = await CategoryService.getCategoryById(currentCategoryId)
+        
+        // 컴포넌트가 언마운트되었거나 카테고리가 변경된 경우 무시
+        if (!mounted) return
+        
+        if (dbCategory) {
+          // DB 데이터를 Hero Section 형식에 맞게 변환
+          const newInfo = {
+            id: dbCategory.id,
+            name: dbCategory.title_ko || dbCategory.name,
+            enName: dbCategory.title_en || dbCategory.name,
+            description: dbCategory.description || `${dbCategory.name} 제품 목록`,
+            backgroundImage: dbCategory.background_image || fallback.backgroundImage
+          }
+          
+          // 부드러운 전환을 위해 startTransition 사용
+          startTransition(() => {
+            if (mounted) {
+              setCategoryInfo(newInfo)
+            }
+          })
+        }
+      } catch (err) {
+        console.error('Failed to load category info:', err)
+        // 에러 발생 시에도 fallback 데이터는 이미 설정됨
+        if (mounted) {
+          startTransition(() => {
+            setCategoryInfo(fallback)
+          })
+        }
+      }
+    }
+    
+    loadCategoryInfo()
+    
+    // Cleanup 함수
+    return () => {
+      mounted = false
+    }
+  }, [currentCategoryId])
 
   // Series 데이터 로딩 및 매핑 함수
   const loadSeriesData = useCallback(async () => {
@@ -494,7 +555,7 @@ function ProductsContent() {
         {/* Filter Sidebar */}
         <FilterSidebar 
           categories={siblingCategories}
-          categoryName={categoryInfo.name}
+          categoryName={fallbackCategoryInfo.name}
           selectedCategory={CATEGORY_NAME_MAP[currentCategoryId] || 'CIS'}
           isMobile={false}
           isOpen={isMobileFilterOpen}

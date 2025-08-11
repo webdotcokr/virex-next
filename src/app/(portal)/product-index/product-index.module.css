@@ -52,8 +52,10 @@
 .arrow {
   width: 16px;
   height: 16px;
-  opacity: 0.6;
+  opacity: .6;
 }
+
+
 
 .leftAligned {
   max-width: 600px;
