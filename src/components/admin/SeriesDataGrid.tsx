@@ -692,10 +692,7 @@ export default function SeriesDataGrid() {
       {/* Data Grid */}
       <Box sx={{ 
         height: '600px',
-        minHeight: '600px', 
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column'
+        width: '100%'
       }}>
         <DataGrid
           rows={rows}
