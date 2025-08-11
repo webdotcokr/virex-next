@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useFilterStore } from '@/lib/store'
 import { buildFilterUrl } from '@/lib/utils'
 import { getConfigByCategoryName } from '../config/category-filters'
-import { appendRangeFiltersToSearchParams, getRangeFiltersFromSearchParams, filterValueToUrlParam, encodeRangeToken, compareFilterValues, removeDuplicateFilterValues } from '../utils/url-params'
+import { encodeRangeToken } from '../utils/url-params'
 import { X } from 'lucide-react'
 import styles from '../../../app/(portal)/products/products.module.css'
 import type { Category } from '../types'
@@ -77,8 +77,6 @@ function FilterSidebar({
   const loadFilters = useCallback(() => {
     try {
       setLoading(true)
-      console.log('🔄 Loading static filter configs for category:', categoryName)
-      
       // category-filters.ts에서 설정 가져오기
       const config = getConfigByCategoryName(categoryName || 'CIS')
       
@@ -88,8 +86,6 @@ function FilterSidebar({
         setExpandedSections(new Set())
         return
       }
-
-      console.log(`📋 Found ${config.filters.length} static filter configs`)
       setStaticFilters(config.filters)
 
       // 기본 확장 섹션 설정
@@ -100,8 +96,6 @@ function FilterSidebar({
         }
       })
       setExpandedSections(defaultExpanded)
-      
-      console.log('✅ Static filter configs loaded successfully')
     } catch (error) {
       console.error('❌ Error loading static filters:', error)
       setStaticFilters([])
@@ -111,7 +105,7 @@ function FilterSidebar({
     }
   }, [categoryName])
 
-  // URL update function - 파라미터 클리닝 최적화
+  // URL update function - 단순화된 버전
   const updateUrl = useCallback((newFilters: Record<string, unknown>) => {
     const currentFilters = Object.fromEntries(searchParams.entries())
     
@@ -124,15 +118,15 @@ function FilterSidebar({
     
     const mergedFilters = { ...currentFilters, ...newFilters }
     
-    // Remove empty filters and clean up array duplicates
+    // Remove empty filters - 단순화된 로직
     Object.keys(mergedFilters).forEach(key => {
       const value = mergedFilters[key]
       if (value === '' || value === null || value === undefined || 
           (Array.isArray(value) && value.length === 0)) {
         delete mergedFilters[key]
       } else if (Array.isArray(value)) {
-        // 배열 파라미터의 중복 제거
-        mergedFilters[key] = removeDuplicateFilterValues(value.map(String))
+        // 단순한 중복 제거만 (Set 사용)
+        mergedFilters[key] = [...new Set(value.map(String))]
       }
     })
 
@@ -200,7 +194,7 @@ function FilterSidebar({
     const currentParams = { ...filters.parameters }
     
     if (typeof value === 'string' && checked !== undefined) {
-      // 체크박스 형태 (multiselect) - 의미적 중복 제거 강화
+      // 체크박스 형태 (multiselect) - 단순화된 로직
       const paramValue = currentParams[paramName]
       const currentValues = Array.isArray(paramValue) 
         ? paramValue.map(String)
@@ -208,34 +202,20 @@ function FilterSidebar({
           ? [String(paramValue)] 
           : []
       
-      console.log(`🔲 CHECKBOX [${paramName}]: ${checked ? 'CHECK' : 'UNCHECK'} value="${value}"`)
-      console.log(`   Current values:`, currentValues)
-      
       if (checked) {
-        // 의미적 중복 검사 후 값 추가 (전체 컨텍스트 포함)
-        const testValues = [...currentValues, value]
-        const isDuplicate = currentValues.some(existing => {
-          return compareFilterValues(existing, value, testValues)
-        })
-        
-        if (!isDuplicate) {
-          // 중복 값 제거 및 인접값 통합 (한 번에 처리)
-          const cleanValues = removeDuplicateFilterValues(testValues)
-          currentParams[paramName] = cleanValues
-          console.log(`   After add:`, cleanValues)
+        // 단순 중복 체크 및 추가
+        if (!currentValues.includes(value)) {
+          const newValues = [...currentValues, value]
+          currentParams[paramName] = newValues
         }
       } else {
-        // 의미적으로 동일한 값들을 모두 제거
-        const filteredValues = currentValues.filter(existing => {
-          return !compareFilterValues(existing, value, currentValues)
-        })
-        
-        console.log(`   After remove:`, filteredValues)
+        // 정확한 값만 제거
+        const filteredValues = currentValues.filter(existing => existing !== value)
         
         if (filteredValues.length === 0) {
           delete currentParams[paramName]
         } else {
-          currentParams[paramName] = removeDuplicateFilterValues(filteredValues)
+          currentParams[paramName] = filteredValues
         }
       }
     } else {
@@ -250,7 +230,7 @@ function FilterSidebar({
     // Update store first
     updateFilter('parameters', currentParams)
     
-    // URL 업데이트 시 파라미터 정리
+    // URL 업데이트 - 단순화된 로직
     setTimeout(() => {
       const urlParams: Record<string, unknown> = {}
       
@@ -263,20 +243,13 @@ function FilterSidebar({
             paramValue.every(v => typeof v === 'number')) {
           // 슬라이더 범위 → 단일 범위 토큰으로 변환
           const rangeToken = encodeRangeToken(paramValue[0], paramValue[1])
-          console.log(`  🎯 Slider range: [${paramValue[0]}, ${paramValue[1]}] → "${rangeToken}"`)
           urlParams[paramName] = rangeToken
         } else if (Array.isArray(paramValue)) {
-          // 일반 배열 (체크박스 등) - 각 값을 개별적으로 변환
-          const convertedValues = paramValue.map(v => {
-            const original = String(v)
-            const converted = filterValueToUrlParam(original)
-            console.log(`🌐 URL TRANSFORM [${paramName}]: "${original}" → "${converted}"`)
-            return converted
-          })
-          urlParams[paramName] = convertedValues
+          // 체크박스 배열 - 단순히 그대로 URL에 전달
+          urlParams[paramName] = paramValue
         } else {
-          // 단일 값인 경우 직접 변환
-          urlParams[paramName] = filterValueToUrlParam(String(paramValue))
+          // 단일 값인 경우 그대로 전달
+          urlParams[paramName] = paramValue
         }
       } else {
         // 파라미터가 삭제된 경우 URL에서도 제거
@@ -475,7 +448,7 @@ function FilterSidebar({
     )
   }
 
-  // 체크박스 렌더링 함수 (의미적 비교 로직 개선)
+  // 체크박스 렌더링 함수 - 단순화된 버전
   const renderCheckboxes = (filter: CategoryFilter) => {
     const paramValue = filters.parameters[filter.param]
     
@@ -487,22 +460,13 @@ function FilterSidebar({
       currentValues = [String(paramValue)]
     }
     
-    console.log(`📋 RENDER INIT [${filter.param}]: paramValue = ${JSON.stringify(paramValue)} (type: ${typeof paramValue}, isArray: ${Array.isArray(paramValue)})`)
-    console.log(`   Normalized currentValues:`, currentValues)
-    
     if (!filter.options) return null
     
     return (
       <div className={styles.checkboxGroup}>
         {filter.options.map((option, index) => {
-          // 의미적 비교를 통한 체크 상태 판별 (전체 컨텍스트 포함)
-          const isChecked = currentValues.some(currentValue => {
-            const compareResult = compareFilterValues(currentValue, option.value, currentValues)
-            console.log(`🔍 RENDER CHECK [${filter.param}]: "${currentValue}" == "${option.value}" ? ${compareResult}`)
-            return compareResult
-          })
-          
-          console.log(`📋 RENDER [${filter.param}]: "${option.display}" (${option.value}) = ${isChecked ? '✓' : '✗'}`)
+          // 단순한 문자열 비교를 통한 체크 상태 판별
+          const isChecked = currentValues.includes(option.value)
           
           return (
             <label key={`${filter.param}-${index}`} className={styles.checkboxLabel}>

@@ -53,7 +53,8 @@ export function buildFilterUrl(filters: Record<string, unknown>): string {
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       if (Array.isArray(value) && value.length > 0) {
-        params.set(key, value.join(','))
+        // 배열 값을 개별 파라미터로 추가 (쉼표 합치기 대신)
+        value.forEach(v => params.append(key, String(v)))
       } else if (!Array.isArray(value)) {
         params.set(key, String(value))
       }

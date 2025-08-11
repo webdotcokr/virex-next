@@ -138,32 +138,24 @@ export const useFilterStore = create<FilterStore>()(
           console.log(`🔄 URL→FILTER Processing parameter: ${key} = ${JSON.stringify(values)}`)
           
           if (values.length === 1) {
-            // Single value - convert URL format to filter format if it's a range
+            // 단일값 처리 - 변환 없이 원본 사용
             const urlValue = values[0]
-            const filterValue = urlParamToFilterValue(urlValue)
-            console.log(`   Single value: "${urlValue}" → "${filterValue}"`)
             
-            // 슬라이더용 범위 [min,max] 특별 처리
-            if (typeof filterValue === 'string' && filterValue.startsWith('[') && filterValue.endsWith(']')) {
-              const match = filterValue.match(/^\[(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\]$/)
-              if (match) {
-                const sliderValue = [parseFloat(match[1]), parseFloat(match[2])]
-                parameters[key] = sliderValue
-                console.log(`   Slider range: "${filterValue}" → [${sliderValue[0]}, ${sliderValue[1]}]`)
-              } else {
-                parameters[key] = filterValue
-                console.log(`   Invalid slider format, using string: "${filterValue}"`)
-              }
+            // 슬라이더 범위 토큰 형식 체크 (숫자-숫자 형태)
+            const isRangeToken = /^\d+(\.\d+)?-\d+(\.\d+)?$/.test(urlValue)
+            
+            if (isRangeToken) {
+              // 슬라이더 범위 토큰을 [min, max] 배열로 변환
+              const [minStr, maxStr] = urlValue.split('-')
+              const sliderValue = [parseFloat(minStr), parseFloat(maxStr)]
+              parameters[key] = sliderValue
             } else {
-              // 체크박스와 기타 값들은 배열로 유지 (단일값도 배열로 감싸기)
-              parameters[key] = [filterValue]
-              console.log(`   Checkbox/other single value: "${filterValue}" → ["${filterValue}"]`)
+              // 체크박스나 기타 값들은 배열로 감싸기 (단일값도 배열로 유지)
+              parameters[key] = [urlValue]
             }
           } else {
-            // Multiple values - convert each URL format to filter format
-            const convertedValues = values.map(v => urlParamToFilterValue(v))
-            parameters[key] = convertedValues
-            console.log(`   Multiple values: ${JSON.stringify(values)} → ${JSON.stringify(convertedValues)}`)
+            // 다중값 - 원본 그대로 사용
+            parameters[key] = values
           }
           
           console.log(`   Final parameter [${key}]:`, parameters[key])
