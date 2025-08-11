@@ -899,6 +899,148 @@
   }
 }
 
+/* Enhanced Range Slider Styles */
+.sliderContainer {
+  margin: 12px 0;
+}
+
+.sliderValues {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary500);
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: var(--primary50);
+  border-radius: 4px;
+  border: 1px solid var(--primary100);
+}
+
+.sliderLoading {
+  font-size: 10px;
+  color: var(--primary400);
+  opacity: 0.8;
+}
+
+.sliderInputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sliderInput {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--gray300);
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.sliderInput:focus {
+  border-color: var(--primary500);
+  box-shadow: 0 0 0 2px var(--primary100);
+}
+
+.sliderSeparator {
+  font-size: 14px;
+  color: var(--gray500);
+  font-weight: 600;
+}
+
+.rangeSliderContainer {
+  position: relative;
+  height: 20px;
+  margin: 8px 0;
+}
+
+.rangeSlider {
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin: 7px 0;
+}
+
+.rangeSlider::-webkit-slider-track {
+  width: 100%;
+  height: 6px;
+  background: var(--gray200);
+  border-radius: 3px;
+}
+
+.rangeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--primary500);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.rangeSlider::-webkit-slider-thumb:hover {
+  background: var(--primary600);
+  transform: scale(1.1);
+}
+
+.rangeSlider::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.rangeSlider::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: var(--gray200);
+  border-radius: 3px;
+  border: none;
+}
+
+.rangeSlider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--primary500);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.rangeSliderMax {
+  z-index: 1;
+}
+
+.rangeTrack {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--gray200);
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.rangeHighlight {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary400), var(--primary500));
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
 /* Category Sidebar - Matches Original Design */
 .categorySidebar {
   width: 200px;
