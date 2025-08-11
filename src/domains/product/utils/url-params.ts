@@ -182,13 +182,79 @@ export function normalizeFilterValue(value: string): string {
 }
 
 /**
+ * 고급 의미적 비교 - 인접한 단일값들을 범위로 간주
+ */
+export function isSemanticallySimilar(value1: string, value2: string, allValues: string[] = []): boolean {
+  const norm1 = normalizeFilterValue(value1);
+  const norm2 = normalizeFilterValue(value2);
+  
+  // 직접적인 정규화 비교
+  if (norm1 === norm2) {
+    return true;
+  }
+  
+  // 범위와 단일값들 간의 의미적 비교
+  const isRange1 = norm1.startsWith('[') && norm1.endsWith(']');
+  const isRange2 = norm2.startsWith('[') && norm2.endsWith(']');
+  const isNumber1 = !isNaN(parseFloat(norm1)) && isFinite(parseFloat(norm1));
+  const isNumber2 = !isNaN(parseFloat(norm2)) && isFinite(parseFloat(norm2));
+  
+  // 범위와 단일값 비교
+  if (isRange1 && isNumber2) {
+    const match = norm1.match(/^\[(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\]$/);
+    if (match) {
+      const [, min, max] = match;
+      const num2 = parseFloat(norm2);
+      return num2 >= parseFloat(min) && num2 <= parseFloat(max);
+    }
+  }
+  
+  if (isRange2 && isNumber1) {
+    const match = norm2.match(/^\[(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\]$/);
+    if (match) {
+      const [, min, max] = match;
+      const num1 = parseFloat(norm1);
+      return num1 >= parseFloat(min) && num1 <= parseFloat(max);
+    }
+  }
+  
+  // 인접한 단일값들이 범위를 형성하는지 확인
+  if (isNumber1 && isNumber2 && allValues.length > 2) {
+    const numbers = allValues
+      .filter(v => !isNaN(parseFloat(normalizeFilterValue(v))) && isFinite(parseFloat(normalizeFilterValue(v))))
+      .map(v => parseFloat(normalizeFilterValue(v)))
+      .sort((a, b) => a - b);
+      
+    const num1 = parseFloat(norm1);
+    const num2 = parseFloat(norm2);
+    
+    // 연속된 숫자인지 확인
+    const index1 = numbers.indexOf(num1);
+    const index2 = numbers.indexOf(num2);
+    
+    if (index1 !== -1 && index2 !== -1) {
+      return Math.abs(index1 - index2) === 1; // 인접한 값들
+    }
+  }
+  
+  return false;
+}
+
+/**
  * 두 필터 값이 의미적으로 동일한지 비교
  * 다양한 표현 형태를 정규화하여 비교
  */
-export function compareFilterValues(value1: string, value2: string): boolean {
+export function compareFilterValues(value1: string, value2: string, allValues: string[] = []): boolean {
+  // 먼저 기본적인 정규화 비교
   const norm1 = normalizeFilterValue(value1);
   const norm2 = normalizeFilterValue(value2);
-  return norm1 === norm2;
+  
+  if (norm1 === norm2) {
+    return true;
+  }
+  
+  // 고급 의미적 비교 (범위와 단일값 간의 관계 등)
+  return isSemanticallySimilar(value1, value2, allValues);
 }
 
 /**
@@ -197,10 +263,10 @@ export function compareFilterValues(value1: string, value2: string): boolean {
 export function removeDuplicateFilterValues(values: string[]): string[] {
   const result: string[] = [];
   
-  for (const value of values) {
-    const normalized = normalizeFilterValue(value);
+  for (let i = 0; i < values.length; i++) {
+    const value = values[i];
     const isDuplicate = result.some(existing => 
-      normalizeFilterValue(existing) === normalized
+      compareFilterValues(existing, value, values)
     );
     
     if (!isDuplicate) {
@@ -208,5 +274,62 @@ export function removeDuplicateFilterValues(values: string[]): string[] {
     }
   }
   
-  return result;
+  // 추가로 인접한 단일값들을 범위로 통합
+  return consolidateAdjacentValues(result);
+}
+
+/**
+ * 인접한 단일 값들을 범위로 통합하는 함수
+ */
+function consolidateAdjacentValues(values: string[]): string[] {
+  const numbers: number[] = [];
+  const nonNumbers: string[] = [];
+  
+  // 숫자와 비숫자 분리
+  values.forEach(value => {
+    const normalized = normalizeFilterValue(value);
+    if (!isNaN(parseFloat(normalized)) && isFinite(parseFloat(normalized))) {
+      numbers.push(parseFloat(normalized));
+    } else {
+      nonNumbers.push(value);
+    }
+  });
+  
+  if (numbers.length < 2) {
+    return values; // 숫자가 2개 미만이면 통합하지 않음
+  }
+  
+  // 숫자들을 정렬
+  numbers.sort((a, b) => a - b);
+  
+  // 연속된 숫자들을 찾아서 범위로 통합
+  const consolidated: string[] = [];
+  let rangeStart = numbers[0];
+  let rangeEnd = numbers[0];
+  
+  for (let i = 1; i < numbers.length; i++) {
+    if (numbers[i] === rangeEnd + 1) {
+      // 연속된 경우 범위 확장
+      rangeEnd = numbers[i];
+    } else {
+      // 연속되지 않은 경우 현재 범위 저장
+      if (rangeStart === rangeEnd) {
+        consolidated.push(rangeStart.toString());
+      } else {
+        consolidated.push(`[${rangeStart},${rangeEnd}]`);
+      }
+      rangeStart = numbers[i];
+      rangeEnd = numbers[i];
+    }
+  }
+  
+  // 마지막 범위 저장
+  if (rangeStart === rangeEnd) {
+    consolidated.push(rangeStart.toString());
+  } else {
+    consolidated.push(`[${rangeStart},${rangeEnd}]`);
+  }
+  
+  // 비숫자 값들도 추가
+  return [...consolidated, ...nonNumbers];
 }

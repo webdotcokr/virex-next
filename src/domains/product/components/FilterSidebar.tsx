@@ -195,58 +195,6 @@ function FilterSidebar({
     }, 0)
   }, [updateFilter, updateUrl])
 
-  // 인접한 단일 값들을 범위로 통합하는 헬퍼 함수
-  const consolidateAdjacentValues = useCallback((values: string[]) => {
-    const numbers: number[] = []
-    const nonNumbers: string[] = []
-    
-    // 숫자와 비숫자 분리
-    values.forEach(value => {
-      if (value.match(/^\d+(\.\d+)?$/)) {
-        numbers.push(parseFloat(value))
-      } else {
-        nonNumbers.push(value)
-      }
-    })
-    
-    if (numbers.length < 2) {
-      return values // 숫자가 2개 미만이면 통합하지 않음
-    }
-    
-    // 숫자들을 정렬
-    numbers.sort((a, b) => a - b)
-    
-    // 연속된 숫자들을 찾아서 범위로 통합
-    const consolidated: string[] = []
-    let rangeStart = numbers[0]
-    let rangeEnd = numbers[0]
-    
-    for (let i = 1; i < numbers.length; i++) {
-      if (numbers[i] === rangeEnd + 1 || numbers[i] === rangeEnd) {
-        // 연속되거나 동일한 경우 범위 확장
-        rangeEnd = numbers[i]
-      } else {
-        // 연속되지 않은 경우 현재 범위 저장
-        if (rangeStart === rangeEnd) {
-          consolidated.push(rangeStart.toString())
-        } else {
-          consolidated.push(`[${rangeStart},${rangeEnd}]`)
-        }
-        rangeStart = numbers[i]
-        rangeEnd = numbers[i]
-      }
-    }
-    
-    // 마지막 범위 저장
-    if (rangeStart === rangeEnd) {
-      consolidated.push(rangeStart.toString())
-    } else {
-      consolidated.push(`[${rangeStart},${rangeEnd}]`)
-    }
-    
-    // 비숫자 값들도 추가
-    return [...consolidated, ...nonNumbers]
-  }, [])
 
   const handleParameterChange = useCallback((paramName: string, value: string | string[] | number, checked?: boolean) => {
     const currentParams = { ...filters.parameters }
@@ -264,33 +212,22 @@ function FilterSidebar({
       console.log(`   Current values:`, currentValues)
       
       if (checked) {
-        // 의미적 중복 검사 후 값 추가
+        // 의미적 중복 검사 후 값 추가 (전체 컨텍스트 포함)
+        const testValues = [...currentValues, value]
         const isDuplicate = currentValues.some(existing => {
-          const compareResult = compareFilterValues(existing, value)
-          console.log(`   🔍 Compare: "${existing}" == "${value}" ? ${compareResult}`)
-          return compareResult
+          return compareFilterValues(existing, value, testValues)
         })
         
-        console.log(`   Is duplicate: ${isDuplicate}`)
-        
         if (!isDuplicate) {
-          let newValues = [...currentValues, value]
-          // 중복 값 제거 후 저장
-          newValues = removeDuplicateFilterValues(newValues)
-          
-          // 인접한 단일값들을 범위로 통합 시도
-          const consolidatedValues = consolidateAdjacentValues(newValues)
-          console.log(`   After consolidation: ${JSON.stringify(newValues)} → ${JSON.stringify(consolidatedValues)}`)
-          
-          currentParams[paramName] = consolidatedValues
-          console.log(`   After add:`, consolidatedValues)
+          // 중복 값 제거 및 인접값 통합 (한 번에 처리)
+          const cleanValues = removeDuplicateFilterValues(testValues)
+          currentParams[paramName] = cleanValues
+          console.log(`   After add:`, cleanValues)
         }
       } else {
         // 의미적으로 동일한 값들을 모두 제거
         const filteredValues = currentValues.filter(existing => {
-          const shouldRemove = compareFilterValues(existing, value)
-          console.log(`   🗑️  Remove "${existing}"? ${shouldRemove}`)
-          return !shouldRemove
+          return !compareFilterValues(existing, value, currentValues)
         })
         
         console.log(`   After remove:`, filteredValues)
@@ -348,7 +285,7 @@ function FilterSidebar({
       
       updateUrl(urlParams)
     }, 0)
-  }, [filters.parameters, updateFilter, updateUrl, consolidateAdjacentValues])
+  }, [filters.parameters, updateFilter, updateUrl])
 
   const handleReset = useCallback(() => {
     // 슬라이더 값 초기화
@@ -558,9 +495,9 @@ function FilterSidebar({
     return (
       <div className={styles.checkboxGroup}>
         {filter.options.map((option, index) => {
-          // 의미적 비교를 통한 체크 상태 판별
+          // 의미적 비교를 통한 체크 상태 판별 (전체 컨텍스트 포함)
           const isChecked = currentValues.some(currentValue => {
-            const compareResult = compareFilterValues(currentValue, option.value)
+            const compareResult = compareFilterValues(currentValue, option.value, currentValues)
             console.log(`🔍 RENDER CHECK [${filter.param}]: "${currentValue}" == "${option.value}" ? ${compareResult}`)
             return compareResult
           })
