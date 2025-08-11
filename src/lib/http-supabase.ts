@@ -33,28 +33,38 @@ class HTTPSupabaseClient {
    * 범위 문자열이 유효한 형식인지 검증하는 헬퍼 메서드
    */
   private isValidRangeString(value: string): boolean {
-    if (!value.startsWith('[') || !value.endsWith(']')) {
-      return false
+    // [min,max] 형태 검증
+    if (value.startsWith('[') && value.endsWith(']')) {
+      if (value.length < 5) { // 최소한 [1,2] 형태
+        return false
+      }
+      
+      const rangeStr = value.slice(1, -1)
+      
+      if (!rangeStr.includes(',') || rangeStr.split(',').length !== 2) {
+        return false
+      }
+      
+      const rangeParts = rangeStr.split(',')
+      const range = rangeParts.map(rv => {
+        const trimmed = rv.trim()
+        if (trimmed === '') return NaN
+        return parseFloat(trimmed)
+      })
+      
+      return range.length === 2 && !isNaN(range[0]) && !isNaN(range[1]) && range[0] <= range[1]
     }
     
-    if (value.length < 5) { // 최소한 [1,2] 형태
-      return false
+    // min-max 토큰 형태 검증
+    const rangeTokenMatch = value.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/)
+    if (rangeTokenMatch) {
+      const [, minStr, maxStr] = rangeTokenMatch
+      const min = parseFloat(minStr)
+      const max = parseFloat(maxStr)
+      return !isNaN(min) && !isNaN(max) && min <= max
     }
     
-    const rangeStr = value.slice(1, -1)
-    
-    if (!rangeStr.includes(',') || rangeStr.split(',').length !== 2) {
-      return false
-    }
-    
-    const rangeParts = rangeStr.split(',')
-    const range = rangeParts.map(rv => {
-      const trimmed = rv.trim()
-      if (trimmed === '') return NaN
-      return parseFloat(trimmed)
-    })
-    
-    return range.length === 2 && !isNaN(range[0]) && !isNaN(range[1]) && range[0] <= range[1]
+    return false
   }
 
   private buildQuery(options: QueryOptions = {}): string {
@@ -217,21 +227,39 @@ class HTTPSupabaseClient {
                 negativeConditions.push(`${key}.neq.${excludeValue}`)
               })
             } else {
-              // 비교 연산자 또는 정확한 값 처리
-              const comparisonMatch = typeof v === 'string' ? v.match(/^(>=|<=|>|<)(\d+(?:\.\d+)?)$/) : null;
-              if (comparisonMatch) {
-                const [, operator, numValue] = comparisonMatch;
-                const operatorMap: Record<string, string> = { 
-                  '>=': 'gte', 
-                  '<=': 'lte', 
-                  '>': 'gt', 
-                  '<': 'lt' 
-                };
-                console.log(`  🔄 Array comparison: "${v}" → "${key}.${operatorMap[operator]}.${numValue}"`);
-                exactConditions.push(`${key}.${operatorMap[operator]}.${numValue}`);
+              // 범위 토큰 처리 (10-49 형태)
+              const rangeTokenMatch = typeof v === 'string' ? v.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/) : null;
+              if (rangeTokenMatch) {
+                const [, minStr, maxStr] = rangeTokenMatch;
+                const min = parseFloat(minStr);
+                const max = parseFloat(maxStr);
+                
+                if (!isNaN(min) && !isNaN(max) && min <= max) {
+                  // 범위 조건: (field >= min AND field <= max)
+                  const condition = `and(${key}.gte.${min},${key}.lte.${max})`;
+                  console.log(`  🎯 Array range token: "${v}" → "${condition}"`);
+                  rangeConditions.push(condition);
+                } else {
+                  console.log(`  ❌ Invalid array range token: "${v}"`);
+                  exactConditions.push(`${key}.eq.${v}`);
+                }
               } else {
-                // 정확한 값
-                exactConditions.push(`${key}.eq.${v}`);
+                // 비교 연산자 또는 정확한 값 처리
+                const comparisonMatch = typeof v === 'string' ? v.match(/^(>=|<=|>|<)(\d+(?:\.\d+)?)$/) : null;
+                if (comparisonMatch) {
+                  const [, operator, numValue] = comparisonMatch;
+                  const operatorMap: Record<string, string> = { 
+                    '>=': 'gte', 
+                    '<=': 'lte', 
+                    '>': 'gt', 
+                    '<': 'lt' 
+                  };
+                  console.log(`  🔄 Array comparison: "${v}" → "${key}.${operatorMap[operator]}.${numValue}"`);
+                  exactConditions.push(`${key}.${operatorMap[operator]}.${numValue}`);
+                } else {
+                  // 정확한 값
+                  exactConditions.push(`${key}.eq.${v}`);
+                }
               }
             }
           })
@@ -293,21 +321,38 @@ class HTTPSupabaseClient {
         } else if (value === false) {
           params.append(key, 'eq.false')
         } else if (typeof value === 'string') {
-          // 비교 연산자 파싱 (<=8, >=5000 등)
-          const comparisonMatch = value.match(/^(>=|<=|>|<)(\d+(?:\.\d+)?)$/);
-          if (comparisonMatch) {
-            const [, operator, numValue] = comparisonMatch;
-            const operatorMap: Record<string, string> = { 
-              '>=': 'gte', 
-              '<=': 'lte', 
-              '>': 'gt', 
-              '<': 'lt' 
-            };
-            console.log(`  🔄 Converting comparison: "${value}" → "${key}=${operatorMap[operator]}.${numValue}"`);
-            params.append(key, `${operatorMap[operator]}.${numValue}`);
+          // 범위 토큰 형태 처리 (10-49 → gte.10,lte.49)
+          const rangeTokenMatch = value.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
+          if (rangeTokenMatch) {
+            const [, minStr, maxStr] = rangeTokenMatch;
+            const min = parseFloat(minStr);
+            const max = parseFloat(maxStr);
+            
+            if (!isNaN(min) && !isNaN(max) && min <= max) {
+              console.log(`  🎯 Range token: "${value}" → ${key}=gte.${min},lte.${max}`);
+              params.append(key, `gte.${min}`);
+              params.append(key, `lte.${max}`);
+            } else {
+              console.log(`  ❌ Invalid range token: "${value}"`);
+              params.append(key, `eq.${value}`);
+            }
           } else {
-            // 일반 문자열 값 (Mono, Color 등)
-            params.append(key, `eq.${value}`);
+            // 비교 연산자 파싱 (<=8, >=5000 등)
+            const comparisonMatch = value.match(/^(>=|<=|>|<)(\d+(?:\.\d+)?)$/);
+            if (comparisonMatch) {
+              const [, operator, numValue] = comparisonMatch;
+              const operatorMap: Record<string, string> = { 
+                '>=': 'gte', 
+                '<=': 'lte', 
+                '>': 'gt', 
+                '<': 'lt' 
+              };
+              console.log(`  🔄 Converting comparison: "${value}" → "${key}=${operatorMap[operator]}.${numValue}"`);
+              params.append(key, `${operatorMap[operator]}.${numValue}`);
+            } else {
+              // 일반 문자열 값 (Mono, Color 등)
+              params.append(key, `eq.${value}`);
+            }
           }
         } else if (typeof value === 'number') {
           params.append(key, `eq.${value}`)
