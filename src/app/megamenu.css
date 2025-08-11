@@ -66,13 +66,13 @@ header.megamenu-active .submenu-column {
 /* Submenu content */
 .submenu-column ul {
   list-style: none;
-  padding: 0;
+  padding: 0 1rem;
   margin: 0;
 }
 
 .submenu-column ul li {
   margin-bottom: 0.5rem;
-  text-align: center;
+  text-align: left;
   line-height: 2rem;
 }
 

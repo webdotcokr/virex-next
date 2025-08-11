@@ -140,3 +140,73 @@ export function getRangeFiltersFromSearchParams(
   const urlParams = searchParams.getAll(filterParam);
   return urlParams.map(param => urlParamToFilterValue(param));
 }
+
+/**
+ * 필터 값을 정규화된 형태로 변환
+ * 다양한 형태의 범위 표현을 일관된 형태로 통합
+ */
+export function normalizeFilterValue(value: string): string {
+  const trimmed = value.trim();
+  
+  // 이미 정규화된 형태들은 그대로 반환
+  if (trimmed.match(/^(>=|<=|>|<)\d+(\.\d+)?$/)) {
+    return trimmed;
+  }
+  
+  if (trimmed.match(/^\[\d+(\.\d+)?,\d+(\.\d+)?\]$/)) {
+    return trimmed;
+  }
+  
+  // 범위 토큰 형태 (3000-4999)를 대괄호 형태로 변환
+  if (trimmed.match(/^\d+(\.\d+)?-\d+(\.\d+)?$/)) {
+    const [min, max] = trimmed.split('-').map(parseFloat);
+    const normalized = `[${min},${max}]`;
+    return normalized;
+  }
+  
+  // 단방향 범위 토큰 형태
+  if (trimmed.match(/^\d+(\.\d+)?-$/)) {
+    const min = parseFloat(trimmed.replace('-', ''));
+    const normalized = `>=${min}`;
+    return normalized;
+  }
+  
+  if (trimmed.match(/^-\d+(\.\d+)?$/)) {
+    const max = parseFloat(trimmed.replace('-', ''));
+    const normalized = `<=${max}`;
+    return normalized;
+  }
+  
+  // 일반 문자열은 그대로 반환
+  return trimmed;
+}
+
+/**
+ * 두 필터 값이 의미적으로 동일한지 비교
+ * 다양한 표현 형태를 정규화하여 비교
+ */
+export function compareFilterValues(value1: string, value2: string): boolean {
+  const norm1 = normalizeFilterValue(value1);
+  const norm2 = normalizeFilterValue(value2);
+  return norm1 === norm2;
+}
+
+/**
+ * 배열에서 의미적으로 중복되는 값을 제거
+ */
+export function removeDuplicateFilterValues(values: string[]): string[] {
+  const result: string[] = [];
+  
+  for (const value of values) {
+    const normalized = normalizeFilterValue(value);
+    const isDuplicate = result.some(existing => 
+      normalizeFilterValue(existing) === normalized
+    );
+    
+    if (!isDuplicate) {
+      result.push(value);
+    }
+  }
+  
+  return result;
+}

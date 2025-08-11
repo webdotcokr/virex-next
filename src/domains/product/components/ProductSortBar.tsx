@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo, useCallback } from 'react'
 import styles from '../../../app/(portal)/products/products.module.css'
 
 interface ProductSortBarProps {
@@ -11,7 +11,7 @@ interface ProductSortBarProps {
   initialSearchTerm?: string // 초기 검색어 prop 추가
 }
 
-export default function ProductSortBar({
+function ProductSortBar({
   itemsPerPage = 20,
   onItemsPerPageChange,
   onSearch,
@@ -25,17 +25,21 @@ export default function ProductSortBar({
     setSearchTerm(initialSearchTerm)
   }, [initialSearchTerm])
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     onSearch?.(searchTerm)
-  }
+  }, [searchTerm, onSearch])
 
-  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+  const handleSearchKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
       onSearch?.(searchTerm)
     }
-  }
+  }, [searchTerm, onSearch])
+
+  const handleItemsChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    onItemsPerPageChange?.(parseInt(e.target.value))
+  }, [onItemsPerPageChange])
 
   return (
     <div className={styles.productListSortBar}>
@@ -44,7 +48,7 @@ export default function ProductSortBar({
         <select 
           name="display_count"
           value={itemsPerPage}
-          onChange={(e) => onItemsPerPageChange?.(parseInt(e.target.value))}
+          onChange={handleItemsChange}
         >
           <option value="10">10개씩 보기</option>
           <option value="20">20개씩 보기</option>
@@ -71,3 +75,5 @@ export default function ProductSortBar({
     </div>
   )
 }
+
+export default memo(ProductSortBar)

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
-import { httpQueries } from '@/lib/http-supabase'
+import { ProductService } from '@/domains/product/services/product-service'
 import ProductDetailView from '@/domains/product/components/ProductDetailView'
 import type { Product } from '@/domains/product/types'
 
@@ -12,22 +12,9 @@ interface ProductPageProps {
 
 async function getProduct(slug: string): Promise<Product | null> {
   try {
-    console.log('🔍 Fetching product via HTTP:', slug)
-    // Use HTTP-based product lookup
-    const { data, error } = await httpQueries.getProductByPartNumber(slug)
-    
-    if (error) {
-      console.error('❌ HTTP product fetch failed:', error)
-      return null
-    }
-    
-    if (!data) {
-      console.warn('⚠️ Product not found:', slug)
-      return null
-    }
-    
-    console.log('✅ Product fetched successfully:', data.part_number)
-    return data as Product
+    // Use getProductByPartNumber for full data with series and related products
+    const product = await ProductService.getProductByPartNumber(slug)
+    return product
   } catch (error) {
     console.error('Error fetching product:', error)
     return null

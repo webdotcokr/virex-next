@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Virex - B2B 제품 포털",
+  title: "FUCK",
   description: "바이렉스의 B2B 제품 포털에서 2,000개 이상의 제품을 검색하고 비교하세요.",
 };
 

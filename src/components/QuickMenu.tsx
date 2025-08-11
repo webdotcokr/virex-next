@@ -20,9 +20,10 @@ const QuickMenu = () => {
         element.classList.remove('active');
         
         if (pageName && pageName !== 'top') {
-          if (currentUrl.includes(`/sub/${pageName}`) || 
-              currentUrl.includes(`/sub/support/${pageName}`) ||
-              (currentUrl.includes('/sub/knowledge/') && pageName === 'knowledge')) {
+          if (currentUrl.includes(`/${pageName}`) || 
+              currentUrl.includes(`/support/${pageName}`) ||
+              (currentUrl.includes('/support/') && pageName === 'inquiry') ||
+              (currentUrl.includes('blog.virex.co.kr') && pageName === 'knowledge')) {
             element.classList.add('active');
           }
         }
@@ -69,7 +70,7 @@ const QuickMenu = () => {
     <div className="quick-menu">
       <div className="quick-menu-item mobile-visible" data-page="inquiry">
         <div className="icon">
-          <a href="/sub/support/inquiry">
+          <a href="/support/inquiry">
             <img className="desktop-only" src="/icon/icon-question.svg" alt="빠른 문의" />
             <img className="mobile-only" src="/icon/icon-question.svg" alt="빠른 문의" />
           </a>

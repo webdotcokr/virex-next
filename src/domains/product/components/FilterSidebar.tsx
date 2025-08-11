@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useFilterStore } from '@/lib/store'
 import { buildFilterUrl } from '@/lib/utils'
 import { getConfigByCategoryName } from '../config/category-filters'
-import { appendRangeFiltersToSearchParams, getRangeFiltersFromSearchParams, filterValueToUrlParam, encodeRangeToken } from '../utils/url-params'
+import { appendRangeFiltersToSearchParams, getRangeFiltersFromSearchParams, filterValueToUrlParam, encodeRangeToken, compareFilterValues, removeDuplicateFilterValues } from '../utils/url-params'
 import { X } from 'lucide-react'
 import styles from '../../../app/(portal)/products/products.module.css'
 import type { Category } from '../types'
@@ -111,17 +111,28 @@ function FilterSidebar({
     }
   }, [categoryName])
 
-  // URL update function - defined first as it's used by other functions
+  // URL update function - 파라미터 클리닝 최적화
   const updateUrl = useCallback((newFilters: Record<string, unknown>) => {
     const currentFilters = Object.fromEntries(searchParams.entries())
+    
+    // 업데이트되는 파라미터들에 대해서는 기존 값을 완전히 제거
+    Object.keys(newFilters).forEach(key => {
+      if (newFilters[key] === '' || newFilters[key] === null || newFilters[key] === undefined) {
+        delete currentFilters[key]
+      }
+    })
+    
     const mergedFilters = { ...currentFilters, ...newFilters }
     
-    // Remove empty filters
+    // Remove empty filters and clean up array duplicates
     Object.keys(mergedFilters).forEach(key => {
       const value = mergedFilters[key]
       if (value === '' || value === null || value === undefined || 
           (Array.isArray(value) && value.length === 0)) {
         delete mergedFilters[key]
+      } else if (Array.isArray(value)) {
+        // 배열 파라미터의 중복 제거
+        mergedFilters[key] = removeDuplicateFilterValues(value.map(String))
       }
     })
 
@@ -184,11 +195,64 @@ function FilterSidebar({
     }, 0)
   }, [updateFilter, updateUrl])
 
+  // 인접한 단일 값들을 범위로 통합하는 헬퍼 함수
+  const consolidateAdjacentValues = useCallback((values: string[]) => {
+    const numbers: number[] = []
+    const nonNumbers: string[] = []
+    
+    // 숫자와 비숫자 분리
+    values.forEach(value => {
+      if (value.match(/^\d+(\.\d+)?$/)) {
+        numbers.push(parseFloat(value))
+      } else {
+        nonNumbers.push(value)
+      }
+    })
+    
+    if (numbers.length < 2) {
+      return values // 숫자가 2개 미만이면 통합하지 않음
+    }
+    
+    // 숫자들을 정렬
+    numbers.sort((a, b) => a - b)
+    
+    // 연속된 숫자들을 찾아서 범위로 통합
+    const consolidated: string[] = []
+    let rangeStart = numbers[0]
+    let rangeEnd = numbers[0]
+    
+    for (let i = 1; i < numbers.length; i++) {
+      if (numbers[i] === rangeEnd + 1 || numbers[i] === rangeEnd) {
+        // 연속되거나 동일한 경우 범위 확장
+        rangeEnd = numbers[i]
+      } else {
+        // 연속되지 않은 경우 현재 범위 저장
+        if (rangeStart === rangeEnd) {
+          consolidated.push(rangeStart.toString())
+        } else {
+          consolidated.push(`[${rangeStart},${rangeEnd}]`)
+        }
+        rangeStart = numbers[i]
+        rangeEnd = numbers[i]
+      }
+    }
+    
+    // 마지막 범위 저장
+    if (rangeStart === rangeEnd) {
+      consolidated.push(rangeStart.toString())
+    } else {
+      consolidated.push(`[${rangeStart},${rangeEnd}]`)
+    }
+    
+    // 비숫자 값들도 추가
+    return [...consolidated, ...nonNumbers]
+  }, [])
+
   const handleParameterChange = useCallback((paramName: string, value: string | string[] | number, checked?: boolean) => {
     const currentParams = { ...filters.parameters }
     
     if (typeof value === 'string' && checked !== undefined) {
-      // 체크박스 형태 (multiselect)
+      // 체크박스 형태 (multiselect) - 의미적 중복 제거 강화
       const paramValue = currentParams[paramName]
       const currentValues = Array.isArray(paramValue) 
         ? paramValue.map(String)
@@ -196,18 +260,45 @@ function FilterSidebar({
           ? [String(paramValue)] 
           : []
       
+      console.log(`🔲 CHECKBOX [${paramName}]: ${checked ? 'CHECK' : 'UNCHECK'} value="${value}"`)
+      console.log(`   Current values:`, currentValues)
+      
       if (checked) {
-        // 값 추가 (중복 방지)
-        if (!currentValues.includes(value)) {
-          currentParams[paramName] = [...currentValues, value]
+        // 의미적 중복 검사 후 값 추가
+        const isDuplicate = currentValues.some(existing => {
+          const compareResult = compareFilterValues(existing, value)
+          console.log(`   🔍 Compare: "${existing}" == "${value}" ? ${compareResult}`)
+          return compareResult
+        })
+        
+        console.log(`   Is duplicate: ${isDuplicate}`)
+        
+        if (!isDuplicate) {
+          let newValues = [...currentValues, value]
+          // 중복 값 제거 후 저장
+          newValues = removeDuplicateFilterValues(newValues)
+          
+          // 인접한 단일값들을 범위로 통합 시도
+          const consolidatedValues = consolidateAdjacentValues(newValues)
+          console.log(`   After consolidation: ${JSON.stringify(newValues)} → ${JSON.stringify(consolidatedValues)}`)
+          
+          currentParams[paramName] = consolidatedValues
+          console.log(`   After add:`, consolidatedValues)
         }
       } else {
-        // 값 제거
-        const filteredValues = currentValues.filter(v => v !== value)
+        // 의미적으로 동일한 값들을 모두 제거
+        const filteredValues = currentValues.filter(existing => {
+          const shouldRemove = compareFilterValues(existing, value)
+          console.log(`   🗑️  Remove "${existing}"? ${shouldRemove}`)
+          return !shouldRemove
+        })
+        
+        console.log(`   After remove:`, filteredValues)
+        
         if (filteredValues.length === 0) {
           delete currentParams[paramName]
         } else {
-          currentParams[paramName] = filteredValues
+          currentParams[paramName] = removeDuplicateFilterValues(filteredValues)
         }
       }
     } else {
@@ -239,7 +330,12 @@ function FilterSidebar({
           urlParams[paramName] = rangeToken
         } else if (Array.isArray(paramValue)) {
           // 일반 배열 (체크박스 등) - 각 값을 개별적으로 변환
-          const convertedValues = paramValue.map(v => filterValueToUrlParam(String(v)))
+          const convertedValues = paramValue.map(v => {
+            const original = String(v)
+            const converted = filterValueToUrlParam(original)
+            console.log(`🌐 URL TRANSFORM [${paramName}]: "${original}" → "${converted}"`)
+            return converted
+          })
           urlParams[paramName] = convertedValues
         } else {
           // 단일 값인 경우 직접 변환
@@ -252,7 +348,7 @@ function FilterSidebar({
       
       updateUrl(urlParams)
     }, 0)
-  }, [filters.parameters, updateFilter, updateUrl])
+  }, [filters.parameters, updateFilter, updateUrl, consolidateAdjacentValues])
 
   const handleReset = useCallback(() => {
     // 슬라이더 값 초기화
@@ -442,21 +538,34 @@ function FilterSidebar({
     )
   }
 
-  // 체크박스 렌더링 함수
+  // 체크박스 렌더링 함수 (의미적 비교 로직 개선)
   const renderCheckboxes = (filter: CategoryFilter) => {
     const paramValue = filters.parameters[filter.param]
-    const currentValues = Array.isArray(paramValue) 
-      ? paramValue.map(String)
-      : (paramValue !== null && paramValue !== undefined) 
-        ? [String(paramValue)] 
-        : []
+    
+    // 현재 값들을 문자열 배열로 노멀라이즈
+    let currentValues: string[] = []
+    if (Array.isArray(paramValue)) {
+      currentValues = paramValue.map(String)
+    } else if (paramValue !== null && paramValue !== undefined) {
+      currentValues = [String(paramValue)]
+    }
+    
+    console.log(`📋 RENDER INIT [${filter.param}]: paramValue = ${JSON.stringify(paramValue)} (type: ${typeof paramValue}, isArray: ${Array.isArray(paramValue)})`)
+    console.log(`   Normalized currentValues:`, currentValues)
     
     if (!filter.options) return null
     
     return (
       <div className={styles.checkboxGroup}>
         {filter.options.map((option, index) => {
-          const isChecked = currentValues.includes(option.value)
+          // 의미적 비교를 통한 체크 상태 판별
+          const isChecked = currentValues.some(currentValue => {
+            const compareResult = compareFilterValues(currentValue, option.value)
+            console.log(`🔍 RENDER CHECK [${filter.param}]: "${currentValue}" == "${option.value}" ? ${compareResult}`)
+            return compareResult
+          })
+          
+          console.log(`📋 RENDER [${filter.param}]: "${option.display}" (${option.value}) = ${isChecked ? '✓' : '✗'}`)
           
           return (
             <label key={`${filter.param}-${index}`} className={styles.checkboxLabel}>

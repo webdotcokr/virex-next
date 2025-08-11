@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, memo } from 'react'
 import styles from '../../../app/(portal)/products/products.module.css'
 import type { Product } from '../types'
 import Pagination from '@/components/ui/Pagination'
+import { formatValueWithUnit } from '@/lib/units'
 
 interface ProductTableProps {
   products: Product[]
@@ -16,9 +17,10 @@ interface ProductTableProps {
   onPageChange?: (page: number) => void
   onCompareChange?: (productIds: string[]) => void
   isLoading?: boolean
+  columnConfigs?: any[]  // 동적 컬럼 설정
 }
 
-export default function ProductTable({ 
+function ProductTable({ 
   products,
   total,
   currentPage = 1,
@@ -28,24 +30,35 @@ export default function ProductTable({
   onSort,
   onPageChange,
   onCompareChange,
-  isLoading = false
+  isLoading = false,
+  columnConfigs = []
 }: ProductTableProps) {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
 
-  // 제품 데이터에서 동적으로 컬럼 생성
-  const columnConfigs = useMemo(() => {
+  // 동적 컬럼 설정 사용 (전달받은 columnConfigs 또는 fallback)
+  const displayColumns = useMemo(() => {
+    if (columnConfigs && columnConfigs.length > 0) {
+      // DB에서 로드된 컬럼 설정 사용
+      return columnConfigs.map(config => ({
+        column_name: config.column_name,
+        column_label: config.column_label,
+        is_sortable: config.is_sortable || false,
+        column_width: config.column_width || null
+      }))
+    }
+    
+    // Fallback: 제품 데이터에서 자동으로 컬럼 생성
     if (!products || products.length === 0) return []
     
-    // 첫 번째 제품의 키를 기반으로 컬럼 생성
     const firstProduct = products[0]
-    // 관리자 전용 필드들을 skipKeys에 포함
+    // 관리용 필드들을 테이블에서 숨김처리
     const skipKeys = [
-      'id', 'created_at', 'updated_at', 'category', 'partnumber', 'name', 'series',
-      'is_active', 'is_new', 'series_id', 'image_url', 'is_discontinued'
+      // 기존 숨김 필드
+      'id', 'created_at', 'updated_at', 'image_url', 'category_name', 'series_data', 'related_products',
+      // 관리용 필드 추가
+      'is_discontinued', 'is_active', 'series_id', 'category_id', 'maker_id', 'is_new'
     ]
-    
-    // 우선순위 컬럼 정의 (관리자 필드 제외)
-    const priorityColumns = ['part_number', 'maker', 'series_name']
+    const priorityColumns = ['part_number', 'series', 'maker_name']
     const columns: string[] = []
     
     // 우선순위 컬럼 먼저 추가
@@ -62,15 +75,15 @@ export default function ProductTable({
       }
     })
     
-    return columns.map((key, index) => ({
-      parameter_name: key,
-      label: key.split('_').map(word => 
+    return columns.map(key => ({
+      column_name: key,
+      column_label: key.split('_').map(word => 
         word.charAt(0).toUpperCase() + word.slice(1)
       ).join(' '),
-      display_order: index,
-      is_sortable: true
+      is_sortable: true,
+      column_width: null
     }))
-  }, [products])
+  }, [columnConfigs, products])
 
   const handleCompareChange = useCallback((productId: string, checked: boolean) => {
     if (checked && selectedProducts.length >= 4) {
@@ -88,7 +101,9 @@ export default function ProductTable({
   }, [selectedProducts, onCompareChange])
 
   const handleSort = useCallback((field: string) => {
-    onSort?.(field)
+    // series 컬럼 클릭 시 실제로는 series_id로 정렬
+    const sortField = field === 'series' ? 'series_id' : field
+    onSort?.(sortField)
   }, [onSort])
 
   const handleRowClick = useCallback((product: Product, e: React.MouseEvent) => {
@@ -108,14 +123,7 @@ export default function ProductTable({
     // Products are already paginated from the server, so use them directly
     const displayProducts = products
     
-    console.log('🔢 ProductTable - Pagination calculation:', {
-      total: actualTotal,
-      productsLength: products.length,
-      itemsPerPage,
-      currentPage,
-      totalPages,
-      displayDataLength: displayProducts.length
-    })
+    // Pagination calculation complete
     
     return { totalPages, displayData: displayProducts }
   }, [products, total, currentPage, itemsPerPage])
@@ -151,17 +159,17 @@ export default function ProductTable({
             <thead>
               <tr>
                 <th className={styles.colCompare}>비교</th>
-                {columnConfigs.map((column) => (
+                {displayColumns.map((column) => (
                   <th 
-                    key={column.parameter_name} 
-                    style={{ width: 'auto' }}
+                    key={column.column_name} 
+                    style={{ width: column.column_width || 'auto' }}
                   >
-                    {column.label}
+                    {column.column_label}
                     {column.is_sortable && (
                       <img 
                         src="/img/icon-sort.svg" 
                         className={styles.sortIcon}
-                        onClick={() => handleSort(column.parameter_name)}
+                        onClick={() => handleSort(column.column_name)}
                         alt="정렬"
                       />
                     )}
@@ -172,7 +180,7 @@ export default function ProductTable({
             <tbody>
               {displayData.length === 0 ? (
                 <tr>
-                  <td colSpan={columnConfigs.length + 1} className={styles.noDataCell}>
+                  <td colSpan={displayColumns.length + 1} className={styles.noDataCell}>
                     <div className={styles.noDataMessage}>
                       조건에 맞는 제품이 없습니다.
                     </div>
@@ -198,13 +206,13 @@ export default function ProductTable({
                           onClick={(e) => e.stopPropagation()}
                         />
                       </td>
-                      {columnConfigs.map((column) => {
-                        // 제품 객체에서 직접 값 가져오기
-                        const value = product[column.parameter_name]
+                      {displayColumns.map((column) => {
+                        // 제품 객체에서 직접 값 가져오기 (specifications 대신 실제 컬럼)
+                        const value = product[column.column_name as keyof Product]
                         let displayValue: React.ReactNode = '-'
                         
                         // 특별한 처리가 필요한 컬럼들
-                        if (column.parameter_name === 'part_number') {
+                        if (column.column_name === 'part_number') {
                           displayValue = (
                             <>
                               {product.is_new && <span className={styles.newBadge}>NEW</span>}
@@ -212,12 +220,12 @@ export default function ProductTable({
                             </>
                           )
                         } else if (value !== null && value !== undefined) {
-                          // 일반 값 표시
-                          displayValue = String(value)
+                          // 일반 값 표시 (숫자, 문자열 등) - 단위 포함
+                          displayValue = formatValueWithUnit(value, column.column_name)
                         }
                         
                         return (
-                          <td key={column.parameter_name}>
+                          <td key={column.column_name}>
                             {displayValue}
                           </td>
                         )
@@ -240,3 +248,5 @@ export default function ProductTable({
     </>
   )
 }
+
+export default memo(ProductTable)

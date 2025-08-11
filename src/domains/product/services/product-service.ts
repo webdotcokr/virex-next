@@ -160,12 +160,42 @@ export class ProductService {
             // Parse array format "[min,max]" from filter values
             if (typeof paramValues === 'string' && paramValues.startsWith('[') && paramValues.endsWith(']')) {
               try {
+                // 동일한 검증 로직 적용
+                if (paramValues.length < 5) { // 최소한 [1,2] 형태
+                  console.warn('Range too short:', paramValues)
+                  return false
+                }
+                
                 const rangeStr = paramValues.substring(1, paramValues.length - 1)
+                
+                // 쉼표 확인
+                if (!rangeStr.includes(',') || rangeStr.split(',').length !== 2) {
+                  console.warn('Invalid range format:', paramValues)
+                  return false
+                }
+                
                 const [minStr, maxStr] = rangeStr.split(',')
-                const min = parseFloat(minStr)
-                const max = parseFloat(maxStr)
+                const minTrimmed = minStr.trim()
+                const maxTrimmed = maxStr.trim()
+                
+                if (minTrimmed === '' || maxTrimmed === '') {
+                  console.warn('Empty range parts:', paramValues)
+                  return false
+                }
+                
+                const min = parseFloat(minTrimmed)
+                const max = parseFloat(maxTrimmed)
+                
+                if (isNaN(min) || isNaN(max) || min > max) {
+                  console.warn('Invalid range values:', { min, max, paramValues })
+                  return false
+                }
+                
                 const numValue = parseFloat(String(fieldValue))
-                return !isNaN(numValue) && numValue >= min && numValue <= max
+                const result = !isNaN(numValue) && numValue >= min && numValue <= max
+                
+                console.log(`Range filter check: ${fieldValue} in [${min},${max}] = ${result}`)
+                return result
               } catch (e) {
                 console.warn('Failed to parse range filter:', paramValues, e)
                 return false

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import type { FilterState, Product } from '@/domains/product/types'
+import { urlParamToFilterValue } from '@/domains/product/utils/url-params'
 
 interface FilterStore {
   filters: FilterState
@@ -53,7 +54,12 @@ export const useFilterStore = create<FilterStore>()(
       
       resetFilters: () => {
         set(
-          { filters: initialFilters },
+          (state) => ({
+            filters: {
+              ...initialFilters,
+              categories: state.filters.categories  // 현재 카테고리 유지
+            }
+          }),
           false,
           'resetFilters'
         )
@@ -115,23 +121,52 @@ export const useFilterStore = create<FilterStore>()(
         
         // Parse dynamic parameters with type safety
         const parameters: Record<string, string | number | boolean | string[]> = {}
+        
+        // Group all parameter values by key (for multi-value parameters)
+        const paramGroups: Record<string, string[]> = {}
         searchParams.forEach((value, key) => {
           if (!['categories', 'partnumber', 'series', 'search', 'sort', 'order', 'page', 'limit'].includes(key)) {
-            // Try to parse as array first (comma-separated)
-            if (value.includes(',')) {
-              parameters[key] = value.split(',').map(v => v.trim()).filter(v => v.length > 0)
-            } else {
-              // Try to parse as number
-              const numValue = parseFloat(value)
-              if (!isNaN(numValue)) {
-                parameters[key] = numValue
-              } else if (value === 'true' || value === 'false') {
-                parameters[key] = value === 'true'
-              } else {
-                parameters[key] = value
-              }
+            if (!paramGroups[key]) {
+              paramGroups[key] = []
             }
+            paramGroups[key].push(value)
           }
+        })
+        
+        // Process each parameter group
+        Object.entries(paramGroups).forEach(([key, values]) => {
+          console.log(`🔄 URL→FILTER Processing parameter: ${key} = ${JSON.stringify(values)}`)
+          
+          if (values.length === 1) {
+            // Single value - convert URL format to filter format if it's a range
+            const urlValue = values[0]
+            const filterValue = urlParamToFilterValue(urlValue)
+            console.log(`   Single value: "${urlValue}" → "${filterValue}"`)
+            
+            // 슬라이더용 범위 [min,max] 특별 처리
+            if (typeof filterValue === 'string' && filterValue.startsWith('[') && filterValue.endsWith(']')) {
+              const match = filterValue.match(/^\[(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\]$/)
+              if (match) {
+                const sliderValue = [parseFloat(match[1]), parseFloat(match[2])]
+                parameters[key] = sliderValue
+                console.log(`   Slider range: "${filterValue}" → [${sliderValue[0]}, ${sliderValue[1]}]`)
+              } else {
+                parameters[key] = filterValue
+                console.log(`   Invalid slider format, using string: "${filterValue}"`)
+              }
+            } else {
+              // 체크박스와 기타 값들은 배열로 유지 (단일값도 배열로 감싸기)
+              parameters[key] = [filterValue]
+              console.log(`   Checkbox/other single value: "${filterValue}" → ["${filterValue}"]`)
+            }
+          } else {
+            // Multiple values - convert each URL format to filter format
+            const convertedValues = values.map(v => urlParamToFilterValue(v))
+            parameters[key] = convertedValues
+            console.log(`   Multiple values: ${JSON.stringify(values)} → ${JSON.stringify(convertedValues)}`)
+          }
+          
+          console.log(`   Final parameter [${key}]:`, parameters[key])
         })
         
         if (Object.keys(parameters).length > 0) {

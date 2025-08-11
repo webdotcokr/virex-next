@@ -228,13 +228,7 @@ export default function Header() {
         
         positions[menuKey] = optimalLeft
         
-        // Debug logging
-        console.log(`Menu ${menuKey}:`, {
-          menuCenter,
-          submenuWidth,
-          optimalLeft,
-          containerWidth
-        })
+        // Menu position calculated
       } else {
         console.warn(`Menu element or submenu not found for ${menuKey}`)
       }

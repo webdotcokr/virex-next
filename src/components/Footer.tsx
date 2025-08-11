@@ -80,7 +80,7 @@ export default function Footer() {
               <Link href="/company/privacy-policy">개인정보처리방침</Link>
             </div>
             <div className="shortcut-item">
-              <Link href="/blog">블로그</Link>
+              <Link href="https://blog.naver.com/virex_sales">블로그</Link>
             </div>
           </div>
         </div>
@@ -142,7 +142,7 @@ export default function Footer() {
           
           <div className="gnb-menu-group">
             <div className="gnb-menu-group-title">
-              <Link href="/news">뉴스</Link>
+              <Link href="/news/notice">뉴스</Link>
             </div>
             <div className="gnb-menu-group-item">
               <Link href="/news/notice">공지사항</Link>
@@ -154,7 +154,7 @@ export default function Footer() {
           
           <div className="gnb-menu-group">
             <div className="gnb-menu-group-title">
-              <Link href="/support">고객지원</Link>
+              <Link href="/support/download">고객지원</Link>
             </div>
             <div className="gnb-menu-group-item">
               <Link href="/support/download">다운로드</Link>
@@ -175,7 +175,7 @@ export default function Footer() {
           
           <div className="gnb-menu-group">
             <div className="gnb-menu-group-title">
-              <Link href="/company">바이렉스</Link>
+              <Link href="/company/virex">바이렉스</Link>
             </div>
             <div className="gnb-menu-group-item">
               <Link href="/company/virex">회사소개</Link>

@@ -1,35 +1,84 @@
 export interface Product {
-  id: number
+  // 공통 기본 필드
+  id: string | number
   part_number: string
-  maker_id: number
-  category_id: number
-  series_id: number
-  specifications: Record<string, string | number | boolean>
-  is_active: boolean
-  is_new: boolean
-  created_at: string
-  updated_at: string
-  category?: Category
-  // Legacy fields for compatibility
-  partnumber?: string
-  series?: string
-  name?: string
-  description?: string
-  image_url?: string
-  datasheet_url?: string
-  parameters?: ProductParameter[]
-  // Join fields from related tables
+  series: string
   maker_name?: string
   category_name?: string
+  is_active: boolean
+  is_new: boolean
+  created_at?: string
+  updated_at?: string
+  image_url?: string
+  
+  // Legacy compatibility
+  maker_id?: number
+  category_id?: number
+  series_id?: number
+  partnumber?: string
+  name?: string
+  description?: string
+  datasheet_url?: string
+  parameters?: ProductParameter[]
+  category?: Category
+
+  // CIS 전용 필드들
+  scan_width?: number
+  dpi?: number
+  speed?: number
+  resolution?: number
+  line_rate?: number
+  
+  // TDI 전용 필드들
+  pixel_size?: number
+  tdi_stages?: number
+  
+  // Area 전용 필드들
+  frame_rate?: number
+  sensor_type?: string
+  interface?: string
+  
+  // Line 전용 필드들
+  pixel_resolution?: number
+  line_speed?: number
+  
+  // 공통 기술 스펙
+  working_distance?: number
+  spectrum?: string
+  lens_mount?: string
+  dimensions?: string
+  weight?: number
+  operating_temperature?: string
+  power_consumption?: number
+  
+  // 기타 동적 필드들 (각 제품 카테고리마다 다를 수 있음)
+  note?: string
+  [key: string]: any  // 동적 필드를 위한 인덱스 시그니처
+
+  // series_data는 제품 상세 페이지용 (옵셔널)
+  series_data?: {
+    series_name: string
+    intro_text?: string
+    short_text?: string
+    youtube_url?: string
+    feature_image_url?: string
+    features: Array<{title: string, desc: string}>
+    strengths: string[]
+    apps: Array<{title: string, image: string}>
+    textItems: Array<{title: string, desc: string, image: string}>
+  }
+  related_products?: Product[]
 }
 
 export interface Category {
-  id: number
+  id: string | number
   name: string
+  enName?: string
+  slug?: string
   parent_id?: number
   description?: string
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface ProductParameter {

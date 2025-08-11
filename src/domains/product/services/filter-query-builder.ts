@@ -15,6 +15,17 @@ import type { FilterCondition, FilterQuery, AdvancedFilterOption } from '../type
 export function parseFilterValue(field: string, value: string): FilterCondition {
   const trimmedValue = value.trim();
   
+  // JSON 배열 형식 [min,max] 처리
+  const jsonArrayMatch = trimmedValue.match(/^\[(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\]$/);
+  if (jsonArrayMatch) {
+    const [, min, max] = jsonArrayMatch;
+    return {
+      field,
+      operator: 'between',
+      value: [parseFloat(min), parseFloat(max)]
+    };
+  }
+  
   // BETWEEN 조건 처리
   const betweenMatch = trimmedValue.match(/^BETWEEN\s+(\d+(?:\.\d+)?)\s+AND\s+(\d+(?:\.\d+)?)$/i);
   if (betweenMatch) {
@@ -271,9 +282,9 @@ export function buildFilterQuery(filterState: {
       case 'checkbox':
         if (Array.isArray(filter.values)) {
           if (filter.options) {
-            conditions = buildAdvancedFilterConditions(filter.field, filter.options, filter.values);
+            conditions = buildAdvancedFilterConditions(filter.field, filter.options, filter.values as string[]);
           } else {
-            conditions = buildCheckboxFilter(filter.field, filter.values);
+            conditions = buildCheckboxFilter(filter.field, filter.values as string[]);
           }
         }
         break;

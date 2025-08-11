@@ -1,10 +1,9 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ProductService } from '@/domains/product/services/product-service'
-import { CategoryService } from '@/domains/product/services/category-service'
 import { useFilterStore } from '@/lib/store'
+import { httpQueries } from '@/lib/http-supabase'
 import ProductsPageLayout from '@/domains/product/components/ProductsPageLayout'
 import CategoryTabs from '@/domains/product/components/CategoryTabs'
 import ProductTable from '@/domains/product/components/ProductTable'
@@ -17,24 +16,104 @@ import ProductGridSkeleton from '@/domains/product/components/ProductGridSkeleto
 import styles from './products.module.css'
 import type { Product, Category } from '@/domains/product/types'
 
+// 카테고리 ID와 테이블 매핑
+const CATEGORY_TABLE_MAP: Record<string, string> = {
+  '9': 'products_cis',      // CIS Camera
+  '10': 'products_tdi',     // TDI Camera  
+  '11': 'products_line',    // Line Camera
+  '12': 'products_area',    // Area Camera
+  '13': 'products_invisible', // Invisible Camera
+  '14': 'products_scientific', // Scientific Camera
+  '15': 'products_large_format', // Large Format Lens
+  '16': 'products_telecentric', // Telecentric Lens
+  '17': 'products_fa_lens', // FA Lens
+  '18': 'products_3d_laser_profiler', // 3D Laser Profiler
+  '19': 'products_3d_stereo_camera', // 3D Stereo Camera
+  '20': 'products_light', // Light
+  '21': 'products_controller', // Light sources → Controller로 매핑
+  '22': 'products_controller', // Controller
+  '23': 'products_frame_grabber', // Frame Grabber
+  '24': 'products_gige_lan_card', // GigE Lan Card
+  '25': 'products_usb_card', // USB Card
+  '26': 'products_cable', // Cable
+  '27': 'products_accessory', // Accessory
+  '4': 'products_af_module', // AF Module
+  '7': 'products_software' // Software
+}
+
+// 카테고리 ID → 이름 매핑
+const CATEGORY_NAME_MAP: Record<string, string> = {
+  '9': 'CIS',     // CIS Camera
+  '10': 'TDI',    // TDI Camera  
+  '11': 'Line',   // Line Camera
+  '12': 'Area',   // Area Camera
+  '13': 'Invisible', // Invisible Camera
+  '14': 'Scientific', // Scientific Camera
+  '15': 'Large Format', // Large Format Lens
+  '16': 'Telecentric', // Telecentric Lens
+  '17': 'FA Lens', // FA Lens
+  '18': '3D Laser Profiler', // 3D Laser Profiler
+  '19': '3D Stereo Camera', // 3D Stereo Camera
+  '20': 'Light', // Light
+  '21': 'Controller', // Light sources → Controller로 매핑
+  '22': 'Controller', // Controller
+  '23': 'Frame Grabber', // Frame Grabber
+  '24': 'GigE Lan Card', // GigE Lan Card
+  '25': 'USB Card', // USB Card
+  '26': 'Cable', // Cable
+  '27': 'Accessory', // Accessory
+  '4': 'Auto Focus Module', // AF Module
+  '7': 'Software' // Software
+}
+
+// Mock 카테고리 정보 (백업에서 가져온 구조 유지)
+const getCategoryInfo = (categoryId: string) => {
+  return {
+    id: categoryId,
+    name: CATEGORY_NAME_MAP[categoryId] || 'CIS',
+    enName: CATEGORY_NAME_MAP[categoryId] || 'CIS',
+    description: `${CATEGORY_NAME_MAP[categoryId] || 'CIS'} 제품 목록`,
+    backgroundImage: '/img/backgrounds/camera-cis-bg.png'
+  }
+}
+
+// Mock 시블링 카테고리 (주요 카테고리들)
+const mockSiblingCategories: Category[] = [
+  { id: '9', name: 'CIS', enName: 'CIS', slug: 'cis' },
+  { id: '10', name: 'TDI', enName: 'TDI', slug: 'tdi' },
+  { id: '11', name: 'Line', enName: 'Line', slug: 'line' },
+  { id: '12', name: 'Area', enName: 'Area', slug: 'area' },
+  { id: '13', name: 'Invisible', enName: 'Invisible', slug: 'invisible' },
+  { id: '14', name: 'Scientific', enName: 'Scientific', slug: 'scientific' }
+]
+
+// Mock 브레드크럼 생성
+const getBreadcrumbs = (categoryId: string) => {
+  const categoryName = CATEGORY_NAME_MAP[categoryId] || 'CIS'
+  return [
+    { label: 'Home', href: '/' },
+    { label: '제품', href: '/products' },
+    { label: categoryName, active: true }
+  ]
+}
+
 function ProductsContent() {
   const searchParams = useSearchParams()
   const { filters, setFiltersFromUrl } = useFilterStore()
   const [products, setProducts] = useState<Product[]>([])
   const [totalProducts, setTotalProducts] = useState(0)
-  const [siblingCategories, setSiblingCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true) // 초기 로딩 true로 설정
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(20)
-  const [sortBy, setSortBy] = useState<string>('')
+  const [sortBy, setSortBy] = useState<string>('part_number')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
-  const [breadcrumbs, setBreadcrumbs] = useState<Array<{label: string, href?: string, active?: boolean}>>([])
   const [showComparisonLimitModal, setShowComparisonLimitModal] = useState(false)
   const [showComparisonModal, setShowComparisonModal] = useState(false)
   const [comparisonProducts, setComparisonProducts] = useState<Product[]>([])
+  const [seriesMap, setSeriesMap] = useState<Map<number, string>>(new Map())
 
   // Initialize filters from URL on component mount
   useEffect(() => {
@@ -52,115 +131,204 @@ function ProductsContent() {
     }
   }, [searchParams, setFiltersFromUrl])
 
-  // Fetch initial data and load products when filters change
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        
-        console.log('🔄 Loading products data...', { 
-          categories: filters.categories, 
-          currentPage, 
-          itemsPerPage, 
-          sortBy, 
-          sortDirection 
-        })
-
-        // Get current category (default to CIS if none selected)
-        const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
-        
-        // Fetch sibling categories for navigation
-        const siblings = await CategoryService.getSiblingCategories(currentCategoryId)
-        setSiblingCategories(siblings)
-
-        // Generate breadcrumbs
-        const breadcrumbsData = await CategoryService.getBreadcrumbs(currentCategoryId)
-        setBreadcrumbs(breadcrumbsData)
-
-        // Fetch products with current filters
-        const productResult = await ProductService.getProducts({
-          categories: filters.categories.length > 0 ? filters.categories : [currentCategoryId],
-          partnumber: filters.partnumber || '',
-          series: filters.series || '',
-          search: filters.search || '',
-          parameters: filters.parameters || {},
-          sort: sortBy || 'part_number',
-          order: sortDirection,
-          page: currentPage,
-          limit: itemsPerPage
-        })
-
-        setProducts(productResult.products)
-        setTotalProducts(productResult.total)
-        
-        console.log('✅ Products data loaded successfully:', {
-          productsCount: productResult.products.length,
-          totalProducts: productResult.total,
-          siblingsCount: siblings.length,
-          breadcrumbsCount: breadcrumbsData.length
-        })
-        
-      } catch (err) {
-        console.error('❌ Failed to load data:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load data')
-        // Reset data on error
-        setProducts([])
-        setTotalProducts(0)
-        setSiblingCategories([])
-        setBreadcrumbs([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadData()
-  }, [
-    // Use specific filter values instead of the entire filters object
-    filters.categories.join(','), 
-    filters.partnumber, 
-    filters.series, 
-    filters.search, 
-    JSON.stringify(filters.parameters),
-    currentPage, 
-    itemsPerPage, 
-    sortBy, 
-    sortDirection
-  ])
-
   // 현재 선택된 카테고리 정보
   const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
-  const categoryInfo = CategoryService.getCategoryInfo(currentCategoryId)
+  const categoryInfo = getCategoryInfo(currentCategoryId)
+  const breadcrumbs = getBreadcrumbs(currentCategoryId)
 
-  // Helper function to map category ID to filter category name
-  const getCategoryNameById = (categoryId: string): string => {
-    const categoryIdToName: Record<string, string> = {
-      '9': 'CIS',     // CIS Camera
-      '10': 'TDI',    // TDI Camera  
-      '11': 'Line',   // Line Camera
-      '12': 'Area',   // Area Camera
-      '13': 'Invisible', // Invisible Camera
-      '14': 'Scientific', // Scientific Camera
-      '15': 'Large Format', // Large Format Lens
-      '16': 'Telecentric', // Telecentric Lens
-      '17': 'FA Lens', // FA Lens
-      '18': '3D Laser Profiler', // 3D Laser Profiler
-      '19': '3D Stereo Camera', // 3D Stereo Camera
-      '20': 'Light', // Light
-      '21': 'Controller', // Light sources → Controller로 매핑
-      '22': 'Controller', // Controller
-      '23': 'Frame Grabber', // Frame Grabber
-      '24': 'GigE Lan Card', // GigE Lan Card
-      '25': 'USB Card', // USB Card
-      '26': 'Cable', // Cable
-      '27': 'Accessory', // Accessory
-      '4': 'Auto Focus Module', // AF Module
-      '7': 'Software' // Software
+  // Series 데이터 로딩 및 매핑 함수
+  const loadSeriesData = useCallback(async () => {
+    try {
+      console.log('🔄 Loading series data for mapping...')
+      
+      const { data, error } = await httpQueries.getAllSeries()
+      
+      if (error) {
+        console.warn('⚠️ Failed to load series data:', error.message || error)
+        // 에러가 있어도 빈 Map으로 초기화하여 앱이 계속 동작하도록 함
+        setSeriesMap(new Map())
+        return
+      }
+      
+      if (!data || data.length === 0) {
+        console.warn('⚠️ No series data found, using empty mapping')
+        setSeriesMap(new Map())
+        return
+      }
+
+      // Map 생성: series ID -> series_name
+      const newSeriesMap = new Map<number, string>()
+      data.forEach((series: any) => {
+        if (series.id && series.series_name) {
+          newSeriesMap.set(series.id, series.series_name)
+        }
+      })
+      
+      setSeriesMap(newSeriesMap)
+      console.log(`✅ Series data loaded: ${newSeriesMap.size} series mapped`)
+      
+    } catch (err) {
+      console.error('❌ Failed to load series data:', err)
+      // 예외가 발생해도 빈 Map으로 초기화
+      setSeriesMap(new Map())
     }
-    return categoryIdToName[categoryId] || 'CIS' // Default to 'CIS' if not found
-  }
+  }, [])
 
-  const handleSort = (field: string) => {
+  // 앱 시작 시 한 번만 series 데이터 로드
+  useEffect(() => {
+    loadSeriesData()
+  }, [loadSeriesData])
+
+  // HTTP 기반 제품 로딩 함수
+  const loadProducts = useCallback(async (page = 1) => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      console.log('🌐 HTTP VERSION: Loading products...', { 
+        categoryId: currentCategoryId, 
+        page, 
+        itemsPerPage, 
+        sortBy, 
+        sortDirection,
+        search: filters.search 
+      })
+      
+      // 카테고리에 해당하는 테이블 가져오기
+      const tableName = CATEGORY_TABLE_MAP[currentCategoryId] || 'products_cis'
+      
+      // 슬라이더 배열을 문자열로 변환하는 전처리 함수
+      const preprocessFilters = (parameters: Record<string, any>) => {
+        const processed: Record<string, any> = {}
+        
+        Object.entries(parameters).forEach(([key, value]) => {
+          if (Array.isArray(value) && value.length === 2 && 
+              value.every(v => typeof v === 'number')) {
+            // 슬라이더 범위 → "[min,max]" 문자열로 변환
+            processed[key] = `[${value[0]},${value[1]}]`
+            console.log(`🔄 Slider preprocessing: ${key} [${value[0]}, ${value[1]}] → "${processed[key]}"`)
+          } else {
+            // 다른 값들은 그대로 유지
+            processed[key] = value
+          }
+        })
+        
+        return processed
+      }
+
+      // HTTP 방식으로 제품 데이터 로드
+      const { data, error: httpError } = await httpQueries.getProducts(tableName, {
+        page,
+        limit: itemsPerPage,
+        orderBy: sortBy,
+        orderDirection: sortDirection,
+        search: filters.search || '',
+        filters: preprocessFilters(filters.parameters || {})
+      })
+      
+      // 실제 제품 개수 조회
+      const { count, error: countError } = await httpQueries.getProductCount(tableName, {
+        search: filters.search || '',
+        filters: preprocessFilters(filters.parameters || {})
+      })
+      
+      if (httpError) {
+        console.error('❌ HTTP query failed:', httpError)
+        throw httpError
+      }
+      
+      if (countError) {
+        console.warn('⚠️ Count query failed, using fallback count:', countError)
+      }
+      
+      // 실제 카운트 사용, 에러 시 기본값 사용
+      const actualCount = count || 0
+      
+      if (!data || data.length === 0) {
+        setProducts([])
+        setTotalProducts(actualCount)
+        setCurrentPage(page)
+        return
+      }
+      
+      // HTTP 데이터를 Product 인터페이스에 맞게 변환 (실제 컬럼 직접 매핑)
+      const transformedProducts: Product[] = data.map((item: any) => {
+        // 기본 제품 객체 생성
+        const product: any = {
+          id: item.id || Math.random().toString(),
+          part_number: item.part_number || 'N/A',
+          series: item.series_id ? (seriesMap.get(item.series_id) || `Series-${item.series_id}`) : 'Unknown',
+          is_new: item.is_new || false,
+          is_active: item.is_active !== false,
+        }
+        
+        // 모든 실제 컬럼들을 직접 Product 객체에 포함 (specifications 사용 안함)
+        const skipFields = ['id', 'created_at', 'updated_at']
+        Object.keys(item).forEach(key => {
+          if (!skipFields.includes(key) && !(key in product)) {
+            product[key] = item[key]
+          }
+        })
+        
+        return product as Product
+      })
+      
+      setProducts(transformedProducts)
+      setTotalProducts(actualCount) // 실제 카운트 사용
+      setCurrentPage(page)
+      
+      // Products loaded successfully
+      
+    } catch (err) {
+      console.error('❌ HTTP loading failed:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load products via HTTP')
+      
+      // Fallback data
+      const fallbackProducts: Product[] = [{
+        id: 'fallback-1',
+        part_number: 'FALLBACK-001',
+        series: 'Fallback Series',
+        is_new: true,
+        is_active: true,
+        maker_name: 'Vieworks',
+        category_name: CATEGORY_NAME_MAP[currentCategoryId] || 'CIS',
+        image_url: '',
+        // 카테고리별 샘플 컬럼들
+        scan_width: 400,
+        dpi: 600,
+        speed: 100,
+        note: 'HTTP failed, showing fallback data'
+      } as Product]
+      
+      setProducts(fallbackProducts)
+      setTotalProducts(1)
+      setCurrentPage(1)
+      
+    } finally {
+      setLoading(false)
+    }
+  }, [currentCategoryId, itemsPerPage, sortBy, sortDirection, seriesMap, filters.search, filters.parameters])
+
+  // 카테고리 변경 또는 페이지 로드 시 제품 데이터 로드
+  useEffect(() => {
+    loadProducts(currentPage)
+  }, [loadProducts, currentPage])
+
+  // 카테고리 변경, 검색, 필터 변경 시 첫 페이지로 리셋
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1)
+    }
+  }, [currentCategoryId, filters.search, filters.parameters])
+
+  // 카테고리 변경 시 필터 파라미터 완전 초기화
+  useEffect(() => {
+    const { updateFilter } = useFilterStore.getState()
+    // 카테고리가 변경되면 기존 필터 파라미터를 모두 초기화
+    updateFilter('parameters', {})
+  }, [currentCategoryId])
+
+  const handleSort = useCallback((field: string) => {
     const newDirection = sortBy === field ? (sortDirection === 'asc' ? 'desc' : 'asc') : 'asc'
     
     setSortBy(field)
@@ -173,9 +341,9 @@ function ProductsContent() {
     
     const newUrl = `/products?${params.toString()}`
     window.history.pushState({}, '', newUrl)
-  }
+  }, [sortBy, sortDirection, searchParams])
 
-  const handleSearch = (searchTerm: string) => {
+  const handleSearch = useCallback((searchTerm: string) => {
     console.log('Search:', searchTerm)
     
     // Update filter store with search term
@@ -196,16 +364,18 @@ function ProductsContent() {
     
     const newUrl = `/products?${params.toString()}`
     window.history.pushState({}, '', newUrl)
-  }
+    
+    // Note: loadProducts는 useEffect의 dependency에 filters.search가 포함되어 있어 자동으로 호출됨
+  }, [searchParams])
 
-  const handleItemsPerPageChange = (count: number) => {
+  const handleItemsPerPageChange = useCallback((count: number) => {
     setItemsPerPage(count)
     setCurrentPage(1) // 페이지를 1로 리셋
-  }
+  }, [])
 
-  const handleCompareChange = (productIds: string[]) => {
+  const handleCompareChange = useCallback((productIds: string[]) => {
     setSelectedProducts(productIds)
-  }
+  }, [])
 
   const handleProductQuestion = () => {
     // 선택된 제품들의 part_number를 콤마로 연결
@@ -253,7 +423,7 @@ function ProductsContent() {
       breadcrumbs={breadcrumbs}
       categoryNavigation={
         <CategoryTabs 
-          categories={siblingCategories} 
+          categories={mockSiblingCategories} 
           selectedCategories={filters.categories}
         />
       }
@@ -270,9 +440,9 @@ function ProductsContent() {
       <div className={styles.productsContainer}>
         {/* Filter Sidebar */}
         <FilterSidebar 
-          categories={siblingCategories}
+          categories={mockSiblingCategories}
           categoryName={categoryInfo.name}
-          selectedCategory={getCategoryNameById(currentCategoryId)}
+          selectedCategory={CATEGORY_NAME_MAP[currentCategoryId] || 'CIS'}
           isMobile={false}
           isOpen={isMobileFilterOpen}
           onClose={() => setIsMobileFilterOpen(false)}
