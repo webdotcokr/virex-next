@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState, useCallback, useTransition } from 'react
 import { useSearchParams } from 'next/navigation'
 import { useFilterStore } from '@/lib/store'
 import { httpQueries } from '@/lib/http-supabase'
-import { CategoryService } from '@/domains/product/services/category-service'
 import ProductsPageLayout from '@/domains/product/components/ProductsPageLayout'
 import CategoryTabs from '@/domains/product/components/CategoryTabs'
 import ProductTable from '@/domains/product/components/ProductTable'
@@ -67,16 +66,6 @@ const CATEGORY_NAME_MAP: Record<string, string> = {
   '7': 'Software' // Software
 }
 
-// Mock 카테고리 정보 (백업에서 가져온 구조 유지)
-const getCategoryInfo = (categoryId: string) => {
-  return {
-    id: categoryId,
-    name: CATEGORY_NAME_MAP[categoryId] || 'CIS',
-    enName: CATEGORY_NAME_MAP[categoryId] || 'CIS',
-    description: `${CATEGORY_NAME_MAP[categoryId] || 'CIS'} 제품 목록`,
-    backgroundImage: '/img/backgrounds/camera-cis-bg.png'
-  }
-}
 
 // 카테고리 그룹 정의 (parent_id 기반)
 const CATEGORY_GROUPS: Record<string, Category[]> = {
@@ -140,15 +129,6 @@ const getSiblingCategories = (categoryId: string): Category[] => {
   return CATEGORY_GROUPS[groupName] || CATEGORY_GROUPS.cameras
 }
 
-// Mock 브레드크럼 생성
-const getBreadcrumbs = (categoryId: string) => {
-  const categoryName = CATEGORY_NAME_MAP[categoryId] || 'CIS'
-  return [
-    { label: 'Home', href: '/' },
-    { label: '제품', href: '/products' },
-    { label: categoryName, active: true }
-  ]
-}
 
 function ProductsContent() {
   const searchParams = useSearchParams()
@@ -190,65 +170,60 @@ function ProductsContent() {
 
   // 현재 선택된 카테고리 정보
   const currentCategoryId = filters.categories.length > 0 ? filters.categories[0] : '9'
-  const fallbackCategoryInfo = getCategoryInfo(currentCategoryId) // Mock 데이터 (fallback)
-  const breadcrumbs = getBreadcrumbs(currentCategoryId)
   const siblingCategories = getSiblingCategories(currentCategoryId)
   
-  // 카테고리 정보 state (초기값으로 fallback 사용)
-  const [categoryInfo, setCategoryInfo] = useState(fallbackCategoryInfo)
+  // 카테고리 정보 state
+  const [categoryInfo, setCategoryInfo] = useState<any>(null)
+  const [categoryError, setCategoryError] = useState<string | null>(null)
+  const [categoryLoading, setCategoryLoading] = useState(true)
   const [isPending, startTransition] = useTransition()
   
   // DB에서 카테고리 정보 로드
   useEffect(() => {
-    let mounted = true // cleanup을 위한 플래그
+    let mounted = true
     
     const loadCategoryInfo = async () => {
-      // 먼저 fallback 데이터로 즉시 업데이트 (텍스트는 즉시 변경)
-      const fallback = getCategoryInfo(currentCategoryId)
-      
-      // 즉시 텍스트 업데이트 (배경은 유지)
-      setCategoryInfo(prev => ({
-        ...fallback,
-        backgroundImage: prev.backgroundImage // 이전 배경 유지
-      }))
+      setCategoryLoading(true)
+      setCategoryError(null)
       
       try {
-        const dbCategory: any = await CategoryService.getCategoryById(currentCategoryId)
+        console.log('🔍 Loading category info for ID:', currentCategoryId)
+        const { data: dbCategory, error } = await httpQueries.getCategoryById(currentCategoryId)
         
-        // 컴포넌트가 언마운트되었거나 카테고리가 변경된 경우 무시
         if (!mounted) return
         
-        if (dbCategory) {
-          // DB 데이터를 Hero Section 형식에 맞게 변환
-          const newInfo = {
-            id: dbCategory.id,
-            name: dbCategory.title_ko || dbCategory.name,
-            enName: dbCategory.title_en || dbCategory.name,
-            description: dbCategory.description || `${dbCategory.name} 제품 목록`,
-            backgroundImage: dbCategory.background_image || fallback.backgroundImage
-          }
-          
-          // 부드러운 전환을 위해 startTransition 사용
-          startTransition(() => {
-            if (mounted) {
-              setCategoryInfo(newInfo)
-            }
-          })
+        if (error) {
+          throw error
         }
+        
+        if (!dbCategory) {
+          throw new Error(`Category with ID ${currentCategoryId} not found`)
+        }
+        
+        // DB 데이터를 Hero Section 형식에 맞게 변환
+        const categoryInfo = {
+          id: String(dbCategory.id),
+          name: dbCategory.title_ko || dbCategory.name || 'Unknown Category',
+          enName: dbCategory.title_en || dbCategory.name || 'Unknown Category',
+          description: dbCategory.description || `${dbCategory.name} 제품 목록`,
+          backgroundImage: dbCategory.background_image || '/img/backgrounds/camera-cis-bg.png'
+        }
+        
+        console.log('✅ Category info loaded:', categoryInfo)
+        setCategoryInfo(categoryInfo)
+        
       } catch (err) {
-        console.error('Failed to load category info:', err)
-        // 에러 발생 시에도 fallback 데이터는 이미 설정됨
+        console.error('❌ Failed to load category info:', err)
+        setCategoryError(err instanceof Error ? err.message : 'Failed to load category')
+      } finally {
         if (mounted) {
-          startTransition(() => {
-            setCategoryInfo(fallback)
-          })
+          setCategoryLoading(false)
         }
       }
     }
     
     loadCategoryInfo()
     
-    // Cleanup 함수
     return () => {
       mounted = false
     }
@@ -536,12 +511,12 @@ function ProductsContent() {
     setShowComparisonLimitModal(true)
   }
 
-  if (error) {
+  if (error || categoryError) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">오류가 발생했습니다</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <p className="text-gray-600 mb-6">{error || categoryError}</p>
           <button 
             onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
@@ -552,6 +527,23 @@ function ProductsContent() {
       </div>
     )
   }
+
+  if (categoryLoading || !categoryInfo) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">카테고리 정보를 불러오는 중...</h2>
+        </div>
+      </div>
+    )
+  }
+
+  // 동적 브레드크럼 생성
+  const breadcrumbs = [
+    { label: 'Home', href: '/' },
+    { label: '제품', href: '/products' },
+    { label: categoryInfo.name, active: true }
+  ]
 
   return (
     <ProductsPageLayout
@@ -577,8 +569,8 @@ function ProductsContent() {
         {/* Filter Sidebar */}
         <FilterSidebar 
           categories={siblingCategories}
-          categoryName={fallbackCategoryInfo.name}
-          selectedCategory={CATEGORY_NAME_MAP[currentCategoryId] || 'CIS'}
+          categoryName={categoryInfo.name}
+          selectedCategory={categoryInfo.name}
           isMobile={false}
           isOpen={isMobileFilterOpen}
           onClose={() => setIsMobileFilterOpen(false)}

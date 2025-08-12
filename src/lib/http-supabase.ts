@@ -619,6 +619,20 @@ export const httpQueries = {
     return { data: data || [], error }
   },
 
+  // Get single category by ID
+  async getCategoryById(categoryId: string) {
+    const { data, error } = await httpSupabase.query('categories', {
+      select: 'id,name,title_ko,title_en,description,background_image',
+      filters: { id: categoryId }
+    })
+    
+    if (error) {
+      return { data: null, error }
+    }
+    
+    return { data: data?.[0] || null, error: null }
+  },
+
   // Test table existence
   async testTable(tableName: string) {
     const { data, error } = await httpSupabase.query(tableName, {
