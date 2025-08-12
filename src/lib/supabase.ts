@@ -3,11 +3,59 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// Enhanced validation
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+  console.error('❌ Supabase Configuration Error:')
+  console.error('   NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅ Set' : '❌ Missing')
+  console.error('   NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing')
+  throw new Error('Missing Supabase environment variables. Please check your .env.local file.')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Validate URL format
+try {
+  const url = new URL(supabaseUrl)
+  if (!url.hostname.includes('supabase')) {
+    console.warn('⚠️ Warning: Supabase URL does not contain "supabase". Is this correct?', supabaseUrl)
+  }
+} catch (e) {
+  console.error('❌ Invalid Supabase URL format:', supabaseUrl)
+  throw new Error('Invalid NEXT_PUBLIC_SUPABASE_URL format')
+}
+
+// Create client with enhanced options
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    headers: {
+      'x-client-info': 'virex-admin'
+    }
+  }
+})
+
+// Test connection helper
+export async function testSupabaseConnection() {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id')
+      .limit(1)
+    
+    if (error) {
+      console.error('❌ Supabase connection test failed:', error)
+      return { connected: false, error }
+    }
+    
+    console.log('✅ Supabase connection successful')
+    return { connected: true, error: null }
+  } catch (err) {
+    console.error('❌ Supabase connection test error:', err)
+    return { connected: false, error: err }
+  }
+}
 
 export type Database = {
   public: {

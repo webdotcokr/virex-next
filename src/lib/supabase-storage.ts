@@ -46,15 +46,27 @@ export async function uploadFile(
     console.log('📤 Uploading file:', { fileName, filePath, size: file.size });
 
     // Upload file to Supabase Storage
-    const { error: uploadError } = await supabase.storage
+    console.log('🔗 Supabase connection test:', {
+      url: supabase.supabaseUrl,
+      key: supabase.supabaseKey?.substring(0, 20) + '...'
+    });
+    
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false, // Don't overwrite existing files
       });
 
+    console.log('📊 Raw upload response:', { uploadData, uploadError });
+
     if (uploadError) {
-      console.error('❌ Upload error:', uploadError);
+      console.error('❌ Upload error details:', {
+        message: uploadError.message,
+        statusCode: uploadError.statusCode,
+        error: uploadError.error,
+        details: uploadError
+      });
       return {
         success: false,
         error: uploadError.message,
