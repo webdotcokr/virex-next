@@ -22,12 +22,22 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
+  const error = searchParams.get('error')
 
   useEffect(() => {
     if (user) {
       router.push(redirectTo)
     }
   }, [user, router, redirectTo])
+
+  useEffect(() => {
+    // URL에서 에러 메시지 처리
+    if (error === 'unauthorized') {
+      setGeneralError('관리자 권한이 필요합니다. 관리자 계정으로 로그인해주세요.')
+    } else if (error === 'server_error') {
+      setGeneralError('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    }
+  }, [error])
 
   // 입력 값 변경 핸들러
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {

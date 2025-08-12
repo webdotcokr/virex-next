@@ -24,6 +24,7 @@ interface MemberProfile {
   agree_marketing: boolean
   member_level?: number
   status?: number
+  role: string
   created_at: string
   updated_at: string
 }
@@ -53,6 +54,8 @@ interface AuthContextType {
   profile: MemberProfile | null
   session: Session | null
   loading: boolean
+  isAdmin: boolean
+  role: string | null
   signIn: (email: string, password: string) => Promise<{ error?: string }>
   signUp: (signUpData: SignUpData) => Promise<{ error?: string }>
   signOut: () => Promise<void>
@@ -66,6 +69,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<MemberProfile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  
+  // 관리자 권한 상태
+  const isAdmin = profile?.role === 'admin'
+  const role = profile?.role || null
 
 
   // 회원 프로필 조회
@@ -119,7 +126,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           agree_privacy: true,  
           agree_marketing: false, // 마케팅은 기본적으로 false
           member_level: null, // tbl_member_level 데이터가 없으므로 NULL
-          status: 0
+          status: 0,
+          role: 'member' // 기본적으로 일반 회원
         })
         .select()
         .single()
@@ -252,7 +260,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           agree_privacy: signUpData.agree_privacy,
           agree_marketing: signUpData.agree_marketing,
           member_level: null, // tbl_member_level 데이터가 없으므로 NULL
-          status: 0 // 정상 상태
+          status: 0, // 정상 상태
+          role: 'member' // 기본적으로 일반 회원
         })
 
       if (profileError) {
@@ -277,6 +286,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     session,
     loading,
+    isAdmin,
+    role,
     signIn,
     signUp,
     signOut,

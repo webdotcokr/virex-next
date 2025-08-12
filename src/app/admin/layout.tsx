@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
+import AdminRoute from '@/components/AdminRoute';
 
 const pageConfig: Record<string, { title?: string; showExportButton?: boolean }> = {
   '/admin': { title: 'Dashboard' },
@@ -18,11 +19,13 @@ export default function AdminLayoutPage({
   const config = pageConfig[pathname] || {};
 
   return (
-    <AdminLayout 
-      title={config.title}
-      showExportButton={config.showExportButton}
-    >
-      {children}
-    </AdminLayout>
+    <AdminRoute>
+      <AdminLayout 
+        title={config.title}
+        showExportButton={config.showExportButton}
+      >
+        {children}
+      </AdminLayout>
+    </AdminRoute>
   );
 }
