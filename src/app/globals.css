@@ -2188,7 +2188,7 @@ footer #footer-bottom #footer-copyright {
           }
             .grid-item-thumbnail {
               width: 100%;
-              min-height: 200px;
+              
               /* height: 270px; */
               height: auto;
               overflow: hidden;

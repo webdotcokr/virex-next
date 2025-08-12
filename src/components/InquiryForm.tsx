@@ -181,7 +181,7 @@ const InquiryForm = () => {
 
       <div className="form-row black-border-top mt-20px">
         <div className="form-item">
-          <label htmlFor="name">이름 <span style={{ color: '#E92C1E' }}>*</span></label>
+          <label htmlFor="name">이름</label>
           <input 
             type="text" 
             id="name" 
@@ -232,7 +232,7 @@ const InquiryForm = () => {
 
       <div className="form-row gray-border-top">
         <div className="form-item">
-          <label htmlFor="email">이메일 <span style={{ color: '#E92C1E' }}>*</span></label>
+          <label htmlFor="email">이메일</label>
           <input 
             type="email" 
             id="email" 
@@ -258,7 +258,7 @@ const InquiryForm = () => {
 
       <div className="form-row gray-border-top">
         <div className="form-item">
-          <label htmlFor="contact_path">컨택 경로 <span style={{ color: '#E92C1E' }}>*</span></label>
+          <label htmlFor="contact_path">컨택 경로 </label>
           <select 
             id="contact_path" 
             name="contact_path" 

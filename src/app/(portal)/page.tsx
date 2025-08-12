@@ -19,42 +19,42 @@ export default function Home() {
   const mainProducts = [
     {
       title: '카메라',
-      href: '/products?type=camera&category=CIS',
+      href: '/products?categories=9',
       image:  '/img/main-products/01.png'
     },
     {
       title: '렌즈',
-      href: '/products?type=lens&category=Large Format',
+      href: '/products?categories=15',
       image: '/img/main-products/02.png'
     },
     {
       title: '3D 카메라',
-      href: '/products?type=3d-camera&category=3D Laser Profiler',
+      href: '/products?categories=18',
       image: '/img/main-products/03.png'
     },
     {
       title: '오토포커스모듈',
-      href: '/products?type=af-module&category=Auto Focus Module',
+      href: '/products?categories=4',
       image: '/img/main-products/04.png'
     },
     {
       title: '조명',
-      href: '/products?type=light&category=조명',
+      href: '/products?categories=20',
       image: '/img/main-products/05.png'
     },
     {
       title: '프레임그래버',
-      href: '/products?type=frame-grabber&category=프레임그래버',
+      href: '/products?categories=23',
       image: '/img/main-products/06.png'
     },
     {
       title: '소프트웨어',
-      href: '/products?type=software&category=소프트웨어',
+      href: '/products?categories=7',
       image: '/img/main-products/07.png'
     },
     {
       title: '주변기기',
-      href: '/products?type=accessory&category=주변기기',
+      href: '/products?categories=26',
       image: '/img/main-products/08.png'
     }
   ]
