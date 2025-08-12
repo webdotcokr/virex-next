@@ -701,6 +701,9 @@ export default function CategoriesDataGrid() {
             '& .MuiDataGrid-row:hover': {
               backgroundColor: '#F8F9FB',
             },
+            '& .MuiDataGrid-cell': {
+              lineHeight: 'auto !important',
+            },
           }}
         />
       </Box>

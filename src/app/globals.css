@@ -594,7 +594,7 @@ header .horizontal-menu .top-menu-item.active a {
 
 .submenu-column ul li {
   margin-bottom: 0.5rem;
-  text-align: center;
+  text-align: left;
   line-height: 2rem;
 }
 
@@ -3859,29 +3859,10 @@ header.scrolled #search-bar .close-icon {
   will-change: left; /* Optimize for position changes */
 }
 
-/* Ensure submenu columns are positioned correctly */
-.submenu-column {
-  position: absolute;
-  top: 0;
-  min-width: 200px;
-  white-space: nowrap;
-}
 
 /* Expand hover area for smoother interaction */
 .top-menu-item {
   position: relative;
-}
-
-/* Create invisible bridge between menu item and megamenu */
-.top-menu-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -10px;
-  right: -10px;
-  bottom: 0;
-  z-index: 1;
-  pointer-events: auto;
 }
 
 /* Extend hover area when megamenu is active */

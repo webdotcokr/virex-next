@@ -264,7 +264,7 @@ export default function NewsletterDataGrid() {
       clearTimeout(timeoutId);
       setLoading(false);
     }
-  }, [paginationModel, loading]);
+  }, [paginationModel]);
 
   // Load data when component mounts or pagination changes
   useEffect(() => {
@@ -504,6 +504,9 @@ export default function NewsletterDataGrid() {
             },
             '& .MuiDataGrid-row:hover': {
               backgroundColor: '#F8F9FB',
+            },
+            '& .MuiDataGrid-cell': {
+              lineHeight: 'auto !important',
             },
           }}
         />

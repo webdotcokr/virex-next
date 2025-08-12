@@ -356,7 +356,7 @@ export default function InquiriesDataGrid() {
       clearTimeout(timeoutId);
       setLoading(false);
     }
-  }, [paginationModel, statusFilter, loading]);
+  }, [paginationModel, statusFilter]);
 
   // Load data when component mounts or filters change
   useEffect(() => {
@@ -536,6 +536,9 @@ export default function InquiriesDataGrid() {
             },
             '& .MuiDataGrid-row:hover': {
               backgroundColor: '#F8F9FB',
+            },
+            '& .MuiDataGrid-cell': {
+              lineHeight: 'auto !important',
             },
           }}
         />
