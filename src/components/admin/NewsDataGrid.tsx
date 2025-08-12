@@ -32,11 +32,20 @@ import {
   Star as StarIcon,
   StarBorder as StarBorderIcon,
 } from '@mui/icons-material';
-import { supabase } from '@/lib/supabase';
+import { httpQueries } from '@/lib/http-supabase';
 import FileUploadComponent from './FileUploadComponent';
-import type { Database } from '@/lib/supabase';
 
-type News = Database['public']['Tables']['news']['Row'];
+interface News {
+  id: number
+  title: string
+  content: string
+  thumbnail_url?: string
+  is_featured?: boolean
+  category_id: number
+  view_count?: number
+  created_at?: string
+  updated_at?: string
+}
 
 export default function NewsDataGrid() {
   const [rows, setRows] = useState<News[]>([]);
@@ -176,53 +185,27 @@ export default function NewsDataGrid() {
     setLoading(true);
     try {
       const categoryId = getCurrentCategoryId();
-      console.log('🔄 Fetching news...', { 
-        paginationModel,
-        categoryId,
-        tab: selectedTab === 0 ? 'News' : 'Media'
-      });
       
-      const { data, error, count } = await supabase
-        .from('news')
-        .select('*', { count: 'exact' })
-        .eq('category_id', categoryId)
-        .range(
-          paginationModel.page * paginationModel.pageSize,
-          (paginationModel.page + 1) * paginationModel.pageSize - 1
-        )
-        .order('created_at', { ascending: false });
+      const [dataResult, countResult] = await Promise.all([
+        httpQueries.getGenericData('news', {
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          orderBy: 'created_at',
+          orderDirection: 'desc',
+          filters: { category_id: categoryId }
+        }),
+        httpQueries.getGenericCount('news', {
+          filters: { category_id: categoryId }
+        })
+      ]);
 
-      console.log('✅ Supabase response:', { 
-        dataCount: data?.length, 
-        totalCount: count, 
-        error,
-      });
+      if (dataResult.error) throw dataResult.error;
 
-      if (error) {
-        console.error('❌ Supabase error details:', error);
-        throw error;
-      }
-
-      setRows(data || []);
-      setTotalRows(count || 0);
+      setRows(dataResult.data as News[]);
+      setTotalRows(countResult.count || 0);
       
-      if (data && data.length > 0) {
-        console.log(`✅ Successfully loaded ${data.length} ${selectedTab === 0 ? 'news' : 'media'} out of ${count} total`);
-        setSnackbar({
-          open: true,
-          message: `Loaded ${data.length} ${selectedTab === 0 ? 'news' : 'media'} items`,
-          severity: 'success',
-        });
-      } else {
-        console.log(`ℹ️ No ${selectedTab === 0 ? 'news' : 'media'} found`);
-        setSnackbar({
-          open: true,
-          message: `No ${selectedTab === 0 ? 'news' : 'media'} found`,
-          severity: 'info',
-        });
-      }
     } catch (error) {
-      console.error('❌ Error fetching news:', error);
+      console.error('Error fetching news:', error);
       setSnackbar({
         open: true,
         message: `Failed to load ${selectedTab === 0 ? 'news' : 'media'}: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -270,31 +253,14 @@ export default function NewsDataGrid() {
     }
 
     try {
-      console.log('Updating news:', editDialog.news.id, {
+      const { error } = await httpQueries.updateGeneric('news', editDialog.news.id, {
         title: editDialog.title.trim(),
         content: editDialog.content,
         thumbnail_url: editDialog.thumbnailUrl || null,
         is_featured: editDialog.isFeatured,
       });
 
-      const { data, error } = await supabase
-        .from('news')
-        .update({
-          title: editDialog.title.trim(),
-          content: editDialog.content,
-          thumbnail_url: editDialog.thumbnailUrl || null,
-          is_featured: editDialog.isFeatured,
-        })
-        .eq('id', editDialog.news.id)
-        .select()
-        .single();
-
-      console.log('Update response:', { data, error });
-
-      if (error) {
-        console.error('Update error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -303,7 +269,7 @@ export default function NewsDataGrid() {
       });
 
       setEditDialog({ open: false, news: null, title: '', content: '', thumbnailUrl: '', isFeatured: false });
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error updating news:', error);
       setSnackbar({
@@ -338,33 +304,17 @@ export default function NewsDataGrid() {
 
     try {
       const categoryId = getCurrentCategoryId();
-      console.log('Adding new news:', {
+      
+      const { error } = await httpQueries.insertGeneric('news', {
         title: addDialog.title.trim(),
         content: addDialog.content,
         thumbnail_url: addDialog.thumbnailUrl || null,
         is_featured: addDialog.isFeatured,
         category_id: categoryId,
+        view_count: 0,
       });
 
-      const { data, error } = await supabase
-        .from('news')
-        .insert({
-          title: addDialog.title.trim(),
-          content: addDialog.content,
-          thumbnail_url: addDialog.thumbnailUrl || null,
-          is_featured: addDialog.isFeatured,
-          category_id: categoryId,
-          view_count: 0,
-        })
-        .select()
-        .single();
-
-      console.log('Insert response:', { data, error });
-
-      if (error) {
-        console.error('Insert error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -373,7 +323,7 @@ export default function NewsDataGrid() {
       });
 
       setAddDialog({ open: false, title: '', content: '', thumbnailUrl: '', isFeatured: false });
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error adding news:', error);
       setSnackbar({
@@ -389,20 +339,9 @@ export default function NewsDataGrid() {
     if (!confirm(`Are you sure you want to delete this ${selectedTab === 0 ? 'news' : 'media'} item?`)) return;
 
     try {
-      console.log('Deleting news:', id);
+      const { error } = await httpQueries.deleteGeneric('news', id);
 
-      const { data, error } = await supabase
-        .from('news')
-        .delete()
-        .eq('id', id)
-        .select();
-
-      console.log('Delete response:', { data, error });
-
-      if (error) {
-        console.error('Delete error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -410,7 +349,7 @@ export default function NewsDataGrid() {
         severity: 'success',
       });
 
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error deleting news:', error);
       setSnackbar({

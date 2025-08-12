@@ -31,12 +31,33 @@ import {
   Add as AddIcon,
   Image as ImageIcon,
 } from '@mui/icons-material';
-import { supabase } from '@/lib/supabase';
+import { httpQueries } from '@/lib/http-supabase';
 import FileUploadComponent from './FileUploadComponent';
-import type { Database } from '@/lib/supabase';
 
-type Series = Database['public']['Tables']['series']['Row'];
-type Category = Database['public']['Tables']['categories']['Row'];
+interface Series {
+  id: number
+  series_name: string
+  category_id?: number | null
+  intro_text?: string
+  short_text?: string
+  youtube_url?: string
+  feature_image_url?: string
+  feature_title_1?: string
+  feature_desc_1?: string
+  feature_title_2?: string
+  feature_desc_2?: string
+  feature_title_3?: string
+  feature_desc_3?: string
+  feature_title_4?: string
+  feature_desc_4?: string
+  created_at?: string
+  updated_at?: string
+}
+
+interface Category {
+  id: number
+  name: string
+}
 
 export default function SeriesDataGrid() {
   const [rows, setRows] = useState<Series[]>([]);
@@ -229,13 +250,13 @@ export default function SeriesDataGrid() {
   // Fetch categories
   const fetchCategories = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name')
-        .order('name');
+      const { data, error } = await httpQueries.getGenericData('categories', {
+        orderBy: 'name',
+        orderDirection: 'asc'
+      });
 
       if (error) throw error;
-      setCategories(data || []);
+      setCategories(data as Category[] || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -245,48 +266,23 @@ export default function SeriesDataGrid() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('🔄 Fetching series...', { paginationModel });
+      const [dataResult, countResult] = await Promise.all([
+        httpQueries.getGenericData('series', {
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          orderBy: 'id',
+          orderDirection: 'asc'
+        }),
+        httpQueries.getGenericCount('series')
+      ]);
+
+      if (dataResult.error) throw dataResult.error;
+
+      setRows(dataResult.data as Series[] || []);
+      setTotalRows(countResult.count || 0);
       
-      const { data, error, count } = await supabase
-        .from('series')
-        .select('*', { count: 'exact' })
-        .range(
-          paginationModel.page * paginationModel.pageSize,
-          (paginationModel.page + 1) * paginationModel.pageSize - 1
-        )
-        .order('id', { ascending: true });
-
-      console.log('✅ Supabase response:', { 
-        dataCount: data?.length, 
-        totalCount: count, 
-        error,
-      });
-
-      if (error) {
-        console.error('❌ Supabase error details:', error);
-        throw error;
-      }
-
-      setRows(data || []);
-      setTotalRows(count || 0);
-      
-      if (data && data.length > 0) {
-        console.log(`✅ Successfully loaded ${data.length} series out of ${count} total`);
-        setSnackbar({
-          open: true,
-          message: `Loaded ${data.length} series`,
-          severity: 'success',
-        });
-      } else {
-        console.log('ℹ️ No series found');
-        setSnackbar({
-          open: true,
-          message: 'No series found',
-          severity: 'info',
-        });
-      }
     } catch (error) {
-      console.error('❌ Error fetching series:', error);
+      console.error('Error fetching series:', error);
       setSnackbar({
         open: true,
         message: `Failed to load series: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -356,34 +352,24 @@ export default function SeriesDataGrid() {
         feature_desc_4: editDialog.featureDesc4,
       });
 
-      const { data, error } = await supabase
-        .from('series')
-        .update({
-          series_name: editDialog.seriesName.trim(),
-          category_id: editDialog.categoryId,
-          intro_text: editDialog.introText,
-          short_text: editDialog.shortText,
-          youtube_url: editDialog.youtubeUrl,
-          feature_image_url: editDialog.featureImageUrl,
-          feature_title_1: editDialog.featureTitle1,
-          feature_desc_1: editDialog.featureDesc1,
-          feature_title_2: editDialog.featureTitle2,
-          feature_desc_2: editDialog.featureDesc2,
-          feature_title_3: editDialog.featureTitle3,
-          feature_desc_3: editDialog.featureDesc3,
-          feature_title_4: editDialog.featureTitle4,
-          feature_desc_4: editDialog.featureDesc4,
-        })
-        .eq('id', editDialog.series.id)
-        .select()
-        .single();
+      const { error } = await httpQueries.updateGeneric('series', editDialog.series.id, {
+        series_name: editDialog.seriesName.trim(),
+        category_id: editDialog.categoryId,
+        intro_text: editDialog.introText,
+        short_text: editDialog.shortText,
+        youtube_url: editDialog.youtubeUrl,
+        feature_image_url: editDialog.featureImageUrl,
+        feature_title_1: editDialog.featureTitle1,
+        feature_desc_1: editDialog.featureDesc1,
+        feature_title_2: editDialog.featureTitle2,
+        feature_desc_2: editDialog.featureDesc2,
+        feature_title_3: editDialog.featureTitle3,
+        feature_desc_3: editDialog.featureDesc3,
+        feature_title_4: editDialog.featureTitle4,
+        feature_desc_4: editDialog.featureDesc4,
+      });
 
-      console.log('Update response:', { data, error });
-
-      if (error) {
-        console.error('Update error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -470,33 +456,24 @@ export default function SeriesDataGrid() {
         feature_desc_4: addDialog.featureDesc4,
       });
 
-      const { data, error } = await supabase
-        .from('series')
-        .insert({
-          series_name: addDialog.seriesName.trim(),
-          category_id: addDialog.categoryId,
-          intro_text: addDialog.introText,
-          short_text: addDialog.shortText,
-          youtube_url: addDialog.youtubeUrl,
-          feature_image_url: addDialog.featureImageUrl,
-          feature_title_1: addDialog.featureTitle1,
-          feature_desc_1: addDialog.featureDesc1,
-          feature_title_2: addDialog.featureTitle2,
-          feature_desc_2: addDialog.featureDesc2,
-          feature_title_3: addDialog.featureTitle3,
-          feature_desc_3: addDialog.featureDesc3,
-          feature_title_4: addDialog.featureTitle4,
-          feature_desc_4: addDialog.featureDesc4,
-        })
-        .select()
-        .single();
+      const { error } = await httpQueries.insertGeneric('series', {
+        series_name: addDialog.seriesName.trim(),
+        category_id: addDialog.categoryId,
+        intro_text: addDialog.introText,
+        short_text: addDialog.shortText,
+        youtube_url: addDialog.youtubeUrl,
+        feature_image_url: addDialog.featureImageUrl,
+        feature_title_1: addDialog.featureTitle1,
+        feature_desc_1: addDialog.featureDesc1,
+        feature_title_2: addDialog.featureTitle2,
+        feature_desc_2: addDialog.featureDesc2,
+        feature_title_3: addDialog.featureTitle3,
+        feature_desc_3: addDialog.featureDesc3,
+        feature_title_4: addDialog.featureTitle4,
+        feature_desc_4: addDialog.featureDesc4,
+      });
 
-      console.log('Insert response:', { data, error });
-
-      if (error) {
-        console.error('Insert error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -537,20 +514,9 @@ export default function SeriesDataGrid() {
     if (!confirm('Are you sure you want to delete this series?')) return;
 
     try {
-      console.log('Deleting series:', id);
+      const { error } = await httpQueries.deleteGeneric('series', id);
 
-      const { data, error } = await supabase
-        .from('series')
-        .delete()
-        .eq('id', id)
-        .select();
-
-      console.log('Delete response:', { data, error });
-
-      if (error) {
-        console.error('Delete error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -558,7 +524,7 @@ export default function SeriesDataGrid() {
         severity: 'success',
       });
 
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error deleting series:', error);
       setSnackbar({

@@ -31,7 +31,7 @@ import {
   FileUpload as UploadIcon,
   Download as DownloadIcon,
 } from '@mui/icons-material';
-import { supabase } from '@/lib/supabase';
+import { httpQueries } from '@/lib/http-supabase';
 
 interface ProductCategoryDataGridProps {
   tableName: string;
@@ -50,6 +50,8 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
   const [columns, setColumns] = useState<GridColDef[]>([]);
   const [schema, setSchema] = useState<TableSchema[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
   const [totalRows, setTotalRows] = useState(0);
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
@@ -88,41 +90,37 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
 
   // Fetch table schema
   const fetchSchema = useCallback(async () => {
+    // Set timeout for schema fetch
+    const timeoutId = setTimeout(() => {
+      console.error(`⏰ Schema fetch timeout for ${tableName}`);
+      setError('Schema loading timed out. Using default schema.');
+      setDefaultSchema();
+    }, 5000); // 5 second timeout
+    
     try {
       console.log(`🔍 Fetching schema for table: ${tableName}`);
       
       // Fetch one row to infer schema from actual data
-      const { data: sampleData, error: sampleError } = await supabase
-        .from(tableName)
-        .select('*')
-        .limit(1);
+      const sampleResult = await httpQueries.getGenericData(tableName, {
+        limit: 1
+      });
       
-      if (!sampleError && sampleData) {
+      if (!sampleResult.error && sampleResult.data) {
         let inferredSchema: TableSchema[];
         
-        if (sampleData.length > 0) {
+        if (sampleResult.data.length > 0) {
           // Infer from actual data
-          inferredSchema = Object.keys(sampleData[0]).map(col => ({
+          inferredSchema = Object.keys(sampleResult.data[0]).map(col => ({
             column_name: col,
-            data_type: typeof sampleData[0][col] === 'boolean' ? 'boolean' : 
-                       typeof sampleData[0][col] === 'number' ? 'numeric' : 
+            data_type: typeof sampleResult.data[0][col] === 'boolean' ? 'boolean' : 
+                       typeof sampleResult.data[0][col] === 'number' ? 'numeric' : 
                        col.includes('_at') ? 'timestamp' : 'text',
             is_nullable: 'YES',
             column_default: null,
           }));
         } else {
-          // If no data, try to get column info from an empty query
-          const { data: emptyData } = await supabase
-            .from(tableName)
-            .select('*')
-            .limit(0);
-          
-          // Create basic schema from column names
-          const columns = Object.keys(emptyData || {});
-          if (columns.length === 0) {
-            // Fallback to basic columns
-            columns.push('id', 'part_number', 'series_id', 'is_active', 'is_new', 'created_at', 'updated_at');
-          }
+          // Fallback to basic columns if no data
+          const columns = ['id', 'part_number', 'series_id', 'is_active', 'is_new', 'created_at', 'updated_at'];
           
           inferredSchema = columns.map(col => ({
             column_name: col,
@@ -149,24 +147,32 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
         
         setSchema(inferredSchema);
         console.log(`✅ Schema inferred for ${tableName}:`, inferredSchema);
+        clearTimeout(timeoutId);
       } else {
-        console.error('❌ Error fetching sample data:', sampleError);
-        // Set a minimal default schema
-        setSchema([
-          { column_name: 'id', data_type: 'bigint', is_nullable: 'NO', column_default: null },
-          { column_name: 'part_number', data_type: 'text', is_nullable: 'YES', column_default: null },
-          { column_name: 'is_active', data_type: 'boolean', is_nullable: 'YES', column_default: null },
-          { column_name: 'is_new', data_type: 'boolean', is_nullable: 'YES', column_default: null },
-        ]);
+        console.error('❌ Error fetching sample data:', sampleResult.error);
+        clearTimeout(timeoutId);
+        setError(`Failed to load schema: ${sampleResult.error?.message || 'Unknown error'}`);
+        setDefaultSchema();
       }
     } catch (error) {
       console.error('❌ Error in fetchSchema:', error);
-      // Set a minimal default schema
-      setSchema([
-        { column_name: 'id', data_type: 'bigint', is_nullable: 'NO', column_default: null },
-        { column_name: 'part_number', data_type: 'text', is_nullable: 'YES', column_default: null },
-      ]);
+      clearTimeout(timeoutId);
+      setError(`Schema error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setDefaultSchema();
     }
+  }, [tableName]);
+
+  // Set default schema helper
+  const setDefaultSchema = useCallback(() => {
+    const defaultSchema: TableSchema[] = [
+      { column_name: 'id', data_type: 'bigint', is_nullable: 'NO', column_default: null },
+      { column_name: 'part_number', data_type: 'text', is_nullable: 'YES', column_default: null },
+      { column_name: 'series', data_type: 'text', is_nullable: 'YES', column_default: null },
+      { column_name: 'is_active', data_type: 'boolean', is_nullable: 'YES', column_default: null },
+      { column_name: 'is_new', data_type: 'boolean', is_nullable: 'YES', column_default: null },
+    ];
+    setSchema(defaultSchema);
+    console.log('📋 Using default schema for', tableName);
   }, [tableName]);
 
   // Build columns from schema
@@ -239,32 +245,48 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
   // Fetch data
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
+    
+    // Set timeout for data fetch
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setError('Data loading timed out. Please check your connection and try again.');
+      setRows([]);
+    }, 10000); // 10 second timeout
+    
     try {
       console.log(`🔄 Fetching data from ${tableName}...`);
       
-      const { data, error, count } = await supabase
-        .from(tableName)
-        .select('*', { count: 'exact' })
-        .range(
-          paginationModel.page * paginationModel.pageSize,
-          (paginationModel.page + 1) * paginationModel.pageSize - 1
-        )
-        .order('id', { ascending: true });
+      const [dataResult, countResult] = await Promise.all([
+        httpQueries.getGenericData(tableName, {
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          orderBy: 'id',
+          orderDirection: 'asc'
+        }),
+        httpQueries.getGenericCount(tableName)
+      ]);
 
-      if (error) {
-        console.error('❌ Fetch error:', error);
-        throw error;
+      if (dataResult.error) {
+        console.error('❌ Fetch error:', dataResult.error);
+        clearTimeout(timeoutId);
+        throw dataResult.error;
       }
 
-      setRows(data || []);
-      setTotalRows(count || 0);
+      clearTimeout(timeoutId);
+      setRows(dataResult.data || []);
+      setTotalRows(countResult.count || 0);
+      setError(null);
       
-      console.log(`✅ Loaded ${data?.length} rows out of ${count} total`);
+      console.log(`✅ Loaded ${dataResult.data?.length} rows out of ${countResult.count} total`);
     } catch (error) {
       console.error('❌ Error fetching data:', error);
+      clearTimeout(timeoutId);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setError(`Failed to load data: ${errorMessage}`);
       setSnackbar({
         open: true,
-        message: `Failed to load data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to load data: ${errorMessage}`,
         severity: 'error',
       });
       setRows([]);
@@ -273,6 +295,15 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
       setLoading(false);
     }
   }, [tableName, paginationModel]);
+
+  // Retry handler
+  const handleRetry = useCallback(async () => {
+    setIsRetrying(true);
+    setError(null);
+    await fetchSchema();
+    // Data will be fetched automatically when schema is ready
+    setIsRetrying(false);
+  }, [fetchSchema]);
 
   // Load schema and data when component mounts or table changes
   useEffect(() => {
@@ -306,10 +337,7 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
       
       console.log(`Updating ${tableName} record:`, id, updateData);
 
-      const { error } = await supabase
-        .from(tableName)
-        .update(updateData)
-        .eq('id', id);
+      const { error } = await httpQueries.updateGeneric(tableName, id, updateData);
 
       if (error) {
         console.error('Update error:', error);
@@ -361,9 +389,7 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
     try {
       console.log(`Adding new ${tableName} record:`, addDialog.data);
 
-      const { error } = await supabase
-        .from(tableName)
-        .insert(addDialog.data);
+      const { error } = await httpQueries.insertGeneric(tableName, addDialog.data);
 
       if (error) {
         console.error('Insert error:', error);
@@ -395,10 +421,7 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
     try {
       console.log(`Deleting ${tableName} record:`, id);
 
-      const { error } = await supabase
-        .from(tableName)
-        .delete()
-        .eq('id', id);
+      const { error } = await httpQueries.deleteGeneric(tableName, id);
 
       if (error) {
         console.error('Delete error:', error);
@@ -517,30 +540,20 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
             record[header] = value;
           });
 
-          // Check if record exists
-          const { data: existing } = await supabase
-            .from(tableName)
-            .select('id')
-            .eq('part_number', record.part_number)
-            .single();
-
-          if (existing) {
-            // Update existing record
-            const { error } = await supabase
-              .from(tableName)
-              .update(record)
-              .eq('part_number', record.part_number);
-              
-            if (error) throw error;
-            results.updated++;
-          } else {
-            // Insert new record
-            const { error } = await supabase
-              .from(tableName)
-              .insert(record);
-              
-            if (error) throw error;
-            results.inserted++;
+          // Check if record exists (simplified - just try to insert, fallback to update if needed)
+          try {
+            // Try insert first
+            const { error } = await httpQueries.insertGeneric(tableName, record);
+            if (error) {
+              // If insert fails, try update (assuming it's a duplicate)
+              const updateError = await httpQueries.updateGeneric(tableName, record.id || record.part_number, record);
+              if (updateError.error) throw updateError.error;
+              results.updated++;
+            } else {
+              results.inserted++;
+            }
+          } catch (insertUpdateError) {
+            throw insertUpdateError;
           }
 
           setUploadProgress(prev => ({ ...prev, processed: i + 1 }));
@@ -591,17 +604,19 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
       });
 
       // Fetch all data without pagination
-      const { data: allData, error } = await supabase
-        .from(tableName)
-        .select('*')
-        .order('id', { ascending: true });
+      const allDataResult = await httpQueries.getGenericData(tableName, {
+        limit: 10000, // Large limit to get all data
+        orderBy: 'id',
+        orderDirection: 'asc'
+      });
 
-      if (error) {
-        console.error('Export fetch error:', error);
-        throw error;
+      if (allDataResult.error) {
+        console.error('Export fetch error:', allDataResult.error);
+        throw allDataResult.error;
       }
 
-      if (!allData || allData.length === 0) {
+      const allData = allDataResult.data || [];
+      if (allData.length === 0) {
         setSnackbar({
           open: true,
           message: 'No data to export',
@@ -733,7 +748,7 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
             variant="outlined"
             startIcon={<UploadIcon />}
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploadProgress.isUploading}
+            disabled={uploadProgress.isUploading || loading}
           >
             Upload CSV
           </Button>
@@ -741,6 +756,7 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
             variant="outlined"
             startIcon={<DownloadIcon />}
             onClick={handleExport}
+            disabled={loading || error !== null}
           >
             Export
           </Button>
@@ -748,11 +764,32 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
             variant="contained"
             startIcon={<AddIcon />}
             onClick={handleAdd}
+            disabled={loading || error !== null}
           >
             Add Product
           </Button>
         </Box>
       </Box>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert 
+          severity="error" 
+          sx={{ mb: 2 }}
+          action={
+            <Button 
+              color="inherit" 
+              size="small"
+              onClick={handleRetry}
+              disabled={isRetrying}
+            >
+              {isRetrying ? 'Retrying...' : 'Retry'}
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      )}
 
       {/* Upload Progress */}
       {uploadProgress.isUploading && (

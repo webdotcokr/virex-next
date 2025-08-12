@@ -110,13 +110,14 @@ class HTTPSupabaseClient {
     
     // Add filters
     if (options.filters) {
-      console.log(`🚀 Processing filters:`, options.filters)
+      const DEBUG = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_HTTP === 'true'
+      if (DEBUG) console.log(`🚀 Processing filters:`, options.filters)
       Object.entries(options.filters).forEach(([key, value]) => {
-        console.log(`📋 Filter entry: ${key} = ${JSON.stringify(value)} (type: ${typeof value}, isArray: ${Array.isArray(value)})`)
+        if (DEBUG) console.log(`📋 Filter entry: ${key} = ${JSON.stringify(value)} (type: ${typeof value}, isArray: ${Array.isArray(value)})`)
         
         // 글로벌 안전장치: 잘못된 범위 형식 사전 차단
         if (typeof value === 'string' && value.includes('[') && !this.isValidRangeString(value)) {
-          console.log(`🚨 BLOCKED: Invalid range format detected: "${value}"`)
+          if (DEBUG) console.log(`🚨 BLOCKED: Invalid range format detected: "${value}"`)
           return // 이 필터를 완전히 무시
         }
         if (key === 'search' && typeof value === 'string' && value.trim()) {
@@ -124,37 +125,37 @@ class HTTPSupabaseClient {
           params.append('part_number', `ilike.*${value}*`)
         } else if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
           // 범위 필터: [100,499] 형태 (강화된 검증 적용)
-          console.log(`🔍 String range filter detected for ${key}: "${value}"`)
+          if (DEBUG) console.log(`🔍 String range filter detected for ${key}: "${value}"`)
           
           // 강화된 검증 로직 적용
           if (value.length < 5) { // 최소한 [1,2] 형태여야 함
-            console.log(`  ❌ Range too short, skipping: "${value}"`)
+            if (DEBUG) console.log(`  ❌ Range too short, skipping: "${value}"`)
           } else {
             const rangeStr = value.slice(1, -1) // 대괄호 제거
-            console.log(`  🔪 After slice: "${rangeStr}"`)
+            if (DEBUG) console.log(`  🔪 After slice: "${rangeStr}"`)
             
             // 쉼표가 정확히 하나 있는지 확인
             if (!rangeStr.includes(',') || rangeStr.split(',').length !== 2) {
-              console.log(`  ❌ Invalid range format (no comma or multiple commas): "${rangeStr}"`)
+              if (DEBUG) console.log(`  ❌ Invalid range format (no comma or multiple commas): "${rangeStr}"`)
             } else {
               const rangeParts = rangeStr.split(',')
               const range = rangeParts.map(rv => {
                 const trimmed = rv.trim()
                 if (trimmed === '') {
-                  console.log(`  ❌ Empty range part detected`)
+                  if (DEBUG) console.log(`  ❌ Empty range part detected`)
                   return NaN
                 }
                 return parseFloat(trimmed)
               })
-              console.log(`  🔢 Parsed range:`, range)
+              if (DEBUG) console.log(`  🔢 Parsed range:`, range)
               
               if (range.length === 2 && !isNaN(range[0]) && !isNaN(range[1]) && range[0] <= range[1]) {
-                console.log(`  ✅ Valid string range, adding params: ${key}=gte.${range[0]}, ${key}=lte.${range[1]}`)
+                if (DEBUG) console.log(`  ✅ Valid string range, adding params: ${key}=gte.${range[0]}, ${key}=lte.${range[1]}`)
                 params.append(key, `gte.${range[0]}`)
                 params.append(key, `lte.${range[1]}`)
               } else {
-                console.log(`  ❌ Invalid range (NaN or min > max):`, range)
-                console.log(`  📋 Skipping malformed string range filter for key "${key}": "${value}"`)
+                if (DEBUG) console.log(`  ❌ Invalid range (NaN or min > max):`, range)
+                if (DEBUG) console.log(`  📋 Skipping malformed string range filter for key "${key}": "${value}"`)
               }
             }
           }
@@ -166,37 +167,37 @@ class HTTPSupabaseClient {
           })
         } else if (Array.isArray(value)) {
           // 배열 값: 같은 필드 내에서는 OR 조건으로 처리
-          console.log(`🔍 Processing array value for ${key}:`, value)
+          if (DEBUG) console.log(`🔍 Processing array value for ${key}:`, value)
           
           const rangeConditions: string[] = []
           const exactConditions: string[] = []
           const negativeConditions: string[] = []
           
           value.forEach(v => {
-            console.log(`  📝 Processing value: "${v}" (type: ${typeof v})`)
+            if (DEBUG) console.log(`  📝 Processing value: "${v}" (type: ${typeof v})`)
             
             // 글로벌 안전장치 적용
             if (typeof v === 'string' && v.includes('[') && !this.isValidRangeString(v)) {
-              console.log(`  🚨 BLOCKED: Invalid array range format: "${v}"`)
+              if (DEBUG) console.log(`  🚨 BLOCKED: Invalid array range format: "${v}"`)
               return // 이 값 무시
             }
             
             if (typeof v === 'string' && v.startsWith('[') && v.endsWith(']')) {
               // 범위 필터: [301,400] 형태
-              console.log(`  📏 Range filter detected: ${v}`)
+              if (DEBUG) console.log(`  📏 Range filter detected: ${v}`)
               
               // 먼저 올바른 범위 형식인지 검증
               if (v.length < 5) { // 최소한 [1,2] 형태여야 함
-                console.log(`  ❌ Range too short, skipping: "${v}"`)
+                if (DEBUG) console.log(`  ❌ Range too short, skipping: "${v}"`)
                 return
               }
               
               const rangeStr = v.slice(1, -1) // 대괄호 제거
-              console.log(`  🔪 After slice: "${rangeStr}"`)
+              if (DEBUG) console.log(`  🔪 After slice: "${rangeStr}"`)
               
               // 쉼표가 정확히 하나 있는지 확인
               if (!rangeStr.includes(',') || rangeStr.split(',').length !== 2) {
-                console.log(`  ❌ Invalid range format (no comma or multiple commas): "${rangeStr}"`)
+                if (DEBUG) console.log(`  ❌ Invalid range format (no comma or multiple commas): "${rangeStr}"`)
                 return
               }
               
@@ -204,21 +205,21 @@ class HTTPSupabaseClient {
               const range = rangeParts.map(rv => {
                 const trimmed = rv.trim()
                 if (trimmed === '') {
-                  console.log(`  ❌ Empty range part detected`)
+                  if (DEBUG) console.log(`  ❌ Empty range part detected`)
                   return NaN
                 }
                 return parseFloat(trimmed)
               })
-              console.log(`  🔢 Parsed range:`, range)
+              if (DEBUG) console.log(`  🔢 Parsed range:`, range)
               
               if (range.length === 2 && !isNaN(range[0]) && !isNaN(range[1]) && range[0] <= range[1]) {
                 // PostgreSQL 범위 조건: (field >= min AND field <= max)
                 const condition = `and(${key}.gte.${range[0]},${key}.lte.${range[1]})`
-                console.log(`  ✅ Generated condition: "${condition}"`)
+                if (DEBUG) console.log(`  ✅ Generated condition: "${condition}"`)
                 rangeConditions.push(condition)
               } else {
-                console.log(`  ❌ Invalid range (NaN or min > max):`, range)
-                console.log(`  📋 Skipping malformed range filter for key "${key}": "${v}"`)
+                if (DEBUG) console.log(`  ❌ Invalid range (NaN or min > max):`, range)
+                if (DEBUG) console.log(`  📋 Skipping malformed range filter for key "${key}": "${v}"`)
               }
             } else if (typeof v === 'string' && v.startsWith('!')) {
               // 부정 필터: 별도로 처리 (AND 조건으로)
@@ -227,13 +228,13 @@ class HTTPSupabaseClient {
                 negativeConditions.push(`${key}.neq.${excludeValue}`)
               })
             } else {
-              console.log(`  🔍 Processing non-bracket value: "${v}" (type: ${typeof v})`);
+              if (DEBUG) console.log(`  🔍 Processing non-bracket value: "${v}" (type: ${typeof v})`);
               
               // 먼저 쉼표로 분리된 다중 값인지 확인 (잘못 합쳐진 경우 처리)
               if (typeof v === 'string' && v.includes(',')) {
-                console.log(`  🚨 Comma-separated value detected: "${v}"`);
+                if (DEBUG) console.log(`  🚨 Comma-separated value detected: "${v}"`);
                 const splitValues = v.split(',').map(sv => sv.trim());
-                console.log(`  🔄 Split into:`, splitValues);
+                if (DEBUG) console.log(`  🔄 Split into:`, splitValues);
                 
                 // 각 분리된 값을 재귀적으로 처리
                 splitValues.forEach(splitValue => {
@@ -246,10 +247,10 @@ class HTTPSupabaseClient {
                     
                     if (!isNaN(min) && !isNaN(max) && min <= max) {
                       const condition = `and(${key}.gte.${min},${key}.lte.${max})`;
-                      console.log(`  🎯 Split range token: "${splitValue}" → "${condition}"`);
+                      if (DEBUG) console.log(`  🎯 Split range token: "${splitValue}" → "${condition}"`);
                       rangeConditions.push(condition);
                     } else {
-                      console.log(`  ❌ Invalid split range token: "${splitValue}"`);
+                      if (DEBUG) console.log(`  ❌ Invalid split range token: "${splitValue}"`);
                       exactConditions.push(`${key}.eq.${splitValue}`);
                     }
                   } else {
@@ -263,10 +264,10 @@ class HTTPSupabaseClient {
                         '>': 'gt', 
                         '<': 'lt' 
                       };
-                      console.log(`  🔄 Split comparison: "${splitValue}" → "${key}.${operatorMap[operator]}.${numValue}"`);
+                      if (DEBUG) console.log(`  🔄 Split comparison: "${splitValue}" → "${key}.${operatorMap[operator]}.${numValue}"`);
                       exactConditions.push(`${key}.${operatorMap[operator]}.${numValue}`);
                     } else {
-                      console.log(`  📝 Split exact value: "${splitValue}"`);
+                      if (DEBUG) console.log(`  📝 Split exact value: "${splitValue}"`);
                       exactConditions.push(`${key}.eq.${splitValue}`);
                     }
                   }
@@ -282,10 +283,10 @@ class HTTPSupabaseClient {
                   if (!isNaN(min) && !isNaN(max) && min <= max) {
                     // 범위 조건: (field >= min AND field <= max)
                     const condition = `and(${key}.gte.${min},${key}.lte.${max})`;
-                    console.log(`  🎯 Array range token: "${v}" → "${condition}"`);
+                    if (DEBUG) console.log(`  🎯 Array range token: "${v}" → "${condition}"`);
                     rangeConditions.push(condition);
                   } else {
-                    console.log(`  ❌ Invalid array range token: "${v}"`);
+                    if (DEBUG) console.log(`  ❌ Invalid array range token: "${v}"`);
                     exactConditions.push(`${key}.eq.${v}`);
                   }
                 } else {
@@ -299,11 +300,11 @@ class HTTPSupabaseClient {
                       '>': 'gt', 
                       '<': 'lt' 
                     };
-                    console.log(`  🔄 Array comparison: "${v}" → "${key}.${operatorMap[operator]}.${numValue}"`);
+                    if (DEBUG) console.log(`  🔄 Array comparison: "${v}" → "${key}.${operatorMap[operator]}.${numValue}"`);
                     exactConditions.push(`${key}.${operatorMap[operator]}.${numValue}`);
                   } else {
                     // 정확한 값
-                    console.log(`  📝 Array exact value: "${v}"`);
+                    if (DEBUG) console.log(`  📝 Array exact value: "${v}"`);
                     exactConditions.push(`${key}.eq.${v}`);
                   }
                 }
@@ -311,17 +312,17 @@ class HTTPSupabaseClient {
             }
           })
           
-          console.log(`  📊 Final conditions - ranges: ${rangeConditions.length}, exact: ${exactConditions.length}, negative: ${negativeConditions.length}`)
+          if (DEBUG) console.log(`  📊 Final conditions - ranges: ${rangeConditions.length}, exact: ${exactConditions.length}, negative: ${negativeConditions.length}`)
           
           // OR 조건 구성
           const orConditions: string[] = [...rangeConditions, ...exactConditions]
-          console.log(`  🔗 OR conditions to process:`, orConditions)
+          if (DEBUG) console.log(`  🔗 OR conditions to process:`, orConditions)
           
           if (orConditions.length > 0) {
             if (orConditions.length === 1) {
               // 단일 조건인 경우: 직접 파라미터로 추가
               const condition = orConditions[0]
-              console.log(`  🎯 Single condition: "${condition}"`)
+              if (DEBUG) console.log(`  🎯 Single condition: "${condition}"`)
               
               if (condition.includes('and(')) {
                 // 범위 조건: and(field.gte.min,field.lte.max)
@@ -332,15 +333,15 @@ class HTTPSupabaseClient {
                   
                   // 숫자값 유효성 검증
                   if (!isNaN(parseFloat(minVal)) && !isNaN(parseFloat(maxVal))) {
-                    console.log(`  ✅ Range match found with valid numbers:`, { min: minVal, max: maxVal })
+                    if (DEBUG) console.log(`  ✅ Range match found with valid numbers:`, { min: minVal, max: maxVal })
                     params.append(key, `gte.${minVal}`)
                     params.append(key, `lte.${maxVal}`)
-                    console.log(`  📤 Added params: ${key}=gte.${minVal}, ${key}=lte.${maxVal}`)
+                    if (DEBUG) console.log(`  📤 Added params: ${key}=gte.${minVal}, ${key}=lte.${maxVal}`)
                   } else {
-                    console.log(`  ❌ Range values are not valid numbers: min="${minVal}", max="${maxVal}"`)
+                    if (DEBUG) console.log(`  ❌ Range values are not valid numbers: min="${minVal}", max="${maxVal}"`)
                   }
                 } else {
-                  console.log(`  ❌ Range match failed for: "${condition}"`)
+                  if (DEBUG) console.log(`  ❌ Range match failed for: "${condition}"`)
                 }
               } else if (condition.includes('.')) {
                 // 정확한 값: field.eq.value
@@ -351,26 +352,26 @@ class HTTPSupabaseClient {
                   
                   // 잘못된 형태(쉼표 포함) 감지
                   if (val.includes(',')) {
-                    console.log(`  🚨 Invalid condition with comma detected: "${condition}"`)
-                    console.log(`  🔄 This should have been handled as multiple conditions`)
+                    if (DEBUG) console.log(`  🚨 Invalid condition with comma detected: "${condition}"`)
+                    if (DEBUG) console.log(`  🔄 This should have been handled as multiple conditions`)
                     // 이 경우는 이미 위에서 처리되었어야 함
                   } else {
                     params.append(field, `${op}.${val}`)
-                    console.log(`  📤 Added exact param: ${field}=${op}.${val}`)
+                    if (DEBUG) console.log(`  📤 Added exact param: ${field}=${op}.${val}`)
                   }
                 } else {
-                  console.log(`  ❌ Invalid condition format: "${condition}"`)
+                  if (DEBUG) console.log(`  ❌ Invalid condition format: "${condition}"`)
                 }
               } else {
-                console.log(`  ❌ Unrecognized condition format: "${condition}"`)
+                if (DEBUG) console.log(`  ❌ Unrecognized condition format: "${condition}"`)
               }
             } else {
               // 다중 조건: OR로 결합
               // PostgREST OR 문법: or=(condition1,condition2,condition3)
               const orQuery = `(${orConditions.join(',')})`
-              console.log(`  🔄 Multi OR query: "${orQuery}"`)
+              if (DEBUG) console.log(`  🔄 Multi OR query: "${orQuery}"`)
               params.append('or', orQuery)
-              console.log(`  📤 Added OR param: or=${orQuery}`)
+              if (DEBUG) console.log(`  📤 Added OR param: or=${orQuery}`)
             }
           }
           
@@ -392,11 +393,11 @@ class HTTPSupabaseClient {
             const max = parseFloat(maxStr);
             
             if (!isNaN(min) && !isNaN(max) && min <= max) {
-              console.log(`  🎯 Range token: "${value}" → ${key}=gte.${min},lte.${max}`);
+              if (DEBUG) console.log(`  🎯 Range token: "${value}" → ${key}=gte.${min},lte.${max}`);
               params.append(key, `gte.${min}`);
               params.append(key, `lte.${max}`);
             } else {
-              console.log(`  ❌ Invalid range token: "${value}"`);
+              if (DEBUG) console.log(`  ❌ Invalid range token: "${value}"`);
               params.append(key, `eq.${value}`);
             }
           } else {
@@ -410,7 +411,7 @@ class HTTPSupabaseClient {
                 '>': 'gt', 
                 '<': 'lt' 
               };
-              console.log(`  🔄 Converting comparison: "${value}" → "${key}=${operatorMap[operator]}.${numValue}"`);
+              if (DEBUG) console.log(`  🔄 Converting comparison: "${value}" → "${key}=${operatorMap[operator]}.${numValue}"`);
               params.append(key, `${operatorMap[operator]}.${numValue}`);
             } else {
               // 일반 문자열 값 (Mono, Color 등)
@@ -431,10 +432,13 @@ class HTTPSupabaseClient {
     const url = `${this.baseUrl}/${table}${queryString ? '?' + queryString : ''}`
     
     // 상세한 SQL 파라미터 로깅
-    console.log(`🔍 Supabase Query Debug:`)
-    console.log(`   Table: ${table}`)
-    console.log(`   Query String: ${queryString}`)
-    console.log(`   Full URL: ${url}`)
+    const DEBUG = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_HTTP === 'true'
+    if (DEBUG) {
+      console.log(`🔍 Supabase Query Debug:`)
+      console.log(`   Table: ${table}`)
+      console.log(`   Query String: ${queryString}`)
+      console.log(`   Full URL: ${url}`)
+    }
     
     // Apply filters to query
     
@@ -624,7 +628,8 @@ export const httpQueries = {
   // Get all series for mapping series ID to series_name
   async getAllSeries() {
     try {
-      console.log('🔍 Loading all series data for mapping...')
+      const DEBUG = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEBUG_HTTP === 'true'
+      if (DEBUG) console.log('🔍 Loading all series data for mapping...')
       
       // Load all series data - only select id and series_name (category_id doesn't exist in actual table)
       const { data, error } = await httpSupabase.query('series', {
@@ -637,7 +642,7 @@ export const httpQueries = {
         return { data: [], error }
       }
 
-      console.log('✅ Series data loaded successfully:', data?.length || 0, 'records')
+      if (DEBUG) console.log('✅ Series data loaded successfully:', data?.length || 0, 'records')
       return { data: data || [], error: null }
       
     } catch (err) {
@@ -646,6 +651,150 @@ export const httpQueries = {
     }
   },
 
+
+  // Generic functions for Admin pages
+  
+  // Get data from any table with pagination and filtering
+  async getGenericData(tableName: string, options: {
+    page?: number
+    limit?: number
+    orderBy?: string
+    orderDirection?: 'asc' | 'desc'
+    search?: string
+    searchFields?: string[]
+    filters?: Record<string, any>
+    select?: string
+  } = {}) {
+    const { 
+      page = 1, 
+      limit = 25, 
+      orderBy = 'id', 
+      orderDirection = 'asc', 
+      search = '', 
+      searchFields = [],
+      filters = {},
+      select = '*'
+    } = options
+    const offset = (page - 1) * limit
+    
+    // Build search filters
+    const queryFilters = { ...filters }
+    if (search && search.trim() && searchFields.length > 0) {
+      // Add search to filters for each search field
+      searchFields.forEach(field => {
+        queryFilters[field] = `ilike.*${search.trim()}*`
+      })
+    }
+    
+    const { data, error } = await httpSupabase.query(tableName, {
+      select,
+      limit,
+      offset,
+      order: orderBy,
+      orderDirection,
+      filters: queryFilters
+    })
+    
+    return { data: data || [], error }
+  },
+
+  // Get total count from any table with filtering
+  async getGenericCount(tableName: string, options: {
+    search?: string
+    searchFields?: string[]
+    filters?: Record<string, any>
+  } = {}) {
+    const { search = '', searchFields = [], filters = {} } = options
+    
+    // Build search filters
+    const queryFilters = { ...filters }
+    if (search && search.trim() && searchFields.length > 0) {
+      searchFields.forEach(field => {
+        queryFilters[field] = `ilike.*${search.trim()}*`
+      })
+    }
+    
+    const { count, error } = await httpSupabase.count(tableName, queryFilters)
+    
+    return { count, error }
+  },
+
+  // Insert data into any table
+  async insertGeneric(tableName: string, data: any) {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/${tableName}`, {
+        method: 'POST',
+        headers: {
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(data)
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
+      
+      const result = await response.json()
+      return { data: result, error: null }
+    } catch (error) {
+      console.error('❌ Insert error:', error)
+      return { data: null, error: error instanceof Error ? error : new Error('Insert failed') }
+    }
+  },
+
+  // Update data in any table
+  async updateGeneric(tableName: string, id: any, data: any) {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/${tableName}?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(data)
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
+      
+      const result = await response.json()
+      return { data: result, error: null }
+    } catch (error) {
+      console.error('❌ Update error:', error)
+      return { data: null, error: error instanceof Error ? error : new Error('Update failed') }
+    }
+  },
+
+  // Delete data from any table
+  async deleteGeneric(tableName: string, id: any) {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/${tableName}?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`
+        }
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
+      
+      return { data: null, error: null }
+    } catch (error) {
+      console.error('❌ Delete error:', error)
+      return { data: null, error: error instanceof Error ? error : new Error('Delete failed') }
+    }
+  },
 
   // Get single product by part_number from multiple tables
   async getProductByPartNumber(partNumber: string) {

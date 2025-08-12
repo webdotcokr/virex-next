@@ -28,11 +28,19 @@ import {
   DragIndicator as DragIcon,
   Image as ImageIcon,
 } from '@mui/icons-material';
-import { supabase } from '@/lib/supabase';
+import { httpQueries } from '@/lib/http-supabase';
 import FileUploadComponent from './FileUploadComponent';
-import type { Database } from '@/lib/supabase';
 
-type NewProduct = Database['public']['Tables']['new_products']['Row'];
+interface NewProduct {
+  id: number
+  title: string
+  description?: string
+  img_url: string
+  link_url: string
+  sort_order?: number
+  created_at?: string
+  updated_at?: string
+}
 
 export default function NewProductsDataGrid() {
   const [rows, setRows] = useState<NewProduct[]>([]);
@@ -196,48 +204,23 @@ export default function NewProductsDataGrid() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('🔄 Fetching new products...', { paginationModel });
+      const [dataResult, countResult] = await Promise.all([
+        httpQueries.getGenericData('new_products', {
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          orderBy: 'sort_order',
+          orderDirection: 'asc'
+        }),
+        httpQueries.getGenericCount('new_products')
+      ]);
+
+      if (dataResult.error) throw dataResult.error;
+
+      setRows(dataResult.data as NewProduct[]);
+      setTotalRows(countResult.count || 0);
       
-      const { data, error, count } = await supabase
-        .from('new_products')
-        .select('*', { count: 'exact' })
-        .range(
-          paginationModel.page * paginationModel.pageSize,
-          (paginationModel.page + 1) * paginationModel.pageSize - 1
-        )
-        .order('sort_order', { ascending: true });
-
-      console.log('✅ Supabase response:', { 
-        dataCount: data?.length, 
-        totalCount: count, 
-        error,
-      });
-
-      if (error) {
-        console.error('❌ Supabase error details:', error);
-        throw error;
-      }
-
-      setRows(data || []);
-      setTotalRows(count || 0);
-      
-      if (data && data.length > 0) {
-        console.log(`✅ Successfully loaded ${data.length} new products out of ${count} total`);
-        setSnackbar({
-          open: true,
-          message: `Loaded ${data.length} new products`,
-          severity: 'success',
-        });
-      } else {
-        console.log('ℹ️ No new products found');
-        setSnackbar({
-          open: true,
-          message: 'No new products found',
-          severity: 'info',
-        });
-      }
     } catch (error) {
-      console.error('❌ Error fetching new products:', error);
+      console.error('Error fetching new products:', error);
       setSnackbar({
         open: true,
         message: `Failed to load new products: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -280,7 +263,7 @@ export default function NewProductsDataGrid() {
     }
 
     try {
-      console.log('Updating new product:', editDialog.product.id, {
+      const { error } = await httpQueries.updateGeneric('new_products', editDialog.product.id, {
         title: editDialog.title.trim(),
         description: editDialog.description,
         img_url: editDialog.imgUrl,
@@ -288,25 +271,7 @@ export default function NewProductsDataGrid() {
         sort_order: editDialog.sortOrder,
       });
 
-      const { data, error } = await supabase
-        .from('new_products')
-        .update({
-          title: editDialog.title.trim(),
-          description: editDialog.description,
-          img_url: editDialog.imgUrl,
-          link_url: editDialog.linkUrl,
-          sort_order: editDialog.sortOrder,
-        })
-        .eq('id', editDialog.product.id)
-        .select()
-        .single();
-
-      console.log('Update response:', { data, error });
-
-      if (error) {
-        console.error('Update error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -315,7 +280,7 @@ export default function NewProductsDataGrid() {
       });
 
       setEditDialog({ open: false, product: null, title: '', description: '', imgUrl: '', linkUrl: '', sortOrder: 0 });
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error updating new product:', error);
       setSnackbar({
@@ -351,18 +316,10 @@ export default function NewProductsDataGrid() {
     }
 
     try {
-      // Get next sort order
-      const { data: existingProducts } = await supabase
-        .from('new_products')
-        .select('sort_order')
-        .order('sort_order', { ascending: false })
-        .limit(1);
+      // Get next sort order from current rows
+      const nextSortOrder = Math.max(...rows.map(r => r.sort_order || 0), 0) + 1;
 
-      const nextSortOrder = existingProducts && existingProducts.length > 0 
-        ? (existingProducts[0].sort_order || 0) + 1 
-        : 1;
-
-      console.log('Adding new product:', {
+      const { error } = await httpQueries.insertGeneric('new_products', {
         title: addDialog.title.trim(),
         description: addDialog.description,
         img_url: addDialog.imgUrl,
@@ -370,24 +327,7 @@ export default function NewProductsDataGrid() {
         sort_order: nextSortOrder,
       });
 
-      const { data, error } = await supabase
-        .from('new_products')
-        .insert({
-          title: addDialog.title.trim(),
-          description: addDialog.description,
-          img_url: addDialog.imgUrl,
-          link_url: addDialog.linkUrl,
-          sort_order: nextSortOrder,
-        })
-        .select()
-        .single();
-
-      console.log('Insert response:', { data, error });
-
-      if (error) {
-        console.error('Insert error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -396,7 +336,7 @@ export default function NewProductsDataGrid() {
       });
 
       setAddDialog({ open: false, title: '', description: '', imgUrl: '', linkUrl: '' });
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error adding new product:', error);
       setSnackbar({
@@ -412,20 +352,9 @@ export default function NewProductsDataGrid() {
     if (!confirm('Are you sure you want to delete this new product?')) return;
 
     try {
-      console.log('Deleting new product:', id);
+      const { error } = await httpQueries.deleteGeneric('new_products', id);
 
-      const { data, error } = await supabase
-        .from('new_products')
-        .delete()
-        .eq('id', id)
-        .select();
-
-      console.log('Delete response:', { data, error });
-
-      if (error) {
-        console.error('Delete error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -433,7 +362,7 @@ export default function NewProductsDataGrid() {
         severity: 'success',
       });
 
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error deleting new product:', error);
       setSnackbar({
@@ -447,14 +376,13 @@ export default function NewProductsDataGrid() {
   // Handle sort order change
   const handleSortOrderChange = async (productId: number, newSortOrder: number) => {
     try {
-      const { error } = await supabase
-        .from('new_products')
-        .update({ sort_order: newSortOrder })
-        .eq('id', productId);
+      const { error } = await httpQueries.updateGeneric('new_products', productId, {
+        sort_order: newSortOrder
+      });
 
       if (error) throw error;
 
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error updating sort order:', error);
       setSnackbar({

@@ -31,11 +31,16 @@ import {
   ExpandMore as ExpandMoreIcon,
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
-import { supabase } from '@/lib/supabase';
+import { httpQueries } from '@/lib/http-supabase';
 import DeleteConfirmModal from './DeleteConfirmModal';
-import type { Database } from '@/lib/supabase';
 
-type Category = Database['public']['Tables']['categories']['Row'];
+interface Category {
+  id: number
+  name: string
+  parent_id?: number | null
+  created_at?: string
+  updated_at?: string
+}
 
 interface CategoryWithChildren extends Category {
   children?: CategoryWithChildren[];
@@ -224,142 +229,36 @@ export default function CategoriesDataGrid() {
     },
   ];
 
-  // Fetch data function with enhanced error handling
+  // Fetch data function
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const startTime = Date.now();
-    
-    // Set a timeout for the fetch operation
-    const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.error('⏱️ Fetch operation timed out after 10 seconds');
-        setSnackbar({
-          open: true,
-          message: '데이터 로딩 시간 초과 (10초). 네트워크 연결을 확인하거나 페이지를 새로고침하세요.',
-          severity: 'error',
-        });
-        setLoading(false);
-      }
-    }, 10000);
-
     try {
-      console.log('🔄 Fetching categories...', {
-        timestamp: new Date().toISOString(),
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      });
-      
-      const query = supabase
-        .from('categories')
-        .select('*')
-        .order('parent_id', { ascending: true, nullsFirst: true })
-        .order('name', { ascending: true });
-
-      console.log('📡 Sending Supabase request...', {
-        table: 'categories',
-        orderBy: 'parent_id ASC, name ASC'
+      const { data, error } = await httpQueries.getGenericData('categories', {
+        orderBy: 'parent_id',
+        orderDirection: 'asc'
       });
 
-      const { data, error, status, statusText } = await query;
+      if (error) throw error;
 
-      const responseTime = Date.now() - startTime;
-      console.log('📊 Supabase response received:', { 
-        responseTime: `${responseTime}ms`,
-        status,
-        statusText,
-        dataCount: data?.length, 
-        error: error ? {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        } : null
-      });
-
-      if (error) {
-        console.error('❌ Supabase error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-          fullError: error
-        });
-        
-        // Provide more specific error messages
-        let errorMessage = '카테고리 로드 실패: ';
-        if (error.code === 'PGRST301') {
-          errorMessage += 'JWT 토큰이 만료되었습니다. 페이지를 새로고침하세요.';
-        } else if (error.code === '42501') {
-          errorMessage += '권한이 없습니다. RLS 정책을 확인하세요.';
-        } else if (error.message.includes('network')) {
-          errorMessage += '네트워크 연결을 확인하세요.';
-        } else if (error.message.includes('CORS')) {
-          errorMessage += 'CORS 에러. Supabase 대시보드에서 URL 설정을 확인하세요.';
-        } else {
-          errorMessage += error.message;
-        }
-        
-        setSnackbar({
-          open: true,
-          message: errorMessage,
-          severity: 'error',
-        });
-        throw error;
-      }
-
-      const hierarchicalData = buildTree(data || []);
+      const hierarchicalData = buildTree(data as Category[] || []);
       const flatData = flattenTree(hierarchicalData);
       
       setRows(hierarchicalData);
       setFlatRows(flatData);
       
-      if (data && data.length > 0) {
-        console.log(`✅ Successfully loaded ${data.length} categories`);
-        setSnackbar({
-          open: true,
-          message: `${data.length}개 카테고리 로드 완료`,
-          severity: 'success',
-        });
-      } else {
-        console.log('ℹ️ No categories found in database');
-        setSnackbar({
-          open: true,
-          message: '등록된 카테고리가 없습니다.',
-          severity: 'info',
-        });
-      }
     } catch (error) {
-      const responseTime = Date.now() - startTime;
-      console.error('❌ Error fetching categories:', {
-        error,
-        responseTime: `${responseTime}ms`,
-        errorType: error instanceof Error ? error.constructor.name : typeof error,
-        errorMessage: error instanceof Error ? error.message : String(error),
-        errorStack: error instanceof Error ? error.stack : undefined
+      console.error('Error fetching categories:', error);
+      setSnackbar({
+        open: true,
+        message: `Failed to load categories: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        severity: 'error',
       });
-      
-      // Check if it's a network error
-      if (error instanceof TypeError && error.message === 'Failed to fetch') {
-        setSnackbar({
-          open: true,
-          message: '네트워크 연결 실패. 인터넷 연결과 Supabase URL을 확인하세요.',
-          severity: 'error',
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          message: `카테고리 로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-          severity: 'error',
-        });
-      }
-      
       setRows([]);
       setFlatRows([]);
     } finally {
-      clearTimeout(timeoutId);
       setLoading(false);
     }
-  }, [buildTree, flattenTree, loading]);
+  }, [buildTree, flattenTree]);
 
   // Load data when component mounts
   useEffect(() => {
@@ -388,28 +287,12 @@ export default function CategoriesDataGrid() {
     }
 
     try {
-      console.log('Updating category:', editDialog.category.id, {
+      const { error } = await httpQueries.updateGeneric('categories', editDialog.category.id, {
         name: editDialog.name.trim(),
         parent_id: editDialog.parentId,
       });
 
-      const { data, error } = await supabase
-        .from('categories')
-        .update({
-          name: editDialog.name.trim(),
-          parent_id: editDialog.parentId,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', editDialog.category.id)
-        .select()
-        .single();
-
-      console.log('Update response:', { data, error });
-
-      if (error) {
-        console.error('Update error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -418,7 +301,7 @@ export default function CategoriesDataGrid() {
       });
 
       setEditDialog({ open: false, category: null, name: '', parentId: null });
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error updating category:', error);
       setSnackbar({
@@ -450,26 +333,12 @@ export default function CategoriesDataGrid() {
     }
 
     try {
-      console.log('Adding category:', {
+      const { error } = await httpQueries.insertGeneric('categories', {
         name: addDialog.name.trim(),
         parent_id: addDialog.parentId,
       });
 
-      const { data, error } = await supabase
-        .from('categories')
-        .insert({
-          name: addDialog.name.trim(),
-          parent_id: addDialog.parentId,
-        })
-        .select()
-        .single();
-
-      console.log('Insert response:', { data, error });
-
-      if (error) {
-        console.error('Insert error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -478,7 +347,7 @@ export default function CategoriesDataGrid() {
       });
 
       setAddDialog({ open: false, name: '', parentId: null });
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error adding category:', error);
       setSnackbar({
@@ -497,43 +366,40 @@ export default function CategoriesDataGrid() {
       const references: ReferenceInfo[] = [];
 
       // Check products referencing this category
-      const { count: productsCount } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true })
-        .eq('category_id', category.id);
+      const productsCount = await httpQueries.getGenericCount('products', {
+        filters: { category_id: category.id }
+      });
 
-      if (productsCount && productsCount > 0) {
+      if (productsCount.count && productsCount.count > 0) {
         references.push({
           table: 'products',
-          count: productsCount,
+          count: productsCount.count,
           description: 'Products using this category',
         });
       }
 
       // Check child categories
-      const { count: childrenCount } = await supabase
-        .from('categories')
-        .select('*', { count: 'exact', head: true })
-        .eq('parent_id', category.id);
+      const childrenCount = await httpQueries.getGenericCount('categories', {
+        filters: { parent_id: category.id }
+      });
 
-      if (childrenCount && childrenCount > 0) {
+      if (childrenCount.count && childrenCount.count > 0) {
         references.push({
           table: 'categories',
-          count: childrenCount,
+          count: childrenCount.count,
           description: 'Child categories under this category',
         });
       }
 
       // Check series referencing this category
-      const { count: seriesCount } = await supabase
-        .from('series')
-        .select('*', { count: 'exact', head: true })
-        .eq('category_id', category.id);
+      const seriesCount = await httpQueries.getGenericCount('series', {
+        filters: { category_id: category.id }
+      });
 
-      if (seriesCount && seriesCount > 0) {
+      if (seriesCount.count && seriesCount.count > 0) {
         references.push({
           table: 'series',
-          count: seriesCount,
+          count: seriesCount.count,
           description: 'Series using this category',
         });
       }
@@ -562,20 +428,9 @@ export default function CategoriesDataGrid() {
     setDeleteDialog(prev => ({ ...prev, loading: true }));
 
     try {
-      console.log('Deleting category:', deleteDialog.category.id);
+      const { error } = await httpQueries.deleteGeneric('categories', deleteDialog.category.id);
 
-      const { data, error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', deleteDialog.category.id)
-        .select();
-
-      console.log('Delete response:', { data, error });
-
-      if (error) {
-        console.error('Delete error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setSnackbar({
         open: true,
@@ -584,7 +439,7 @@ export default function CategoriesDataGrid() {
       });
 
       setDeleteDialog({ open: false, category: null, references: [], loading: false });
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error deleting category:', error);
       setSnackbar({
