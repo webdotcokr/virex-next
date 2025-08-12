@@ -121,8 +121,9 @@ class HTTPSupabaseClient {
           return // 이 필터를 완전히 무시
         }
         if (key === 'search' && typeof value === 'string' && value.trim()) {
-          // 텍스트 검색: part_number 필드에서만 검색 (우선)
-          params.append('part_number', `ilike.*${value}*`)
+          // 텍스트 검색: part_number 필드에서만 검색 (PostgREST OR + JOIN 제한으로 임시 단순화)
+          const searchTerm = value.trim()
+          params.append('part_number', `ilike.*${searchTerm}*`)
         } else if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
           // 범위 필터: [100,499] 형태 (강화된 검증 적용)
           if (DEBUG) console.log(`🔍 String range filter detected for ${key}: "${value}"`)
@@ -574,8 +575,11 @@ export const httpQueries = {
       searchFilters.search = search.trim()
     }
     
+    // 검색 시에도 기본 필드만 선택 (PostgREST OR + JOIN 제한으로 임시 단순화)
+    const selectFields = '*'
+    
     const { data, error } = await httpSupabase.query(tableName, {
-      select: '*',
+      select: selectFields,
       limit,
       offset,
       // is_new=TRUE 제품을 항상 먼저 표시하고, 그 다음에 사용자 지정 정렬 적용

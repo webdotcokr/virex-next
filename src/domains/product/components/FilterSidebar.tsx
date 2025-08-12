@@ -77,6 +77,8 @@ function FilterSidebar({
   const loadFilters = useCallback(() => {
     try {
       setLoading(true)
+      console.log('🔄 FilterSidebar: Loading filters for category:', categoryName)
+      
       // category-filters.ts에서 설정 가져오기
       const config = getConfigByCategoryName(categoryName || 'CIS')
       
@@ -86,6 +88,8 @@ function FilterSidebar({
         setExpandedSections(new Set())
         return
       }
+      
+      console.log(`✅ Loaded ${config.filters.length} filters for ${categoryName}:`, config.filters.map(f => f.param))
       setStaticFilters(config.filters)
 
       // 기본 확장 섹션 설정
@@ -148,10 +152,82 @@ function FilterSidebar({
     }
   }, [])
 
+  // 슬라이더 값 안전 파싱 함수
+  const getCurrentSliderValue = (paramValue: any, defaultRange: number[]): [number, number] => {
+    console.log(`🔧 getCurrentSliderValue processing:`, paramValue, 'defaultRange:', defaultRange)
+    
+    // 배열인 경우
+    if (Array.isArray(paramValue) && paramValue.length >= 2) {
+      const result = [Number(paramValue[0]), Number(paramValue[1])] as [number, number]
+      console.log('   Array case result:', result)
+      return result
+    }
+    
+    // 배열이지만 길이가 1인 경우 (URL에서 단일값) - 특별 처리
+    if (Array.isArray(paramValue) && paramValue.length === 1) {
+      const singleValue = Number(paramValue[0])
+      if (!isNaN(singleValue)) {
+        // 단일 값을 고정값으로 처리 (min=max=값)
+        const result = [singleValue, singleValue] as [number, number]
+        console.log('   Single array value result:', result)
+        return result
+      }
+    }
+    
+    // 문자열 범위 "[min,max]" 파싱
+    if (typeof paramValue === 'string' && paramValue.startsWith('[')) {
+      const match = paramValue.match(/^\[(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\]$/)
+      if (match) {
+        const result = [parseFloat(match[1]), parseFloat(match[2])] as [number, number]
+        console.log('   String range result:', result)
+        return result
+      }
+    }
+    
+    // 단일 숫자 문자열 처리
+    if (typeof paramValue === 'string') {
+      const numValue = parseFloat(paramValue)
+      if (!isNaN(numValue)) {
+        const result = [numValue, numValue] as [number, number]
+        console.log('   Single string number result:', result)
+        return result
+      }
+    }
+    
+    // 기본값 사용
+    const result = defaultRange as [number, number] || [0, 100]
+    console.log('   Default range result:', result)
+    return result
+  }
+
   // 필터 변경 시 슬라이더 값 초기화
   useEffect(() => {
     setSliderValues({})
   }, [filters.categories])
+
+  // URL에서 파싱된 filters.parameters가 변경되었을 때 UI 강제 동기화
+  useEffect(() => {
+    console.log('🔄 FilterSidebar: filters.parameters changed:', filters.parameters)
+    
+    // 슬라이더 값들을 filters.parameters에 맞게 초기화
+    if (staticFilters.length > 0) {
+      const newSliderValues: Record<string, [number, number]> = {}
+      staticFilters.forEach(filter => {
+        if (filter.type === 'slider' && filters.parameters[filter.param]) {
+          const paramValue = filters.parameters[filter.param]
+          const defaultRange = filter.range || [0, 100]
+          const currentValue = getCurrentSliderValue(paramValue, defaultRange)
+          newSliderValues[filter.param] = currentValue
+          console.log(`   Slider [${filter.param}] initialized to:`, currentValue)
+        }
+      })
+      
+      if (Object.keys(newSliderValues).length > 0) {
+        setSliderValues(newSliderValues)
+        console.log('✅ Slider values synchronized from URL:', newSliderValues)
+      }
+    }
+  }, [filters.parameters, staticFilters])
 
   const toggleSection = useCallback((section: string) => {
     setExpandedSections(prev => {
@@ -289,25 +365,6 @@ function FilterSidebar({
   const sidebarClasses = `${styles.filterSidebar} ${
     isMobile && isOpen ? styles.active : ''
   }`
-
-  // 슬라이더 값 안전 파싱 함수
-  const getCurrentSliderValue = (paramValue: any, defaultRange: number[]): [number, number] => {
-    // 배열인 경우
-    if (Array.isArray(paramValue) && paramValue.length >= 2) {
-      return [Number(paramValue[0]), Number(paramValue[1])]
-    }
-    
-    // 문자열 범위 "[min,max]" 파싱
-    if (typeof paramValue === 'string' && paramValue.startsWith('[')) {
-      const match = paramValue.match(/^\[(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\]$/)
-      if (match) {
-        return [parseFloat(match[1]), parseFloat(match[2])]
-      }
-    }
-    
-    // 기본값 사용
-    return defaultRange as [number, number] || [0, 100]
-  }
 
   // 데바운스 적용된 필터 변경 함수
   const debouncedParameterChange = useCallback((paramName: string, value: [number, number]) => {
@@ -458,6 +515,11 @@ function FilterSidebar({
       currentValues = paramValue.map(String)
     } else if (paramValue !== null && paramValue !== undefined) {
       currentValues = [String(paramValue)]
+    }
+    
+    // 디버깅: 체크박스 상태 로깅
+    if (paramValue !== null && paramValue !== undefined) {
+      console.log(`📋 Checkbox [${filter.param}] current values:`, currentValues)
     }
     
     if (!filter.options) return null

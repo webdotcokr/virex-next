@@ -167,6 +167,7 @@ function ProductsContent() {
   const [showComparisonModal, setShowComparisonModal] = useState(false)
   const [comparisonProducts, setComparisonProducts] = useState<Product[]>([])
   const [seriesMap, setSeriesMap] = useState<Map<number, string>>(new Map())
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   // Initialize filters from URL on component mount
   useEffect(() => {
@@ -182,6 +183,9 @@ function ProductsContent() {
     if (orderParam && (orderParam === 'asc' || orderParam === 'desc')) {
       setSortDirection(orderParam)
     }
+    
+    // 초기 로드 완료 표시 (약간의 지연을 둬서 다른 useEffect들이 실행된 후)
+    setTimeout(() => setIsInitialLoad(false), 100)
   }, [searchParams, setFiltersFromUrl])
 
   // 현재 선택된 카테고리 정보
@@ -305,7 +309,8 @@ function ProductsContent() {
         itemsPerPage, 
         sortBy, 
         sortDirection,
-        search: filters.search 
+        search: filters.search,
+        filtersParameters: filters.parameters
       })
       
       // 카테고리에 해당하는 테이블 가져오기
@@ -435,12 +440,29 @@ function ProductsContent() {
     }
   }, [currentCategoryId, filters.search, filters.parameters])
 
-  // 카테고리 변경 시 필터 파라미터 완전 초기화
+  // 카테고리 변경 시 필터 파라미터 완전 초기화 (URL 직접 접속 시 제외)
   useEffect(() => {
+    // 초기 로드 중이거나 URL에 필터 파라미터가 있는 경우는 스킵
+    if (isInitialLoad) {
+      console.log('⏭️ Skipping filter reset during initial load')
+      return
+    }
+    
+    // URL에 필터 파라미터가 있는지 확인
+    const hasUrlFilters = Array.from(searchParams.keys()).some(key => 
+      !['categories', 'page', 'sort', 'order', 'search'].includes(key)
+    )
+    
+    if (hasUrlFilters) {
+      console.log('⏭️ Skipping filter reset - URL has filter parameters')
+      return
+    }
+    
+    console.log('🔄 Resetting filter parameters due to category change')
     const { updateFilter } = useFilterStore.getState()
-    // 카테고리가 변경되면 기존 필터 파라미터를 모두 초기화
+    // 사용자의 카테고리 변경 시에만 필터 파라미터 초기화
     updateFilter('parameters', {})
-  }, [currentCategoryId])
+  }, [currentCategoryId, isInitialLoad, searchParams])
 
   const handleSort = useCallback((field: string) => {
     const newDirection = sortBy === field ? (sortDirection === 'asc' ? 'desc' : 'asc') : 'asc'

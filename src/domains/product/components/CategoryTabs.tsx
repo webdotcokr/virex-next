@@ -15,8 +15,8 @@ export default function CategoryTabs({ categories, selectedCategories }: Categor
   const searchParams = useSearchParams()
 
   const handleCategorySelect = (categoryId: string | null) => {
-    // 카테고리 변경 시 유지할 기본 파라미터들 (필터 파라미터는 제외)
-    const allowedParams = ['search', 'sort', 'order', 'page']
+    // 카테고리 변경 시 유지할 기본 파라미터들 (필터 파라미터와 search는 제외)
+    const allowedParams = ['sort', 'order', 'page']
     const currentFilters = Object.fromEntries(searchParams.entries())
     
     // 기본 파라미터만 필터링하여 새로운 필터 객체 생성
