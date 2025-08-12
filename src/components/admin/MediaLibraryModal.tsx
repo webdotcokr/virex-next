@@ -30,19 +30,23 @@ import {
   InsertDriveFile as FileIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
-import { listFiles, getPublicUrl, getFileIcon, formatFileSize } from '@/lib/supabase-storage';
-import type { StorageFile } from '@/lib/supabase-storage';
+import { getFileIcon, formatFileSize } from '@/lib/supabase-storage';
 
 interface MediaLibraryModalProps {
   open: boolean;
   onClose: () => void;
   onSelect: (fileUrl: string, fileName: string) => void;
-  bucket?: string;
-  folder?: string;
+  bucket?: string; // Deprecated: kept for compatibility
+  folder?: string; // Deprecated: kept for compatibility
+  category?: string; // New: category for file listing
 }
 
-interface ExtendedStorageFile extends StorageFile {
-  publicUrl: string;
+interface LocalFile {
+  name: string;
+  url: string;
+  size: number;
+  created: string;
+  modified: string;
   isImage: boolean;
 }
 
@@ -50,53 +54,46 @@ export default function MediaLibraryModal({
   open,
   onClose,
   onSelect,
-  bucket = 'downloads',
-  folder = 'files',
+  bucket = 'downloads', // Deprecated but kept for compatibility
+  folder = 'files', // Deprecated but kept for compatibility
+  category = 'admin-uploads', // Default category
 }: MediaLibraryModalProps) {
-  const [files, setFiles] = useState<ExtendedStorageFile[]>([]);
-  const [filteredFiles, setFilteredFiles] = useState<ExtendedStorageFile[]>([]);
+  const [files, setFiles] = useState<LocalFile[]>([]);
+  const [filteredFiles, setFilteredFiles] = useState<LocalFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [fileTypeFilter, setFileTypeFilter] = useState<string>('all');
-  const [selectedFile, setSelectedFile] = useState<ExtendedStorageFile | null>(null);
+  const [selectedFile, setSelectedFile] = useState<LocalFile | null>(null);
 
-  // Load files from storage
+  // Load files from local upload directory
   const loadFiles = useCallback(async () => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log('📁 Loading files from storage:', { bucket, folder });
+      const listUrl = `/api/upload/list?category=${encodeURIComponent(category)}`;
+      console.log('📁 Loading files from local uploads:', listUrl);
       
-      const storageFiles = await listFiles(bucket, folder);
+      const response = await fetch(listUrl);
+      const result = await response.json();
       
-      // Extend files with additional properties
-      const extendedFiles: ExtendedStorageFile[] = storageFiles
-        .filter(file => file.name !== '.emptyFolderPlaceholder') // Filter out placeholder files
-        .map(file => {
-          const filePath = folder ? `${folder}/${file.name}` : file.name;
-          const publicUrl = getPublicUrl(bucket, filePath);
-          const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(file.name);
-          
-          return {
-            ...file,
-            publicUrl,
-            isImage,
-          };
-        })
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to load files');
+      }
+      
+      const localFiles: LocalFile[] = result.files || [];
 
-      console.log('✅ Files loaded:', extendedFiles.length);
-      setFiles(extendedFiles);
-      setFilteredFiles(extendedFiles);
+      console.log('✅ Files loaded:', localFiles.length);
+      setFiles(localFiles);
+      setFilteredFiles(localFiles);
     } catch (error) {
       console.error('❌ Error loading files:', error);
       setError(error instanceof Error ? error.message : 'Failed to load files');
     } finally {
       setLoading(false);
     }
-  }, [bucket, folder]);
+  }, [category]);
 
   // Load files when modal opens
   useEffect(() => {
@@ -146,14 +143,14 @@ export default function MediaLibraryModal({
   }, [files, searchTerm, fileTypeFilter]);
 
   // Handle file selection
-  const handleFileSelect = useCallback((file: ExtendedStorageFile) => {
+  const handleFileSelect = useCallback((file: LocalFile) => {
     setSelectedFile(selectedFile?.name === file.name ? null : file);
   }, [selectedFile]);
 
   // Handle confirm selection
   const handleConfirmSelection = useCallback(() => {
     if (selectedFile) {
-      onSelect(selectedFile.publicUrl, selectedFile.name);
+      onSelect(selectedFile.url, selectedFile.name);
       handleClose();
     }
   }, [selectedFile, onSelect]);
@@ -265,7 +262,7 @@ export default function MediaLibraryModal({
                         <CardMedia
                           component="img"
                           height="120"
-                          image={file.publicUrl}
+                          image={file.url}
                           alt={file.name}
                           sx={{ objectFit: 'cover' }}
                           onError={(e) => {
@@ -300,10 +297,10 @@ export default function MediaLibraryModal({
                         
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
                           <Typography variant="caption" color="text.secondary">
-                            {formatFileSize(file.metadata?.size || 0)}
+                            {formatFileSize(file.size)}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {new Date(file.created_at).toLocaleDateString()}
+                            {new Date(file.created).toLocaleDateString()}
                           </Typography>
                         </Box>
                       </CardContent>
@@ -326,13 +323,13 @@ export default function MediaLibraryModal({
                 {getFileIcon(selectedFile.name)} {selectedFile.name}
               </Typography>
               <Chip 
-                label={formatFileSize(selectedFile.metadata?.size || 0)} 
+                label={formatFileSize(selectedFile.size)} 
                 size="small" 
                 variant="outlined" 
               />
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              URL: {selectedFile.publicUrl}
+              URL: {selectedFile.url}
             </Typography>
           </Box>
         )}

@@ -563,6 +563,7 @@ export default function NewProductsDataGrid() {
               Product Image
             </Typography>
             <FileUploadComponent
+              category="new-products"
               onUpload={(fileUrl, fileName) => {
                 setEditDialog(prev => ({ ...prev, imgUrl: fileUrl }));
               }}
@@ -632,6 +633,7 @@ export default function NewProductsDataGrid() {
               Product Image
             </Typography>
             <FileUploadComponent
+              category="new-products"
               onUpload={(fileUrl, fileName) => {
                 setAddDialog(prev => ({ ...prev, imgUrl: fileUrl }));
               }}

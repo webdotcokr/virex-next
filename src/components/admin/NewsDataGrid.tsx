@@ -518,6 +518,7 @@ export default function NewsDataGrid() {
               Thumbnail Image
             </Typography>
             <FileUploadComponent
+              category="news"
               onUpload={(fileUrl, fileName) => {
                 setEditDialog(prev => ({ ...prev, thumbnailUrl: fileUrl }));
               }}
@@ -587,6 +588,7 @@ export default function NewsDataGrid() {
               Thumbnail Image
             </Typography>
             <FileUploadComponent
+              category="news"
               onUpload={(fileUrl, fileName) => {
                 setAddDialog(prev => ({ ...prev, thumbnailUrl: fileUrl }));
               }}

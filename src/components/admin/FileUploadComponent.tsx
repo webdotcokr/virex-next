@@ -15,17 +15,18 @@ import {
   Delete as DeleteIcon,
   CheckCircle as CheckIcon,
 } from '@mui/icons-material';
-import { uploadFile, validateFile, getFileIcon, formatFileSize } from '@/lib/supabase-storage';
+import { getFileIcon, formatFileSize } from '@/lib/supabase-storage';
 
 interface FileUploadComponentProps {
   onUpload: (fileUrl: string, fileName: string) => void;
   onError?: (error: string) => void;
   accept?: string[];
   maxSize?: number; // in MB
-  bucket?: string;
-  folder?: string;
+  bucket?: string; // Deprecated: kept for compatibility
+  folder?: string; // Deprecated: kept for compatibility
   disabled?: boolean;
   currentFile?: string; // current file URL if editing
+  category?: string; // New: category for upload directory
 }
 
 interface UploadState {
@@ -41,10 +42,11 @@ export default function FileUploadComponent({
   onError,
   accept = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.zip'],
   maxSize = 10, // 10MB default
-  bucket = 'downloads',
-  folder = 'files',
+  bucket = 'downloads', // Deprecated but kept for compatibility
+  folder = 'files', // Deprecated but kept for compatibility
   disabled = false,
   currentFile,
+  category = 'admin-uploads', // Default category
 }: FileUploadComponentProps) {
   const [uploadState, setUploadState] = useState<UploadState>({
     uploading: false,
@@ -62,15 +64,21 @@ export default function FileUploadComponent({
     
     const file = files[0];
     
-    // Validate file
-    const validation = validateFile(file, {
-      maxSize: maxSize * 1024 * 1024,
-      allowedTypes: accept,
-    });
+    // Client-side validation
+    const maxSizeBytes = maxSize * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      const errorMsg = `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (${maxSize}MB)`;
+      setUploadState(prev => ({ ...prev, error: errorMsg }));
+      onError?.(errorMsg);
+      return;
+    }
 
-    if (!validation.valid) {
-      setUploadState(prev => ({ ...prev, error: validation.error || 'Invalid file' }));
-      onError?.(validation.error || 'Invalid file');
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      const errorMsg = `File type not allowed. Supported types: ${allowedTypes.join(', ')}`;
+      setUploadState(prev => ({ ...prev, error: errorMsg }));
+      onError?.(errorMsg);
       return;
     }
 
@@ -84,18 +92,38 @@ export default function FileUploadComponent({
     });
 
     try {
-      // Simulate progress (Supabase doesn't provide real progress)
+      console.log('🔍 Upload Debug Info:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        category,
+        timestamp: new Date().toISOString()
+      });
+
+      // Create FormData
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Simulate progress
       const progressInterval = setInterval(() => {
         setUploadState(prev => ({
           ...prev,
-          progress: Math.min(prev.progress + 10, 90),
+          progress: Math.min(prev.progress + 15, 85),
         }));
-      }, 200);
+      }, 100);
 
-      // Upload file
-      const result = await uploadFile(file, bucket, folder);
+      // Upload to Next.js API with category
+      const uploadUrl = `/api/upload?category=${encodeURIComponent(category)}`;
+      console.log('📤 Starting upload to', uploadUrl);
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData,
+      });
 
       clearInterval(progressInterval);
+
+      const result = await response.json();
+      console.log('📥 Upload result:', result);
 
       if (result.success && result.url) {
         setUploadState({
@@ -103,11 +131,11 @@ export default function FileUploadComponent({
           progress: 100,
           error: null,
           success: true,
-          fileName: result.fileName || file.name,
+          fileName: result.filename || file.name,
         });
 
         // Call parent callback
-        onUpload(result.url, result.fileName || file.name);
+        onUpload(result.url, result.filename || file.name);
       } else {
         throw new Error(result.error || 'Upload failed');
       }
@@ -122,7 +150,7 @@ export default function FileUploadComponent({
       });
       onError?.(errorMessage);
     }
-  }, [accept, maxSize, bucket, folder, onUpload, onError]);
+  }, [maxSize, onUpload, onError]);
 
   // Handle drag events
   const handleDrag = useCallback((e: React.DragEvent) => {

@@ -867,6 +867,7 @@ export default function SeriesDataGrid() {
               Feature Image
             </Typography>
             <FileUploadComponent
+              category="series"
               onUpload={(fileUrl, fileName) => {
                 setEditDialog(prev => ({ ...prev, featureImageUrl: fileUrl }));
               }}
@@ -1017,6 +1018,7 @@ export default function SeriesDataGrid() {
               Feature Image
             </Typography>
             <FileUploadComponent
+              category="series"
               onUpload={(fileUrl, fileName) => {
                 setAddDialog(prev => ({ ...prev, featureImageUrl: fileUrl }));
               }}
