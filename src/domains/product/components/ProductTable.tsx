@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback, memo } from 'react'
+import { useState, useMemo, useCallback, memo, useRef, useEffect } from 'react'
 import styles from '../../../app/(portal)/products/products.module.css'
 import type { Product } from '../types'
 import Pagination from '@/components/ui/Pagination'
@@ -34,8 +34,26 @@ function ProductTable({
   columnConfigs = []
 }: ProductTableProps) {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
+  
+  // 상단과 하단 스크롤 컨테이너 참조
+  const topScrollRef = useRef<HTMLDivElement>(null)
+  const bottomScrollRef = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLTableElement>(null)
+  const [tableWidth, setTableWidth] = useState('1000px')
 
   // 동적 컬럼 설정 사용 (전달받은 columnConfigs 또는 fallback)
+  // 스크롤 동기화 함수
+  const syncScroll = useCallback((source: 'top' | 'bottom') => {
+    if (!topScrollRef.current || !bottomScrollRef.current) return
+    
+    if (source === 'top') {
+      bottomScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft
+    } else {
+      topScrollRef.current.scrollLeft = bottomScrollRef.current.scrollLeft
+    }
+  }, [])
+
+  // displayColumns를 먼저 정의
   const displayColumns = useMemo(() => {
     if (columnConfigs && columnConfigs.length > 0) {
       // DB에서 로드된 컬럼 설정 사용
@@ -84,6 +102,48 @@ function ProductTable({
       column_width: null
     }))
   }, [columnConfigs, products])
+
+  // 스크롤 이벤트 리스너 등록
+  useEffect(() => {
+    const topScroll = topScrollRef.current
+    const bottomScroll = bottomScrollRef.current
+    
+    const handleTopScroll = () => syncScroll('top')
+    const handleBottomScroll = () => syncScroll('bottom')
+    
+    if (topScroll) {
+      topScroll.addEventListener('scroll', handleTopScroll)
+    }
+    if (bottomScroll) {
+      bottomScroll.addEventListener('scroll', handleBottomScroll)
+    }
+    
+    return () => {
+      if (topScroll) {
+        topScroll.removeEventListener('scroll', handleTopScroll)
+      }
+      if (bottomScroll) {
+        bottomScroll.removeEventListener('scroll', handleBottomScroll)
+      }
+    }
+  }, [syncScroll])
+
+  // 테이블 너비 업데이트
+  useEffect(() => {
+    const updateTableWidth = () => {
+      if (tableRef.current) {
+        const width = tableRef.current.scrollWidth
+        setTableWidth(`${width}px`)
+      }
+    }
+    
+    updateTableWidth()
+    window.addEventListener('resize', updateTableWidth)
+    
+    return () => {
+      window.removeEventListener('resize', updateTableWidth)
+    }
+  }, [products, displayColumns])
 
   const handleCompareChange = useCallback((productId: string, checked: boolean) => {
     if (checked && selectedProducts.length >= 4) {
@@ -154,8 +214,14 @@ function ProductTable({
   return (
     <>
       <div className={styles.productListWrapper}>
-        <div className={styles.productListContainer}>
-          <table className={styles.productList}>
+        {/* 상단 스크롤바 컨테이너 */}
+        <div className={styles.topScrollContainer} ref={topScrollRef}>
+          <div className={styles.topScrollContent} style={{ width: tableWidth }} />
+        </div>
+        
+        {/* 기존 테이블 컨테이너 */}
+        <div className={styles.productListContainer} ref={bottomScrollRef}>
+          <table className={styles.productList} ref={tableRef}>
             <thead>
               <tr>
                 <th className={styles.colCompare}>비교</th>

@@ -50,7 +50,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'no_of_pixels', header: 'No. of Pixels' },
       { field: 'spectrum', header: 'Spectrum' },
       { field: 'interface', header: 'Interface' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -172,7 +172,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'line_length', header: 'Line Length' },
       { field: 'data_rate', header: 'Data Rate', unit: 'MHz' },
       { field: 'interface', header: 'Interface' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -273,7 +273,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'spectrum', header: 'Spectrum' },
       { field: 'dynamic_range', header: 'Dynamic Range', unit: 'dB' },
       { field: 'mount', header: 'Mount' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -376,7 +376,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'spectrum', header: 'Spectrum' },
       { field: 'dynamic_range', header: 'Dynamic Range', unit: 'dB' },
       { field: 'mount', header: 'Mount' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -473,7 +473,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'f_number', header: 'F#' },
       { field: 'coaxial', header: 'Coaxial' },
       { field: 'mount', header: 'Mount' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -536,7 +536,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'image_circle', header: 'Image Circle', unit: 'φ/mm' },
       { field: 'coaxial', header: 'Coaxial' },
       { field: 'mount', header: 'Mount' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -612,7 +612,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'mag_range', header: 'Mag Range', unit: 'x' },
       { field: 'f_number', header: 'F#' },
       { field: 'mount', header: 'Mount' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -678,7 +678,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'wd', header: 'WD', unit: 'mm' },
       { field: 'linearity', header: 'Linearity' },
       { field: 'laser_option', header: 'Laser Option' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: []
   },
@@ -697,7 +697,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'spectrum', header: 'Spectrum' },
       { field: 'shutter_type', header: 'Shutter Type' },
       { field: 'interface', header: 'Interface' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: []
   },
@@ -714,7 +714,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'controller', header: 'Controller' },
       { field: 'current', header: 'Current' },
       { field: 'focal_length', header: 'Focal Length' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: []
   },
@@ -732,7 +732,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'max_frequency', header: 'Max. Frequency', unit: 'kHz' },
       { field: 'led_voltage_range', header: 'LED Voltage Range', unit: 'V' },
       { field: 'max_power_output_total', header: 'Max. Power Output Total', unit: 'W' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: []
   },
@@ -749,7 +749,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'acquisition_rate', header: 'Acquisition Rate' },
       { field: 'onboard_memory', header: 'Onboard Memory' },
       { field: 'input', header: 'Input' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -759,7 +759,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         defaultExpanded: true,
         options: [
           { display: "10GigE", value: "10GigE" },
-          { display: "CoaXPress", value: "CoaXPress" },
+          { display: "CoaxPress", value: "CoaxPress" },
           { display: "Camera Link HS", value: "Camera Link HS" },
           { display: "Camera Link", value: "Camera Link" }
         ]
@@ -779,7 +779,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'port', header: 'Port' },
       { field: 'connector', header: 'Connector' },
       { field: 'poe', header: 'PoE' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -838,10 +838,10 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'chipset', header: 'Chipset' },
       { field: 'interface', header: 'Interface' },
       { field: 'pc_slot', header: 'PC Slot' },
-      { field: 'port', header: 'Port' },
+      { field: 'port', header: 'Port'},
       { field: 'connector', header: 'Connector' },
       { field: 'trans_speed', header: 'Transfer Speed' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -898,7 +898,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'series', header: 'Series', main: true },
       { field: 'part_number', header: 'Part Number', main: true },
       { field: 'description', header: 'Description' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: []
   },
@@ -910,7 +910,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'series', header: 'Series', main: true },
       { field: 'part_number', header: 'Part Number', main: true },
       { field: 'description', header: 'Description' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: []
   },
@@ -931,7 +931,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'resolution', header: 'Resolution', unit: 'μm/Pulse' },
       { field: 'linearity_error', header: 'Linearity Error', unit: '%' },
       { field: 'repeatability', header: 'Repeatability', unit: 'μm/Pulse' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: []
   },
@@ -944,7 +944,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'type', header: 'Type' },
       { field: 'description', header: 'Description' },
       { field: 'device', header: 'Device' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: []
   },
@@ -965,7 +965,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'frame_rate', header: 'Frame Rate', unit: 'fps' },
       { field: 'interface', header: 'Interface' },
       { field: 'mount', header: 'Mount' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {
@@ -1064,7 +1064,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       { field: 'spectrum', header: 'Spectrum' },
       { field: 'interface', header: 'Interface' },
       { field: 'mount', header: 'Mount' },
-      { field: 'maker', header: 'Maker' }
+      { field: 'maker_name', header: 'Maker' }
     ],
     filters: [
       {

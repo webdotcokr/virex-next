@@ -1,6 +1,11 @@
 /** Support */
 
-      /** Support > Download */
+.content-body {
+  max-width: var(--container-width-xl);
+  margin: 0 auto;
+}
+
+/** Support > Download */
   
       .download-item-list {
           display: flex;
@@ -196,6 +201,7 @@
           .remote-item .remote-item-title {
             font-size: 1.375rem;
             font-weight: bold;
+            letter-spacing: -0.05em;;
           }
           .remote-item .remote-item-button {  
             cursor: pointer;

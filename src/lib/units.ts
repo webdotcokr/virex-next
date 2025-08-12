@@ -11,7 +11,6 @@ export const PARAMETER_UNITS: Record<string, string> = {
   'line_rate': 'kHz',
   'speed': 'mm/s',
   'wd': 'mm',
-  'no_of_pixels': 'pixels',
   
   // Area 카메라  
   'mega_pixel': 'MP',
@@ -44,12 +43,7 @@ export const PARAMETER_UNITS: Record<string, string> = {
   'exposure_time': 'μs',
   'gain': 'dB',
   'bit_depth': 'bit',
-  'sensor_size': 'mm',
-  
-  // 조명 관련
-  'luminance': 'cd/m²',
-  'illuminance': 'lux',
-  'color_temperature': 'K'
+  'sensor_size': 'mm'
 }
 
 /**

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import PageContentContainer from '@/components/PageContentContainer'
+import Pagination from '@/components/ui/Pagination'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface Download {
@@ -143,21 +144,7 @@ export default function DownloadListPage() {
     })
   }
 
-  const getTotalPages = () => {
-    return Math.ceil(totalCount / ITEMS_PER_PAGE)
-  }
-
-  const getPageNumbers = () => {
-    const totalPages = getTotalPages()
-    const pages = []
-    const startPage = Math.max(1, currentPage - 2)
-    const endPage = Math.min(totalPages, currentPage + 2)
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i)
-    }
-    return pages
-  }
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
 
   const goToPage = (pageNum: number) => {
     const params = new URLSearchParams()
@@ -185,32 +172,26 @@ export default function DownloadListPage() {
         titleEn="Leading your vision to success"
         titleKo="고객지원"
       >
+        <div className="content-body">
         <div className="content-title">
           <h2>다운로드 센터</h2>
-          {category && (
-            <p style={{ fontSize: '16px', color: '#666', marginTop: '8px' }}>
-              {category.name} 파일 목록
-            </p>
-          )}
         </div>
-
         <div id="general-article-list-header">
           <div className="cnt-area">
             <span className="cnt-label">TOTAL</span>
             <span className="cnt-value">{totalCount}</span>
           </div>
-          <div className="search-area">
-            <input
-              type="text"
-              placeholder="키워드로 검색하세요."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-            <span className="search-icon" onClick={handleSearch}></span>
+            <div className="search-area">
+              <input
+                type="text"
+                placeholder="키워드로 검색하세요."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+              />
+              <span className="search-icon" onClick={handleSearch}></span>
+            </div>
           </div>
-        </div>
-
         {loading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
@@ -268,43 +249,16 @@ export default function DownloadListPage() {
               </tbody>
             </table>
 
-            {getTotalPages() > 1 && (
-              <div className="flex justify-center items-center mt-6">
-                {currentPage > 1 && (
-                  <button
-                    onClick={() => goToPage(currentPage - 1)}
-                    className="px-3 py-1 mx-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded"
-                  >
-                    이전
-                  </button>
-                )}
-                
-                {getPageNumbers().map(pageNum => (
-                  <button
-                    key={pageNum}
-                    onClick={() => goToPage(pageNum)}
-                    className={`px-3 py-1 mx-1 ${
-                      pageNum === currentPage
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    } rounded`}
-                  >
-                    {pageNum}
-                  </button>
-                ))}
-                
-                {currentPage < getTotalPages() && (
-                  <button
-                    onClick={() => goToPage(currentPage + 1)}
-                    className="px-3 py-1 mx-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded"
-                  >
-                    다음
-                  </button>
-                )}
-              </div>
-            )}
+            <div className="flex justify-center mt-6">
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+              />
+            </div>
           </>
         )}
+        </div>
       </PageContentContainer>
     </div>
   )

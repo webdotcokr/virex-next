@@ -62,7 +62,7 @@ const NoticePage = () => {
         backgroundImage="/img/bg-news.webp"
         breadcrumbs={[
           { label: "Home", href: "/" },
-          { label: "뉴스", href: "/news" },
+          { label: "뉴스"},
           { label: "공지사항" }
         ]}
         titleEn="Leading your vision to success"

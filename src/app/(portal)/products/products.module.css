@@ -119,7 +119,7 @@
 }
 
 .categoryNavigation .menuContainer {
-  max-width: 1200px;
+  max-width: var(--container-width-xl);
   margin: 0 auto;
   padding: 0 20px;
 }
@@ -174,7 +174,7 @@
 
 /* Main Container - 캡처본과 동일한 레이아웃 */
 .productsContainer {
-  max-width: var(--container-width-lg);
+  max-width: var(--container-width-xl);
   margin: 0 auto;
   padding: 20px;
   display: flex;
@@ -474,6 +474,19 @@
   border-radius: 6px;
   border: 1px solid var(--gray200);
   overflow: hidden;
+}
+
+/* Top scroll container for dual scrollbar */
+.topScrollContainer {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom: 1px solid var(--gray200);
+  background: var(--gray000);
+}
+
+.topScrollContent {
+  height: 1px;
+  /* Width will be set dynamically to match table width */
 }
 
 .productListContainer {

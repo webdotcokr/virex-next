@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -37,7 +36,7 @@ const DownloadComponent = () => {
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
-    { label: "고객지원", href: "/support/" },
+    { label: "고객지원"},
     { label: "다운로드" }
   ];
 

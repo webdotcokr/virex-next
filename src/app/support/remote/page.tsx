@@ -10,7 +10,7 @@ const DownloadComponent = () => {
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
-    { label: "고객지원", href: "/sub/company/" },
+    { label: "고객지원"},
     { label: "원격지원" }
   ];
 
@@ -48,7 +48,7 @@ const DownloadComponent = () => {
                     <div className={styles['remote-item-step-no']}>STEP 01</div>
                     <div className={`${styles['remote-item-title']} mt-10px`}><h4>엔지니어와<br/>상담을 요청합니다.</h4></div>
                     <span className={styles['remote-item-button']}>
-                        <a href="inquiry.asp">상담 문의 요청하기</a>
+                        <Link href="/support/inquiry">상담 문의 요청하기</Link>
                     </span>
                 </div>
                 <div className={styles['remote-item']} data-idx="2">

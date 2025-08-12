@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import PageContentContainer from '@/components/PageContentContainer';
 import styles from '../company.module.css'; // CSS 모듈 import
@@ -10,7 +9,7 @@ const CompanyPage = () => {
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
-    { label: "바이렉스", href: "/sub/company/" },
+    { label: "바이렉스"},
     { label: "회사소개" }
   ];
 

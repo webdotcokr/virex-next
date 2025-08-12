@@ -224,25 +224,86 @@ export default function CategoriesDataGrid() {
     },
   ];
 
-  // Fetch data function
+  // Fetch data function with enhanced error handling
   const fetchData = useCallback(async () => {
     setLoading(true);
+    const startTime = Date.now();
+    
+    // Set a timeout for the fetch operation
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.error('⏱️ Fetch operation timed out after 10 seconds');
+        setSnackbar({
+          open: true,
+          message: '데이터 로딩 시간 초과 (10초). 네트워크 연결을 확인하거나 페이지를 새로고침하세요.',
+          severity: 'error',
+        });
+        setLoading(false);
+      }
+    }, 10000);
+
     try {
-      console.log('🔄 Fetching categories...');
+      console.log('🔄 Fetching categories...', {
+        timestamp: new Date().toISOString(),
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      });
       
-      const { data, error } = await supabase
+      const query = supabase
         .from('categories')
         .select('*')
         .order('parent_id', { ascending: true, nullsFirst: true })
         .order('name', { ascending: true });
 
-      console.log('✅ Supabase response:', { 
+      console.log('📡 Sending Supabase request...', {
+        table: 'categories',
+        orderBy: 'parent_id ASC, name ASC'
+      });
+
+      const { data, error, status, statusText } = await query;
+
+      const responseTime = Date.now() - startTime;
+      console.log('📊 Supabase response received:', { 
+        responseTime: `${responseTime}ms`,
+        status,
+        statusText,
         dataCount: data?.length, 
-        error,
+        error: error ? {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        } : null
       });
 
       if (error) {
-        console.error('❌ Supabase error details:', error);
+        console.error('❌ Supabase error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          fullError: error
+        });
+        
+        // Provide more specific error messages
+        let errorMessage = '카테고리 로드 실패: ';
+        if (error.code === 'PGRST301') {
+          errorMessage += 'JWT 토큰이 만료되었습니다. 페이지를 새로고침하세요.';
+        } else if (error.code === '42501') {
+          errorMessage += '권한이 없습니다. RLS 정책을 확인하세요.';
+        } else if (error.message.includes('network')) {
+          errorMessage += '네트워크 연결을 확인하세요.';
+        } else if (error.message.includes('CORS')) {
+          errorMessage += 'CORS 에러. Supabase 대시보드에서 URL 설정을 확인하세요.';
+        } else {
+          errorMessage += error.message;
+        }
+        
+        setSnackbar({
+          open: true,
+          message: errorMessage,
+          severity: 'error',
+        });
         throw error;
       }
 
@@ -256,30 +317,49 @@ export default function CategoriesDataGrid() {
         console.log(`✅ Successfully loaded ${data.length} categories`);
         setSnackbar({
           open: true,
-          message: `Loaded ${data.length} categories`,
+          message: `${data.length}개 카테고리 로드 완료`,
           severity: 'success',
         });
       } else {
-        console.log('ℹ️ No categories found');
+        console.log('ℹ️ No categories found in database');
         setSnackbar({
           open: true,
-          message: 'No categories found',
+          message: '등록된 카테고리가 없습니다.',
           severity: 'info',
         });
       }
     } catch (error) {
-      console.error('❌ Error fetching categories:', error);
-      setSnackbar({
-        open: true,
-        message: `Failed to load categories: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        severity: 'error',
+      const responseTime = Date.now() - startTime;
+      console.error('❌ Error fetching categories:', {
+        error,
+        responseTime: `${responseTime}ms`,
+        errorType: error instanceof Error ? error.constructor.name : typeof error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined
       });
+      
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        setSnackbar({
+          open: true,
+          message: '네트워크 연결 실패. 인터넷 연결과 Supabase URL을 확인하세요.',
+          severity: 'error',
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: `카테고리 로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+          severity: 'error',
+        });
+      }
+      
       setRows([]);
       setFlatRows([]);
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
-  }, [buildTree, flattenTree]);
+  }, [buildTree, flattenTree, loading]);
 
   // Load data when component mounts
   useEffect(() => {

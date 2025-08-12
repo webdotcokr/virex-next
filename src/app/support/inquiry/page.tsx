@@ -10,7 +10,7 @@ const CompanyPage = () => {
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
-    { label: "고객지원", href: "/Su/company/" },
+    { label: "고객지원"},
     { label: "제품문의" }
   ];
 
@@ -30,7 +30,7 @@ const CompanyPage = () => {
         <InquiryForm />
       </div>
       </PageContentContainer>
-            </div>
+    </div>
   );
 };
 

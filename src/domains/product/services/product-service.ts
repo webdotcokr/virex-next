@@ -15,7 +15,7 @@ const CATEGORY_TABLE_MAPPING: Record<number, string> = {
   18: 'products_3d_laser_profiler', // 3D Laser Profiler
   19: 'products_3d_stereo_camera',  // 3D Stereo Camera
   20: 'products_light',             // Light
-  // 21: 'products_af_module',         // AF Module - 테이블 없음
+  21: 'products_af_module',         // AF Module
   22: 'products_controller',        // Controller
   23: 'products_frame_grabber',     // Frame Grabber
   24: 'products_gige_lan_card',     // GigE LAN Card

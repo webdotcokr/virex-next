@@ -15,7 +15,7 @@ const LocationPage = () => {
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
-    { label: "바이렉스", href: "/company" },
+    { label: "바이렉스"},
     { label: "오시는 길" }
   ];
 

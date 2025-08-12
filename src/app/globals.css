@@ -1368,6 +1368,8 @@ footer #footer-bottom #footer-copyright {
     font-size: 1.125rem;
     font-weight: 400;
     line-height: 1.625rem; /* 144.444% */
+    max-width: var(--container-width-xl);
+    margin: 0 auto;
   }
 
 

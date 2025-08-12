@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PageContentContainer from '@/components/PageContentContainer';
+import Pagination from '@/components/ui/Pagination';
 import type { Database } from '@/lib/supabase';
 
 type NewsItem = Database['public']['Tables']['news']['Row'];
@@ -56,51 +57,7 @@ const MediaPage = () => {
     });
   };
 
-  const maxPage = Math.ceil(totalCount / itemsPerPage);
-
-  const renderPagination = () => {
-    const pages = [];
-    const startPage = Math.max(1, currentPage - 5);
-    const endPage = Math.min(maxPage, currentPage + 5);
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => setCurrentPage(i)}
-          className={`px-3 py-1 mx-1 ${
-            i === currentPage
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          } rounded`}
-        >
-          {i}
-        </button>
-      );
-    }
-
-    return (
-      <div className="flex justify-center items-center mt-6">
-        {currentPage > 1 && (
-          <button
-            onClick={() => setCurrentPage(currentPage - 1)}
-            className="px-3 py-1 mx-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded"
-          >
-            이전
-          </button>
-        )}
-        {pages}
-        {currentPage < maxPage && (
-          <button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            className="px-3 py-1 mx-1 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded"
-          >
-            다음
-          </button>
-        )}
-      </div>
-    );
-  };
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   return (
     <div>
@@ -109,7 +66,7 @@ const MediaPage = () => {
         backgroundImage="/img/bg-news.webp"
         breadcrumbs={[
           { label: "Home", href: "/" },
-          { label: "뉴스", href: "/news" },
+          { label: "뉴스"},
           { label: "미디어" }
         ]}
         titleEn="Leading your vision to success"
@@ -188,7 +145,13 @@ const MediaPage = () => {
               )}
             </div>
 
-            {maxPage > 1 && renderPagination()}
+            <div className="flex justify-center mt-6">
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
           </>
           )}
         </div>

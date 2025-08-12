@@ -118,17 +118,33 @@ export default function NewsletterDataGrid() {
     },
   ];
 
-  // Fetch data function
+  // Fetch data function with enhanced error handling
   const fetchData = useCallback(async () => {
     setLoading(true);
+    const startTime = Date.now();
+    
+    // Set a timeout for the fetch operation
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.error('⏱️ Fetch operation timed out after 10 seconds');
+        setSnackbar({
+          open: true,
+          message: '데이터 로딩 시간 초과 (10초). 네트워크 연결을 확인하거나 페이지를 새로고침하세요.',
+          severity: 'error',
+        });
+        setLoading(false);
+      }
+    }, 10000);
+
     try {
       console.log('🔄 Fetching newsletter subscriptions...', { 
         paginationModel,
         supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        timestamp: new Date().toISOString()
       });
       
-      const { data, error, count } = await supabase
+      const query = supabase
         .from('newsletter_subscriptions')
         .select('*', { count: 'exact' })
         .range(
@@ -137,15 +153,58 @@ export default function NewsletterDataGrid() {
         )
         .order('subscribed_at', { ascending: false });
 
-      console.log('✅ Supabase response:', { 
+      console.log('📡 Sending Supabase request...', {
+        table: 'newsletter_subscriptions',
+        range: `${paginationModel.page * paginationModel.pageSize}-${(paginationModel.page + 1) * paginationModel.pageSize - 1}`,
+        orderBy: 'subscribed_at DESC'
+      });
+
+      const { data, error, count, status, statusText } = await query;
+      
+      const responseTime = Date.now() - startTime;
+      console.log('📊 Supabase response received:', { 
+        responseTime: `${responseTime}ms`,
+        status,
+        statusText,
         dataCount: data?.length, 
         totalCount: count, 
-        error,
+        error: error ? {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        } : null,
         sampleData: data?.[0] 
       });
 
       if (error) {
-        console.error('❌ Supabase error details:', error);
+        console.error('❌ Supabase error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          fullError: error
+        });
+        
+        // Provide more specific error messages
+        let errorMessage = '데이터 로드 실패: ';
+        if (error.code === 'PGRST301') {
+          errorMessage += 'JWT 토큰이 만료되었습니다. 페이지를 새로고침하세요.';
+        } else if (error.code === '42501') {
+          errorMessage += '권한이 없습니다. RLS 정책을 확인하세요.';
+        } else if (error.message.includes('network')) {
+          errorMessage += '네트워크 연결을 확인하세요.';
+        } else if (error.message.includes('CORS')) {
+          errorMessage += 'CORS 에러. Supabase 대시보드에서 URL 설정을 확인하세요.';
+        } else {
+          errorMessage += error.message;
+        }
+        
+        setSnackbar({
+          open: true,
+          message: errorMessage,
+          severity: 'error',
+        });
         throw error;
       }
 
@@ -156,30 +215,56 @@ export default function NewsletterDataGrid() {
         console.log(`✅ Successfully loaded ${data.length} newsletter subscriptions out of ${count} total`);
         setSnackbar({
           open: true,
-          message: `Loaded ${data.length} subscriptions`,
+          message: `${data.length}개 구독 정보 로드 완료 (총 ${count}개)`,
           severity: 'success',
         });
-      } else {
-        console.log('ℹ️ No newsletter subscriptions found');
+      } else if (count === 0) {
+        console.log('ℹ️ No newsletter subscriptions found in database');
         setSnackbar({
           open: true,
-          message: 'No newsletter subscriptions found',
+          message: '등록된 뉴스레터 구독자가 없습니다.',
           severity: 'info',
+        });
+      } else {
+        console.log('⚠️ Data exists but not returned', { count, page: paginationModel.page });
+        setSnackbar({
+          open: true,
+          message: '데이터가 존재하지만 로드되지 않았습니다. 페이지네이션을 확인하세요.',
+          severity: 'warning',
         });
       }
     } catch (error) {
-      console.error('❌ Error fetching newsletter subscriptions:', error);
-      setSnackbar({
-        open: true,
-        message: `Failed to load newsletter subscriptions: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        severity: 'error',
+      const responseTime = Date.now() - startTime;
+      console.error('❌ Error fetching newsletter subscriptions:', {
+        error,
+        responseTime: `${responseTime}ms`,
+        errorType: error instanceof Error ? error.constructor.name : typeof error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined
       });
+      
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        setSnackbar({
+          open: true,
+          message: '네트워크 연결 실패. 인터넷 연결과 Supabase URL을 확인하세요.',
+          severity: 'error',
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: `데이터 로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+          severity: 'error',
+        });
+      }
+      
       setRows([]);
       setTotalRows(0);
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
-  }, [paginationModel]);
+  }, [paginationModel, loading]);
 
   // Load data when component mounts or pagination changes
   useEffect(() => {

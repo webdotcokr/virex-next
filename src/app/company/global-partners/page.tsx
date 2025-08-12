@@ -8,7 +8,7 @@ const CompanyPage = () => {
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
-    { label: "바이렉스", href: "/sub/company/" },
+    { label: "바이렉스" },
     { label: "파트너사" }
   ];
 
@@ -21,7 +21,6 @@ type Partner = {
   link?: string;
 };
 
-// 파트너사 정보를 배열로 관리합니다. (데이터와 뷰의 분리)
 // 파트너사 정보를 배열로 관리합니다. (데이터와 뷰의 분리)
     // 글로벌 파트너사 링크 매핑
     const partnerLinks = {
