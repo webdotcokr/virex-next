@@ -25,9 +25,9 @@ export async function POST(request: NextRequest) {
     });
 
     // Validation - only check truly required fields
-    if (!name || !email || !contactPath || !description || !privacyAgreed) {
+    if (!name || !email || !phone || !company || !contactPath || !privacyAgreed) {
       return NextResponse.json(
-        { error: '필수 입력 사항을 모두 작성해주세요. (이름, 이메일, 컨택경로, 상담내용, 개인정보처리방침 동의)' },
+        { error: '필수 입력 사항을 모두 작성해주세요. (이름, 이메일, 연락처, 회사명, 컨택경로, 개인정보처리방침 동의)' },
         { status: 400 }
       );
     }

@@ -8,13 +8,14 @@
   background-position: center;
   min-height: 23rem;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  padding-bottom: 2.5rem;
   position: relative;
   transition: background-image 0.2s ease-in-out;
 }
 
 .productHeroContent {
-  max-width: 1200px;
+  max-width: var(--container-width-xl);
   margin: 0 auto;
   padding: 0 20px;
   position: relative;
@@ -49,6 +50,11 @@
   width: 16px;
   height: 16px;
   opacity: 0.6;
+}
+
+.breadcrumb .arrow img {
+  display: inline-block;
+  margin-left: .5rem;
 }
 
 .leftAligned {

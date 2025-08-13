@@ -129,13 +129,12 @@ export default function Home() {
   }
 
   const handleNewProductsNav = (direction: 'prev' | 'next') => {
-    const itemsPerView = 4
-    const maxIndex = Math.max(0, newProducts.length - itemsPerView)
+    const totalGroups = Math.ceil(newProducts.length / 4)
     
-    if (direction === 'next' && newProductsIndex < maxIndex) {
-      setNewProductsIndex(prev => prev + 1)
-    } else if (direction === 'prev' && newProductsIndex > 0) {
-      setNewProductsIndex(prev => prev - 1)
+    if (direction === 'next') {
+      setNewProductsIndex(prev => (prev + 1) % totalGroups) // 무한 루프
+    } else {
+      setNewProductsIndex(prev => prev === 0 ? totalGroups - 1 : prev - 1) // 무한 루프
     }
   }
 
@@ -225,7 +224,6 @@ export default function Home() {
             <button 
               className={styles.btnNewProductPrev}
               onClick={() => handleNewProductsNav('prev')}
-              disabled={newProductsIndex === 0}
             >
               <img src="/img/btn-slide-prev-gray.svg" alt="Previous" />
             </button>
@@ -233,7 +231,7 @@ export default function Home() {
             <div className={styles.newProductsItemsContainer}>
               <div 
                 className={styles.newProductsItems}
-                style={{ transform: `translateX(-${newProductsIndex * 25}%)` }}
+                style={{ transform: `translateX(-${newProductsIndex * 100}%)` }}
               >
                 {newProducts.map((product) => (
                   <Link key={product.id} href={product.link_url} className={styles.newProductItemLink}>
@@ -269,7 +267,6 @@ export default function Home() {
             <button 
               className={styles.btnNewProductNext}
               onClick={() => handleNewProductsNav('next')}
-              disabled={newProductsIndex >= Math.max(0, newProducts.length - 4)}
             >
               <img src="/img/btn-slide-next-gray.svg" alt="Next" />
             </button>

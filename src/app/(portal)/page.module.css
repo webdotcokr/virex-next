@@ -303,13 +303,14 @@ footer #newsletter {
   display: block;
   text-decoration: none;
   color: inherit;
-  flex: 0 0 18rem;
+  flex: 0 0 calc((100% - 3rem) / 4);
+  max-width: calc((100% - 3rem) / 4);
 }
 
 .newProductItem {
   background-color: #F1F3F5;
   border-radius: 0.5rem;
-  width: 18rem;
+  width: 100%;
   height: 15.625rem;
   padding: 1.25rem;
   transition: all 0.3s ease;
@@ -430,6 +431,11 @@ footer #newsletter {
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
+}
+
+.sliderDot.active {
+  background: #566BDA;
+  transform: scale(1.2);
 }
 
 /* Tech Info Section */
@@ -623,6 +629,7 @@ footer #newsletter {
   
   .newProductItemLink {
     flex: 0 0 100%;
+    max-width: 100%;
   }
   
   .techInfoItems {

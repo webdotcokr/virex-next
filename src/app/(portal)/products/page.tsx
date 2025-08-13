@@ -531,9 +531,7 @@ function ProductsContent() {
   if (categoryLoading || !categoryInfo) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">카테고리 정보를 불러오는 중...</h2>
-        </div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
     )
   }
