@@ -526,11 +526,11 @@
 
 .sortIcon {
   display: inline-block;
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   margin-left: 0.5rem;
   cursor: pointer;
-  opacity: 0.6;
+  opacity: 1;
   transition: opacity 0.2s ease;
 }
 
@@ -652,9 +652,9 @@
 
 /* 정렬 아이콘 스타일링 */
 .sortIcon {
-  width: 20px;
-  height: 20px;
-  margin-left: 4px;
+  width: 24px;
+  height: 24px;
+  margin-left: 3px;
   cursor: pointer;
   transition: opacity 0.2s ease;
   vertical-align: middle;
@@ -689,8 +689,8 @@
 
 /* 체크박스 스타일링 */
 .colCompare input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
 }
 

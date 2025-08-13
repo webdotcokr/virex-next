@@ -9,8 +9,6 @@ import Users from './src/payload/collections/Users'
 import Categories from './src/payload/collections/Categories'
 import Makers from './src/payload/collections/Makers'
 import Series from './src/payload/collections/Series'
-import FilterConfigs from './src/payload/collections/FilterConfigs'
-import TableColumnConfigs from './src/payload/collections/TableColumnConfigs'
 import Products from './src/payload/collections/Products'
 import News from './src/payload/collections/News'
 import Downloads from './src/payload/collections/Downloads'
@@ -37,8 +35,6 @@ export default buildConfig({
     Makers,
     Series,
     Products,
-    FilterConfigs,
-    TableColumnConfigs,
     News,
     Downloads,
   ],

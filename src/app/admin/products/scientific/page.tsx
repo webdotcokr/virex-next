@@ -10,4 +10,3 @@ export default function ScientificProductsPage() {
     />
   );
 }
-EOF < /dev/null

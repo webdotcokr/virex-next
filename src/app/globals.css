@@ -1,5 +1,7 @@
-/** Tailwind CSS v4 */
-@import "tailwindcss";
+/** Tailwind CSS v3 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /** Variables */
 :root {
