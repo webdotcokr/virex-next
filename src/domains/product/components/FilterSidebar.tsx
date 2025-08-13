@@ -650,9 +650,6 @@ function FilterSidebar({
           {loading ? (
             <div className={styles.loadingMessage}>필터를 불러오는 중...</div>
           ) : staticFilters.length === 0 ? (
-            <div className={styles.loadingMessage} style={{ color: '#ff6b6b' }}>
-              필터 설정을 찾을 수 없습니다.
-            </div>
           ) : (
             staticFilters.map((filter, index) => {
               const isExpanded = expandedSections.has(filter.param)

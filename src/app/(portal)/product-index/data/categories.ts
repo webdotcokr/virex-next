@@ -26,7 +26,7 @@ export const productCategories: ProductCategory[] = [
           'Contact Image Sensor'
         ],
         imageUrl: '/img/camera-01.png',
-        linkUrl: '/products?type=camera&p_cate=1012&category=CIS&page=1&pageSize=20&sortBy=p_item_text4&sortDir=DESC'
+        linkUrl: '/products?categories=9'
       },
       {
         id: 'tdi',
@@ -37,7 +37,7 @@ export const productCategories: ProductCategory[] = [
           '초고속 고감도 TDI 카메라'
         ],
         imageUrl: '/img/camera-02.png',
-        linkUrl: '/products?type=camera&category=TDI%20Line&p_cate=1015'
+        linkUrl: '/products?categories=10'
       },
       {
         id: 'line',
@@ -48,7 +48,7 @@ export const productCategories: ProductCategory[] = [
           'Multi Line Scan 카메라'
         ],
         imageUrl: '/img/camera-03.png',
-        linkUrl: '/products?type=camera&category=Line&p_cate=1011'
+        linkUrl: '/products?categories=11'
       },
       {
         id: 'area',
@@ -59,7 +59,7 @@ export const productCategories: ProductCategory[] = [
           'Area Scan 카메라'
         ],
         imageUrl: '/img/camera-04.png',
-        linkUrl: '/products?type=camera&category=Area&p_cate=1010'
+        linkUrl: '/products?categories=12'
       },
       {
         id: 'invisible',
@@ -70,7 +70,7 @@ export const productCategories: ProductCategory[] = [
           'SWIR Line Scan Camera'
         ],
         imageUrl: '/img/camera-05.png',
-        linkUrl: '/products?type=camera&category=Invisible&p_cate=1013'
+        linkUrl: '/products?categories=13'
       },
       {
         id: 'scientific',
@@ -81,7 +81,7 @@ export const productCategories: ProductCategory[] = [
           'back-illuminated sCMOS Camera'
         ],
         imageUrl: '/img/camera-06.png',
-        linkUrl: '/products?type=camera&category=Scientific&p_cate=1014'
+        linkUrl: '/products?categories=14'
       }
     ]
   },
@@ -98,7 +98,7 @@ export const productCategories: ProductCategory[] = [
           'Image Circle 82mm 이상 라인스캔 렌즈'
         ],
         imageUrl: '/img/lens-01.png',
-        linkUrl: '/products?type=lens&category=Large%20Format&p_cate=1112'
+        linkUrl: '/products?categories=15'
       },
       {
         id: 'telecentric',
@@ -109,7 +109,7 @@ export const productCategories: ProductCategory[] = [
           'Telecentric Lens'
         ],
         imageUrl: '/img/lens-02.png',
-        linkUrl: '/products?type=lens&category=Telecentric&p_cate=1111'
+        linkUrl: '/products?categories=16'
       },
       {
         id: 'fa',
@@ -120,7 +120,7 @@ export const productCategories: ProductCategory[] = [
           'Fixed Focal Length 렌즈'
         ],
         imageUrl: '/img/lens-03.png',
-        linkUrl: '/products?type=lens&category=FA&p_cate=1110'
+        linkUrl: '/products?categories=17'
       }
     ]
   },
@@ -137,7 +137,7 @@ export const productCategories: ProductCategory[] = [
           '3D 레이저 프로파일러'
         ],
         imageUrl: '/img/main-products/02.png',
-        linkUrl: '/products?type=3d-camera&category=Laser%20Profiler&p_cate=1310'
+        linkUrl: '/products?categories=18'
       },
       {
         id: 'stereo-camera',
@@ -148,7 +148,7 @@ export const productCategories: ProductCategory[] = [
           '5GigE 3D 스테레오 카메라'
         ],
         imageUrl: '/img/main-products/03.png',
-        linkUrl: '/products?type=3d-camera&category=Stereo%20Camera&p_cate=1311'
+        linkUrl: '/products?categories=19'
       }
     ]
   },
@@ -165,7 +165,7 @@ export const productCategories: ProductCategory[] = [
           '및 Z축 제어 자동 초점 모듈'
         ],
         imageUrl: '/img/main-products/04.png',
-        linkUrl: '/products?type=af-module&category=Autos%20Focus&p_cate=16'
+        linkUrl: '/products?categories=4'
       }
     ]
   },
@@ -182,7 +182,7 @@ export const productCategories: ProductCategory[] = [
           ''
         ],
         imageUrl: '/img/light-01.png',
-        linkUrl: '/products?type=light&category=Light&p_cate=1410'
+        linkUrl: '/products?categories=20'
       },
       {
         id: 'light-sources',
@@ -193,7 +193,7 @@ export const productCategories: ProductCategory[] = [
           ''
         ],
         imageUrl: '/img/light-02.png',
-        linkUrl: '/products?type=light&category=Light%20Sources&p_cate=1411'
+        linkUrl: '/products?categories=21'
       },
       {
         id: 'controller',
@@ -204,7 +204,7 @@ export const productCategories: ProductCategory[] = [
           '스트로브 컨트롤러'
         ],
         imageUrl: '/img/light-03.png',
-        linkUrl: '/products?type=light&category=Controller&p_cate=1412'
+        linkUrl: '/products?categories=22'
       }
     ]
   },
@@ -221,7 +221,7 @@ export const productCategories: ProductCategory[] = [
           'XGV PX8 Series'
         ],
         imageUrl: '/img/frame-grabber-01.png',
-        linkUrl: '/products?type=frame-grabber&p_cate=1210&category=프레임그래버&page=1&pageSize=20&p_item_text5=10GigE'
+        linkUrl: '/products?categories=23&interface=10GigE'
       },
       {
         id: 'coaxpress',
@@ -232,7 +232,7 @@ export const productCategories: ProductCategory[] = [
           'CXP PX8 Series'
         ],
         imageUrl: '/img/frame-grabber-02.png',
-        linkUrl: '/products?type=frame-grabber&p_cate=1210&category=프레임그래버&page=1&pageSize=20&p_item_text5=CoaXPress'
+        linkUrl: '/products?categories=23&interface=CoaxPress'
       },
       {
         id: 'camera-link-hs',
@@ -243,7 +243,7 @@ export const productCategories: ProductCategory[] = [
           'CLHS Series'
         ],
         imageUrl: '/img/frame-grabber-03.png',
-        linkUrl: '/products?type=frame-grabber&p_cate=1210&category=프레임그래버&page=1&pageSize=20&p_item_text5=Camera+Link+HS'
+        linkUrl: '/products?categories=23&interface=Camera+Link+HS'
       },
       {
         id: 'camera-link',
@@ -254,7 +254,7 @@ export const productCategories: ProductCategory[] = [
           'Xtium2 MX4'
         ],
         imageUrl: '/img/frame-grabber-04.png',
-        linkUrl: '/products?type=frame-grabber&p_cate=1210&category=프레임그래버&page=1&pageSize=20&p_item_text5=Camera+Link'
+        linkUrl: '/products?categories=23&interface=Camera+Link'
       },
       {
         id: 'gige-lan-card',
@@ -264,7 +264,7 @@ export const productCategories: ProductCategory[] = [
           '(1G, 2.5G, 5G, 10G 지원)'
         ],
         imageUrl: '/img/frame-grabber-05.png',
-        linkUrl: '/products?type=frame-grabber&category=CoaxPress&p_cate=1211'
+        linkUrl: '/products?categories=24'
       },
       {
         id: 'usb-card',
@@ -274,7 +274,7 @@ export const productCategories: ProductCategory[] = [
           '(USB Interface)'
         ],
         imageUrl: '/img/frame-grabber-06.png',
-        linkUrl: '/products?type=frame-grabber&category=Camera%20Link&p_cate=1212'
+        linkUrl: '/products?categories=25'
       }
     ]
   },
@@ -291,7 +291,7 @@ export const productCategories: ProductCategory[] = [
           '및 AI 개발자키트 Astrocyte'
         ],
         imageUrl: '/img/software-01.png',
-        linkUrl: '/products?type=software&p_cate=15'
+        linkUrl: '/products?categories=7'
       }
     ]
   },
@@ -308,7 +308,7 @@ export const productCategories: ProductCategory[] = [
           'GigE 고성능 데이터 케이블'
         ],
         imageUrl: '/img/accessory-01.png',
-        linkUrl: '/products?type=accessory&category=Cable&p_cate=1711'
+        linkUrl: '/products?categories=26'
       },
       {
         id: 'accessory',
@@ -319,14 +319,14 @@ export const productCategories: ProductCategory[] = [
           '프레임그래버용 외부 I/O 보드'
         ],
         imageUrl: '/img/accessory-02.png',
-        linkUrl: '/products?type=accessory&category=Accessory&p_cate=1712'
+        linkUrl: '/products?categories=27'
       },
       {
         id: 'etcs',
         title: '기타',
         description: [],
         imageUrl: '/img/accessory-03.png',
-        linkUrl: '/products?type=accessory&category=Etcs&p_cate=1713'
+        linkUrl: '/products?categories=28'
       }
     ]
   }
