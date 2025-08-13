@@ -687,6 +687,19 @@
   vertical-align: middle;
 }
 
+/* Discontinued Badge */
+.discontinuedBadge {
+  display: inline-block;
+  background-color: #6B7280;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
 /* 체크박스 스타일링 */
 .colCompare input[type="checkbox"] {
   width: 20px;
@@ -922,20 +935,6 @@
 /* Enhanced Range Slider Styles */
 .sliderContainer {
   margin: 12px 0;
-}
-
-.sliderValues {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--primary500);
-  margin-bottom: 8px;
-  padding: 4px 8px;
-  background: var(--primary50);
-  border-radius: 4px;
-  border: 1px solid var(--primary100);
 }
 
 .sliderLoading {

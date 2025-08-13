@@ -7,6 +7,7 @@ export interface Product {
   category_name?: string
   is_active: boolean
   is_new: boolean
+  is_discontinued?: boolean
   created_at?: string
   updated_at?: string
   image_url?: string

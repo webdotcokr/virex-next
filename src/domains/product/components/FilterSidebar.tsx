@@ -167,7 +167,7 @@ function FilterSidebar({
               fallbackDefaults.add(filter.param)
             }
           })
-          const savedExpanded = loadExpandedSections(filters.categories[0] || '9', fallbackDefaults)
+          const savedExpanded = loadExpandedSections(categoryId, fallbackDefaults)
           setExpandedSections(savedExpanded)
         } else {
           setStaticFilters([])
@@ -649,7 +649,9 @@ function FilterSidebar({
           {/* 동적으로 로드된 필터 그룹들 */}
           {loading ? (
             <div className={styles.loadingMessage}>필터를 불러오는 중...</div>
-          ) : staticFilters.length > 0 && (
+          ) : staticFilters.length === 0 ? (
+            <div className={styles.loadingMessage}>사용 가능한 필터가 없습니다.</div>
+          ) : (
             staticFilters.map((filter, index) => {
               const isExpanded = expandedSections.has(filter.param)
               

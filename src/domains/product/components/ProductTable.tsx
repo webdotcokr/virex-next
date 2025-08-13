@@ -282,6 +282,7 @@ function ProductTable({
                           displayValue = (
                             <>
                               {product.is_new && <span className={styles.newBadge}>NEW</span>}
+                              {product.is_discontinued && <span className={styles.discontinuedBadge}>단종</span>}
                               <span className={styles.modelName}>{value || '-'}</span>
                             </>
                           )
