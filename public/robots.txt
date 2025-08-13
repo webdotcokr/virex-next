@@ -1,0 +1,75 @@
+# robots.txt for VIREX (virex.co.kr)
+# https://virex.co.kr/robots.txt
+
+User-agent: *
+Allow: /
+
+# 주요 페이지 허용
+Allow: /
+Allow: /products
+Allow: /products/*
+Allow: /company
+Allow: /company/*
+Allow: /support
+Allow: /support/*
+Allow: /news
+Allow: /news/*
+
+# 관리자 페이지 차단
+Disallow: /admin/
+Disallow: /admin/*
+
+# CMS 관리자 페이지 차단
+Disallow: /cms-admin/
+Disallow: /cms-admin/*
+
+# 인증 관련 페이지 차단
+Disallow: /auth/
+Disallow: /auth/*
+
+# 마이페이지 차단
+Disallow: /mypage/
+Disallow: /mypage/*
+
+# API 엔드포인트 차단
+Disallow: /api/
+Disallow: /api/*
+
+# 임시 파일 및 백업 차단
+Disallow: /*.tmp
+Disallow: /*.bak
+Disallow: /*.backup
+Disallow: /.env
+Disallow: /.git/
+
+# 다운로드 파일들은 허용하되 직접 접근은 차단
+Allow: /downloads/
+Disallow: /downloads/*.exe
+Disallow: /downloads/*.zip
+Disallow: /downloads/*.pdf
+
+# 이미지는 허용
+Allow: /img/
+Allow: /common/
+Allow: /icon/
+
+# 검색엔진 크롤링 속도 제한
+Crawl-delay: 1
+
+# 사이트맵 위치 지정
+Sitemap: https://virex.co.kr/sitemap.xml
+
+# 구글봇 특별 규칙
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# 빙봇 특별 규칙
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# 네이버봇 특별 규칙
+User-agent: Yeti
+Allow: /
+Crawl-delay: 1

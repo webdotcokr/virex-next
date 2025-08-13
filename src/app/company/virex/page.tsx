@@ -1,6 +1,75 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
 import PageContentContainer from '@/components/PageContentContainer';
 import styles from '../company.module.css'; // CSS 모듈 import
+
+export const metadata: Metadata = {
+  title: "회사소개 - VIREX | 머신비전 & 광학 솔루션 전문기업",
+  description: "바이렉스는 Teledyne DALSA, FLIR의 국내 공식 대리점으로 CIS 카메라 특화 솔루션을 제공하는 머신비전 전문기업입니다. 고객 맞춤형 비전 시스템 구축 파트너입니다.",
+  keywords: [
+    "바이렉스", "VIREX", "회사소개", "머신비전", "Teledyne DALSA", "FLIR", 
+    "CIS카메라", "비전시스템", "광학솔루션", "산업용카메라", "대리점",
+    "고객성공", "성장", "소통", "원팀", "혁신적파트너"
+  ].join(', '),
+  openGraph: {
+    title: "회사소개 - VIREX | 머신비전 & 광학 솔루션 전문기업",
+    description: "Leading your vision to success. 바이렉스는 최적의 비전 시스템 구축을 함께하는 혁신적 파트너입니다.",
+    url: "https://virex.co.kr/company/virex",
+    siteName: "VIREX",
+    images: [
+      {
+        url: "https://virex.co.kr/img/virex-content-02.jpg",
+        width: 1200,
+        height: 630,
+        alt: "VIREX 회사소개",
+      },
+    ],
+    locale: "ko_KR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "회사소개 - VIREX | 머신비전 & 광학 솔루션 전문기업",
+    description: "Leading your vision to success. 바이렉스는 최적의 비전 시스템 구축을 함께하는 혁신적 파트너입니다.",
+    images: ["https://virex.co.kr/img/virex-content-02.jpg"],
+  },
+  alternates: {
+    canonical: "https://virex.co.kr/company/virex",
+  },
+  other: {
+    // 구조화된 데이터 (JSON-LD) for AboutPage
+    'application/ld+json': JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'AboutPage',
+      'mainEntity': {
+        '@type': 'Organization',
+        'name': 'VIREX',
+        'alternateName': '바이렉스',
+        'url': 'https://virex.co.kr',
+        'logo': 'https://virex.co.kr/common/virex-logo-color.png',
+        'description': '머신비전 & 광학 솔루션 전문기업',
+        'foundingDate': '2010', // 실제 설립연도로 변경 필요
+        'address': {
+          '@type': 'PostalAddress',
+          'addressCountry': 'KR',
+          'addressLocality': '서울',
+        },
+        'slogan': 'Leading your vision to success',
+        'values': [
+          '고객성공 - 고객이 잘 되면 우리도 잘 된다',
+          '성장 - 끊임없이 배우고 레벨 업',
+          '소통 - 솔직하게, 가감 없이 이야기하기',
+          '원팀 - 같이 가야 멀리 간다'
+        ],
+        'hasOfferCatalog': {
+          '@type': 'OfferCatalog',
+          'name': '머신비전 솔루션',
+          'description': '카메라, 프레임 그래버, 렌즈, 조명, 영상 처리 라이브러리, 케이블 등 산업용 비전 광학계 및 시스템'
+        }
+      }
+    })
+  }
+};
 
 const CompanyPage = () => {
   const DIR_ROOT = ''; // public 폴더 기준 경로

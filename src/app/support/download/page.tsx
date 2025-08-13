@@ -1,198 +1,128 @@
-'use client'
+import { Metadata } from 'next';
+import DownloadContent from './DownloadContent';
 
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import PageContentContainer from '@/components/PageContentContainer';
-import { useAuth } from '@/contexts/AuthContext';
-import styles from '../support.module.css';
-
-interface Download {
-  id: number;
-  title: string;
-  file_name: string;
-  file_url: string;
-  hit_count: number;
-  created_at: string;
-}
-
-interface DownloadCategory {
-  id: number;
-  name: string;
-  is_member_only: boolean;
-  created_at: string;
-  downloads: Download[];
-}
-
-const DownloadComponent = () => {
-  const [categories, setCategories] = useState<DownloadCategory[]>([])
-  const [loading, setLoading] = useState(true)
-  const { user } = useAuth()
-  const router = useRouter()
-  
-  const DIR_ROOT = '/img';
-  const page_title_en = "Leading your vision to success";
-  const page_title_ko = "고객지원";
-
-  const breadcrumbs = [
-    { label: "Home", href: "/" },
-    { label: "고객지원"},
-    { label: "다운로드" }
-  ];
-
-  useEffect(() => {
-    const fetchDownloads = async () => {
-      try {
-        const response = await fetch('/api/downloads')
-        if (response.ok) {
-          const data = await response.json()
-          setCategories(data)
-        } else {
-          console.error('Failed to fetch downloads')
-        }
-      } catch (error) {
-        console.error('Error fetching downloads:', error)
-      } finally {
-        setLoading(false)
+export const metadata: Metadata = {
+  title: "다운로드 센터 - VIREX | 카탈로그, 매뉴얼, 소프트웨어 자료실",
+  description: "VIREX 제품 카탈로그, 데이터시트, 매뉴얼, 드라이버, 소프트웨어 등 다양한 기술 자료를 다운로드하세요. 회원 전용 자료도 제공됩니다.",
+  keywords: [
+    "다운로드", "카탈로그", "데이터시트", "매뉴얼", "드라이버", "소프트웨어", 
+    "VIREX", "바이렉스", "기술자료", "사용설명서", "펌웨어", "도면",
+    "산업용카메라", "머신비전", "자료실", "회원전용"
+  ].join(', '),
+  openGraph: {
+    title: "다운로드 센터 - VIREX | 카탈로그, 매뉴얼, 소프트웨어 자료실",
+    description: "VIREX 제품 관련 모든 기술 자료를 한 곳에서 다운로드하세요. 카탈로그부터 소프트웨어까지 완벽 지원.",
+    url: "https://virex.co.kr/support/download",
+    siteName: "VIREX",
+    images: [
+      {
+        url: "https://virex.co.kr/img/bg-support.webp",
+        width: 1200,
+        height: 630,
+        alt: "VIREX 다운로드 센터",
+      },
+    ],
+    locale: "ko_KR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "다운로드 센터 - VIREX | 카탈로그, 매뉴얼, 소프트웨어 자료실",
+    description: "VIREX 제품 관련 모든 기술 자료를 한 곳에서 다운로드하세요.",
+    images: ["https://virex.co.kr/img/bg-support.webp"],
+  },
+  alternates: {
+    canonical: "https://virex.co.kr/support/download",
+  },
+  other: {
+    // 구조화된 데이터 (JSON-LD) for Download Center
+    'application/ld+json': JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      'name': 'VIREX 다운로드 센터',
+      'description': '머신비전 제품 카탈로그, 매뉴얼, 소프트웨어 등 기술 자료 다운로드',
+      'url': 'https://virex.co.kr/support/download',
+      'mainEntity': {
+        '@type': 'DataCatalog',
+        'name': 'VIREX 기술 자료실',
+        'description': '산업용 카메라, 렌즈, 프레임그래버 등 머신비전 제품의 모든 기술 문서',
+        'publisher': {
+          '@type': 'Organization',
+          'name': 'VIREX',
+          'url': 'https://virex.co.kr'
+        },
+        'dataset': [
+          {
+            '@type': 'Dataset',
+            'name': '제품 카탈로그',
+            'description': '머신비전 제품 전체 카탈로그'
+          },
+          {
+            '@type': 'Dataset',
+            'name': '데이터시트',
+            'description': '제품별 상세 기술 사양서'
+          },
+          {
+            '@type': 'Dataset',
+            'name': '사용 매뉴얼',
+            'description': '제품 설치 및 사용 가이드'
+          },
+          {
+            '@type': 'Dataset',
+            'name': '드라이버 & 소프트웨어',
+            'description': '제품 구동을 위한 드라이버 및 소프트웨어'
+          }
+        ]
+      },
+      'breadcrumb': {
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Home',
+            'item': 'https://virex.co.kr'
+          },
+          {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': '고객지원',
+            'item': 'https://virex.co.kr/support'
+          },
+          {
+            '@type': 'ListItem',
+            'position': 3,
+            'name': '다운로드',
+            'item': 'https://virex.co.kr/support/download'
+          }
+        ]
       }
-    }
-
-    fetchDownloads()
-  }, [])
-
-  const handleDownload = async (download: Download, categoryId: number) => {
-    const category = categories.find(cat => cat.id === categoryId)
-    
-    if (category?.is_member_only && !user) {
-      // Redirect to login with current page as redirect target
-      router.push(`/auth/login?redirect=${encodeURIComponent('/support/download')}`)
-      return
-    }
-
-    // Update hit count
-    try {
-      await fetch(`/api/downloads/${download.id}/hit`, {
-        method: 'POST',
-      })
-    } catch (error) {
-      console.error('Failed to update hit count:', error)
-    }
-
-    // Open download link
-    window.open(download.file_url, '_blank')
+    })
   }
-
-  const getIconForCategory = (categoryName: string) => {
-    const name = categoryName.toLowerCase()
-    if (name.includes('카달로그') || name.includes('catalog')) return 'icon-download-catalog.svg'
-    if (name.includes('데이터') || name.includes('datasheet')) return 'icon-download-datasheet.svg'
-    if (name.includes('메뉴얼') || name.includes('manual')) return 'icon-download-manual.svg'
-    if (name.includes('도면') || name.includes('drawing')) return 'icon-download-drawing.svg'
-    if (name.includes('펌웨어') || name.includes('firmware')) return 'icon-download-firmware.svg'
-    if (name.includes('소프트웨어') || name.includes('software')) return 'icon-download-software.svg'
-    if (name.includes('드라이버') || name.includes('driver')) return 'icon-download-driver.svg'
-    return 'icon-download-catalog.svg' // default
-  }
-
-  return (
-    <div>
-      <PageContentContainer
-        backgroundClass="company-header-background"
-        backgroundImage="/img/bg-support.webp"
-        breadcrumbs={breadcrumbs}
-        titleEn={page_title_en}
-        titleKo={page_title_ko}
-      >
-      <div className="content-title">
-        <h2>다운로드 센터</h2>
-      </div>
-      
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px' }}>
-          <p>다운로드 목록을 불러오는 중...</p>
-        </div>
-      ) : (
-        <div className={`${styles['content-body']} mt-37px`}>
-          {/* Public Downloads */}
-          {categories.filter(cat => !cat.is_member_only).length > 0 && (
-            <div className={styles['download-item-list']}>
-              {categories
-                .filter(cat => !cat.is_member_only)
-                .map(category => (
-                  <Link key={category.id} href={`/support/download/list?category_id=${category.id}`} className={styles['download-item']}>
-                    <div className={styles['download-item-content']}>
-                      <div className={styles['download-item-image']}>
-                        <img src={`${DIR_ROOT}/${getIconForCategory(category.name)}`} alt={category.name} />
-                      </div>
-                      <div className={styles['download-item-text-first']}>
-                        <h3>{category.name}</h3>
-                      </div>
-                      <div className={styles['download-item-text-second']}>
-                        <h4>{category.downloads.length}개 파일</h4>
-                      </div>
-                      <div className={styles['download-item-button']}>
-                        <img src={`${DIR_ROOT}/btn-download.svg`} alt="다운로드" />
-                      </div>
-                    </div>
-                  </Link>
-                ))
-              }
-            </div>
-          )}
-
-          {/* Member-only Downloads */}
-          {categories.filter(cat => cat.is_member_only).length > 0 && (
-            <>
-              <div className={`${styles['sub-title-area']} mt-80px`}>
-                <img src={`${DIR_ROOT}/icon-member-only.svg`} alt="회원전용" />
-                <h2>회원 전용</h2>
-                {!user && (
-                  <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
-                    회원 전용 자료를 다운로드하려면 <Link href="/auth/login" style={{ color: '#007bff' }}>로그인</Link>이 필요합니다.
-                  </p>
-                )}
-              </div>
-              <div className={`${styles['download-item-list']} mt-12px`}>
-                {categories
-                  .filter(cat => cat.is_member_only)
-                  .map(category => (
-                    <Link key={category.id} href={`/support/download/list?category_id=${category.id}`} className={`${styles['download-item']} ${styles['bg-member-only']}`}>
-                      <div className={styles['download-item-content']}>
-                        <div className={styles['download-item-image']}>
-                          <img src={`${DIR_ROOT}/${getIconForCategory(category.name)}`} alt={category.name} />
-                        </div>
-                        <div className={styles['download-item-text-first']}>
-                          <h3>{category.name}</h3>
-                        </div>
-                        <div className={styles['download-item-text-second']}>
-                          <h4>{category.downloads.length}개 파일</h4>
-                        </div>
-                        <div className={styles['download-item-button']}>
-                          <img src={`${DIR_ROOT}/btn-download.svg`} alt="다운로드" />
-                        </div>
-                      </div>
-                    </Link>
-                  ))
-                }
-              </div>
-            </>
-          )}
-          <div className={`${styles['download-banner']} mt-80px`}>
-            <div className={styles['download-banner-inner-wrapper']}>
-              <div className={styles['download-banner-title']}>
-                더 자세한 안내가 필요하신가요?
-              </div>
-              <p className={styles['download-banner-description']}>
-                사이트 우측 하단, 바이렉스 채널 톡 상담을 통해 간편하게 문의 주세요.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-      </PageContentContainer>
-    </div>
-  );
 };
 
-export default DownloadComponent;
-
+export default function DownloadPage() {
+  return (
+    <>
+      {/* Structured Data Script for Download Center */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'SupportPage',
+            'name': 'VIREX 다운로드 센터',
+            'description': '머신비전 제품 기술 자료 다운로드',
+            'url': 'https://virex.co.kr/support/download',
+            'provider': {
+              '@type': 'Organization',
+              'name': 'VIREX',
+              'url': 'https://virex.co.kr'
+            }
+          })
+        }}
+      />
+      <DownloadContent />
+    </>
+  );
+}

@@ -1,153 +1,106 @@
-'use client';
+import { Metadata } from 'next';
+import NoticeContent from './NoticeContent';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import PageContentContainer from '@/components/PageContentContainer';
-import type { Database } from '@/lib/supabase';
-import Pagination from '@/components/ui/Pagination';
-
-type NewsItem = Database['public']['Tables']['news']['Row'];
-
-const NoticePage = () => {
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const itemsPerPage = 10;
-
-  const fetchNews = async () => {
-    setLoading(true);
-    
-    try {
-      const response = await fetch(`/api/news?category=1&page=${currentPage}&limit=${itemsPerPage}`);
-      
-      if (!response.ok) {
-        throw new Error('데이터를 불러올 수 없습니다.');
+export const metadata: Metadata = {
+  title: "공지사항 - VIREX | 머신비전 최신 소식 및 공지",
+  description: "VIREX의 최신 공지사항, 제품 업데이트, 이벤트 소식을 확인하세요. 머신비전 업계 최신 동향과 VIREX 뉴스를 한 곳에서 만나보세요.",
+  keywords: [
+    "공지사항", "뉴스", "VIREX", "바이렉스", "머신비전", "제품업데이트", 
+    "이벤트", "소식", "최신동향", "산업용카메라", "새소식", "알림"
+  ].join(', '),
+  openGraph: {
+    title: "공지사항 - VIREX | 머신비전 최신 소식 및 공지",
+    description: "VIREX의 최신 공지사항과 머신비전 업계 동향을 확인하세요. 제품 업데이트부터 이벤트 소식까지 모든 정보를 제공합니다.",
+    url: "https://virex.co.kr/news/notice",
+    siteName: "VIREX",
+    images: [
+      {
+        url: "https://virex.co.kr/img/bg-news.webp",
+        width: 1200,
+        height: 630,
+        alt: "VIREX 공지사항",
+      },
+    ],
+    locale: "ko_KR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "공지사항 - VIREX | 머신비전 최신 소식 및 공지",
+    description: "VIREX의 최신 공지사항과 머신비전 업계 동향을 확인하세요.",
+    images: ["https://virex.co.kr/img/bg-news.webp"],
+  },
+  alternates: {
+    canonical: "https://virex.co.kr/news/notice",
+  },
+  other: {
+    // 구조화된 데이터 (JSON-LD) for News Page
+    'application/ld+json': JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      'name': 'VIREX 공지사항',
+      'description': '머신비전 전문기업 VIREX의 최신 공지사항 및 뉴스',
+      'url': 'https://virex.co.kr/news/notice',
+      'publisher': {
+        '@type': 'Organization',
+        'name': 'VIREX',
+        'url': 'https://virex.co.kr',
+        'logo': 'https://virex.co.kr/common/virex-logo-color.png'
+      },
+      'mainEntity': {
+        '@type': 'ItemList',
+        'name': '공지사항 목록',
+        'description': 'VIREX 공지사항 및 최신 소식'
+      },
+      'breadcrumb': {
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Home',
+            'item': 'https://virex.co.kr'
+          },
+          {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': '뉴스',
+            'item': 'https://virex.co.kr/news'
+          },
+          {
+            '@type': 'ListItem',
+            'position': 3,
+            'name': '공지사항',
+            'item': 'https://virex.co.kr/news/notice'
+          }
+        ]
       }
-      
-      const result = await response.json();
-      
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      
-      setNews(result.data || []);
-      setTotalCount(result.count || 0);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || '데이터를 불러올 수 없습니다.');
-      setNews([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchNews();
-  }, [currentPage]);
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('ko-KR');
-  };
-
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
-
-  return (
-    <div>
-      <PageContentContainer
-        backgroundClass="company-header-background"
-        backgroundImage="/img/bg-news.webp"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "뉴스"},
-          { label: "공지사항" }
-        ]}
-        titleEn="Leading your vision to success"
-        titleKo="뉴스"
-      >
-        <div className="page-container">
-          <div className="content-title">
-            <h2>공지사항</h2>
-          </div>
-          
-          <div id="general-article-list-header">
-            <div className="cnt-area">
-              <span className="cnt-label">TOTAL</span>
-              <span className="cnt-value">{totalCount}</span>
-            </div>
-          </div>
-
-          {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2">로딩 중...</p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-8 text-red-600">
-            <p>{error}</p>
-          </div>
-        ) : (
-          <>
-            <table id="general-article-list" className="mt-10px w-full">
-              <thead>
-                <tr>
-                  <th className="w-[10%]">번호</th>
-                  <th className="w-[60%]">제목</th>
-                  <th className="w-[15%]">등록일</th>
-                  <th className="w-[15%]">조회수</th>
-                </tr>
-              </thead>
-              <tbody>
-                {news.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="text-center py-8">
-                      게시물이 없습니다.
-                    </td>
-                  </tr>
-                ) : (
-                  news.map((item, index) => {
-                    const displayNumber = totalCount - ((currentPage - 1) * itemsPerPage) - index;
-                    return (
-                      <tr key={item.id}>
-                        <td className="text-center">
-                          {item.is_featured ? (
-                            <img src="/img/icon_notice.gif" className="vmiddle" alt="notice" />
-                          ) : (
-                            displayNumber
-                          )}
-                        </td>
-                        <td>
-                          <h3>
-                            <Link href={`/news/notice/${item.id}`} className="hover:underline">
-                              {item.title}
-                            </Link>
-                          </h3>
-                        </td>
-                        <td className="text-center">{formatDate(item.created_at)}</td>
-                        <td className="text-center">{item.view_count || 0}</td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-
-            <div className="flex justify-center mt-6">
-              <Pagination 
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          </>
-          )}
-        </div>
-      </PageContentContainer>
-    </div>
-  );
+    })
+  }
 };
 
-export default NoticePage;
+export default function NoticePage() {
+  return (
+    <>
+      {/* Structured Data Script for Notice Page */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebPage',
+            'name': 'VIREX 공지사항',
+            'description': '머신비전 전문기업 VIREX의 최신 공지사항',
+            'url': 'https://virex.co.kr/news/notice',
+            'isPartOf': {
+              '@type': 'WebSite',
+              'name': 'VIREX',
+              'url': 'https://virex.co.kr'
+            }
+          })
+        }}
+      />
+      <NoticeContent />
+    </>
+  );
+}
