@@ -2,13 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { CSVProcessor } from '@/lib/CSVProcessor';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
+    
     // Get the uploaded file
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -177,6 +185,8 @@ export async function POST(request: NextRequest) {
 // Preview endpoint - parse CSV and return preview data
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
+    
     const formData = await request.formData();
     const file = formData.get('file') as File;
     
