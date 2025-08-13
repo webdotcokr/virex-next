@@ -34,7 +34,7 @@ const LocationPage = () => {
           </div>
           <div className={`${styles['location-container']} mt-37px`}>
             {/* 카카오맵 - 지도퍼가기 */}
-            <KakaoMap timestamp="1746683321855" mapKey="2nxer" />
+            <KakaoMap timestamp="1755087549711" mapKey="6x39wg76qar" />
 
             <div className={`${styles['location-details']} mt-40px`}>
               <div className={styles['left-items']}>

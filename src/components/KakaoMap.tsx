@@ -81,7 +81,7 @@ export default function KakaoMap({ timestamp, mapKey }: KakaoMapProps) {
   };
 
   const showFallbackMap = () => {
-    const container = document.getElementById('daumRoughmapContainer1746683321855');
+    const container = document.getElementById(`daumRoughmapContainer${timestamp}`);
     if (container) {
       container.innerHTML = `
         <div style="
@@ -106,7 +106,7 @@ export default function KakaoMap({ timestamp, mapKey }: KakaoMapProps) {
 
   return (
     <div 
-      id="daumRoughmapContainer1746683321855" 
+      id={`daumRoughmapContainer${timestamp}`}
       className="root_daum_roughmap root_daum_roughmap_landing"
       style={{ width: '100%', height: '400px' }}
     />
