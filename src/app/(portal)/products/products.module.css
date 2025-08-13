@@ -461,8 +461,8 @@
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
+  width: 36px;
+  height: 36px;
   background: url('/img/icon-search.svg') no-repeat center;
   background-size: contain;
   cursor: pointer;

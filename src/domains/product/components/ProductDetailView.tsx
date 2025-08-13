@@ -75,45 +75,102 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
     }
   }
 
-  // 제품 타입별 사양 렌더링
+  // 스킵할 필드들 (기본 제품 정보, CSV BASIC_FIELDS와 동일)
+  const SKIP_SPEC_FIELDS = [
+    'category_id', 'category_name', 
+    'maker_id', 'maker_name', 'series_id', 'series_name',
+    'is_active', 'is_new', 'image_url', 'is_discontinued',
+  ]
+
+  // 파라미터 라벨 포맷팅
+  const formatParameterLabel = (key: string): string => {
+    const labelMap: Record<string, string> = {
+      'scan_width': 'Scan Width',
+      'dpi': 'DPI',
+      'resolution': 'Resolution',
+      'line_rate': 'Line Rate',
+      'speed': 'Speed',
+      'wd': 'Working Distance',
+      'no_of_pixels': 'Number of Pixels',
+      'spectrum': 'Spectrum',
+      'interface': 'Interface',
+      'pixel_size': 'Pixel Size',
+      'line_length': 'Line Length',
+      'data_rate': 'Data Rate',
+      'resolution_h': 'Resolution (H)',
+      'resolution_v': 'Resolution (V)',
+      'sensor_size': 'Sensor Size',
+      'frame_rate': 'Frame Rate',
+      'sensor_length': 'Sensor Length',
+      'magnification': 'Magnification',
+      'focal_length': 'Focal Length',
+      'aperture': 'Aperture',
+      'working_distance': 'Working Distance',
+      'mount_type': 'Mount Type',
+      'coating': 'Coating',
+      'distortion': 'Distortion',
+      'relative_illumination': 'Relative Illumination'
+    }
+
+    return labelMap[key] || key.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ')
+  }
+
+  // 파라미터 값 포맷팅
+  const formatSpecValue = (key: string, value: unknown): string => {
+    if (value === null || value === undefined || value === '') return '-'
+    
+    const stringValue = String(value)
+    const lowerKey = key.toLowerCase()
+    
+    // 단위가 필요한 필드들
+    if (lowerKey.includes('width') || lowerKey.includes('length') || lowerKey.includes('distance')) {
+      return `${stringValue} mm`
+    }
+    if (lowerKey.includes('rate') && !lowerKey.includes('frame')) {
+      return `${stringValue} kHz`
+    }
+    if (lowerKey.includes('speed') || lowerKey.includes('data_rate')) {
+      return `${stringValue} MHz`
+    }
+    if (lowerKey.includes('frame_rate') || lowerKey.includes('fps')) {
+      return `${stringValue} fps`
+    }
+    if (lowerKey.includes('pixel_size') || lowerKey === 'resolution') {
+      return `${stringValue} μm`
+    }
+    if (lowerKey.includes('focal_length')) {
+      return `${stringValue} mm`
+    }
+    
+    return stringValue
+  }
+
+  // 동적 사양 렌더링 (모든 specifications 필드 표시)
   const renderSpecifications = () => {
     if (!product.specifications) return null
     
     const specs = product.specifications as Record<string, unknown>
-    const categoryName = product.category_name?.toLowerCase() || ''
+    const specRows: [string, string][] = []
     
-    const specRows = []
-    
-    if (categoryName.includes('cis')) {
-      if (specs.scan_width) specRows.push(['Scan Width', `${specs.scan_width} mm`])
-      if (specs.dpi) specRows.push(['DPI', specs.dpi])
-      if (specs.resolution) specRows.push(['Resolution', `${specs.resolution} μm`])
-      if (specs.line_rate) specRows.push(['Line Rate', `${specs.line_rate} kHz`])
-      if (specs.speed) specRows.push(['Speed', `${specs.speed} MHz`])
-      if (specs.wd) specRows.push(['Working Distance', `${specs.wd} mm`])
-      if (specs.no_of_pixels) specRows.push(['Number of Pixels', specs.no_of_pixels])
-      if (specs.spectrum) specRows.push(['Spectrum', specs.spectrum])
-      if (specs.interface) specRows.push(['Interface', specs.interface])
-    } else if (categoryName.includes('tdi')) {
-      if (specs.line_rate) specRows.push(['Line Rate', `${specs.line_rate} kHz`])
-      if (specs.pixel_size) specRows.push(['Pixel Size', `${specs.pixel_size} μm`])
-      if (specs.line_length) specRows.push(['Line Length', specs.line_length])
-      if (specs.data_rate) specRows.push(['Data Rate', `${specs.data_rate} MHz`])
-      if (specs.interface) specRows.push(['Interface', specs.interface])
-    } else if (categoryName.includes('line')) {
-      if (specs.resolution) specRows.push(['Resolution', specs.resolution])
-      if (specs.line_rate) specRows.push(['Line Rate', `${specs.line_rate} kHz`])
-      if (specs.pixel_size) specRows.push(['Pixel Size', `${specs.pixel_size} μm`])
-      if (specs.sensor_length) specRows.push(['Sensor Length', `${specs.sensor_length} mm`])
-      if (specs.interface) specRows.push(['Interface', specs.interface])
-    } else if (categoryName.includes('area')) {
-      if (specs.resolution_h && specs.resolution_v) {
-        specRows.push(['Resolution (H x V)', `${specs.resolution_h} x ${specs.resolution_v}`])
+    // 모든 specification 필드를 반복하되 스킵 필드 제외
+    Object.entries(specs).forEach(([key, value]) => {
+      if (!SKIP_SPEC_FIELDS.includes(key) && value !== null && value !== '' && value !== undefined) {
+        const label = formatParameterLabel(key)
+        const formattedValue = formatSpecValue(key, value)
+        specRows.push([label, formattedValue])
       }
-      if (specs.pixel_size) specRows.push(['Pixel Size', `${specs.pixel_size} μm`])
-      if (specs.sensor_size) specRows.push(['Sensor Size', specs.sensor_size])
-      if (specs.frame_rate) specRows.push(['Frame Rate', `${specs.frame_rate} fps`])
-      if (specs.interface) specRows.push(['Interface', specs.interface])
+    })
+    
+    // 특별한 조합 필드 처리 (Resolution H x V)
+    if (specs.resolution_h && specs.resolution_v) {
+      // 개별 H, V 항목 제거하고 조합 항목 추가
+      const filteredRows = specRows.filter(([label]) => 
+        !label.includes('Resolution (H)') && !label.includes('Resolution (V)')
+      )
+      filteredRows.unshift(['Resolution (H x V)', `${specs.resolution_h} x ${specs.resolution_v}`])
+      return filteredRows
     }
     
     return specRows

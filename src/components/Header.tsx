@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { SearchService } from '@/domains/search/services/search-service'
 
@@ -65,11 +65,17 @@ const MENU_CONFIG = {
 } as const
 
 export default function Header() {
+  // Get current path for determining initial scroll state
+  const pathname = usePathname()
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [isScrolled, setIsScrolled] = useState(false)
+  // Start with scrolled state on product detail pages
+  const [isScrolled, setIsScrolled] = useState(
+    pathname?.startsWith('/products/') && pathname !== '/products'
+  )
   const [isMegaMenuActive, setIsMegaMenuActive] = useState(false)
   const [hoveredMenuItem, setHoveredMenuItem] = useState<string | null>(null)
   const [menuPositions, setMenuPositions] = useState<Record<string, number>>({})
@@ -151,9 +157,13 @@ export default function Header() {
 
   // Scroll event handler
   const handleScroll = useCallback(() => {
+    // Skip scroll check on product detail pages to maintain scrolled state
+    const isProductDetailPage = pathname?.startsWith('/products/') && pathname !== '/products'
+    if (isProductDetailPage) return
+    
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop
     setIsScrolled(scrollTop > 50)
-  }, [])
+  }, [pathname])
 
   // Throttled scroll handler
   const throttledHandleScroll = useCallback(

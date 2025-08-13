@@ -394,8 +394,14 @@ export default function ProductsContent() {
   useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1)
+      
+      // URL에서도 page 파라미터 제거
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('page')
+      const newUrl = `/products?${params.toString()}`
+      window.history.pushState({}, '', newUrl)
     }
-  }, [currentCategoryId, filters.search, filters.parameters])
+  }, [currentCategoryId, filters.search, filters.parameters, searchParams])
 
   // 카테고리 변경 시 필터 파라미터 완전 초기화 (URL 직접 접속 시 제외)
   useEffect(() => {
