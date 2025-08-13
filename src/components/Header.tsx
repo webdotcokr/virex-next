@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { SearchService } from '@/domains/search/services/search-service'
 
 // Menu configuration for better maintainability
 const MENU_CONFIG = {
@@ -76,6 +78,9 @@ export default function Header() {
   const { user, profile, signOut } = useAuth()
   const isLoggedIn = !!user
   const userName = profile?.name || user?.email?.split('@')[0] || ''
+  
+  // Router for navigation
+  const router = useRouter()
 
   const handleMobileMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -95,6 +100,34 @@ export default function Header() {
       await signOut()
     }
   }
+
+  // Search handlers
+  const handleSearch = useCallback((e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+    }
+    
+    const trimmedQuery = searchQuery.trim()
+    if (!trimmedQuery) {
+      return
+    }
+    
+    console.log('🔍 Header search:', trimmedQuery)
+    // 최근 검색어에 추가
+    SearchService.addRecentSearch(trimmedQuery)
+    router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`)
+  }, [searchQuery, router])
+
+  const handleSearchKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSearch()
+    }
+  }, [handleSearch])
+
+  const handleSearchIconClick = useCallback(() => {
+    handleSearch()
+  }, [handleSearch])
 
   // Throttled scroll handler for performance
   const throttle = useCallback((func: Function, delay: number) => {
@@ -379,8 +412,13 @@ export default function Header() {
               placeholder="Search for..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={handleSearchKeyPress}
             />
-            <span className="search-icon"></span>
+            <span 
+              className="search-icon" 
+              onClick={handleSearchIconClick}
+              style={{ cursor: 'pointer' }}
+            ></span>
             <span className="close-icon"></span>
           </div>
 
@@ -458,8 +496,13 @@ export default function Header() {
             placeholder="Search for..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleSearchKeyPress}
           />
-          <span className="search-icon"></span>
+          <span 
+            className="search-icon" 
+            onClick={handleSearchIconClick}
+            style={{ cursor: 'pointer' }}
+          ></span>
         </div>
       </div>
 
