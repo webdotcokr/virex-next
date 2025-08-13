@@ -73,6 +73,46 @@ function FilterSidebar({
     return filters.categories.length > 0 ? filters.categories[0] : '9'
   }, [filters.categories])
 
+  // localStorage 기반 필터 확장 상태 관리
+  const getFilterStorageKey = useCallback((categoryId: string) => {
+    return `filter-expanded-${categoryId}`
+  }, [])
+
+  // localStorage에서 확장 상태 로드
+  const loadExpandedSections = useCallback((categoryId: string, defaultSections: Set<string>) => {
+    try {
+      if (typeof window !== 'undefined') {
+        const storageKey = getFilterStorageKey(categoryId)
+        const savedState = localStorage.getItem(storageKey)
+        
+        if (savedState) {
+          const parsedState = JSON.parse(savedState)
+          if (Array.isArray(parsedState)) {
+            return new Set(parsedState)
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load filter expanded state from localStorage:', error)
+    }
+    
+    // 저장된 상태가 없거나 에러 시 기본값 사용
+    return defaultSections
+  }, [getFilterStorageKey])
+
+  // localStorage에 확장 상태 저장
+  const saveExpandedSections = useCallback((categoryId: string, expandedSections: Set<string>) => {
+    try {
+      if (typeof window !== 'undefined') {
+        const storageKey = getFilterStorageKey(categoryId)
+        const stateArray = Array.from(expandedSections)
+        localStorage.setItem(storageKey, JSON.stringify(stateArray))
+      }
+    } catch (error) {
+      console.warn('Failed to save filter expanded state to localStorage:', error)
+    }
+  }, [getFilterStorageKey])
+
   // 정적 필터 로딩 함수 (ID 기반으로 개선)
   const loadFilters = useCallback(() => {
     try {
@@ -108,7 +148,10 @@ function FilterSidebar({
           defaultExpanded.add(filter.param)
         }
       })
-      setExpandedSections(defaultExpanded)
+      
+      // localStorage에서 저장된 상태 로드 (기본값 대신 사용)
+      const savedExpanded = loadExpandedSections(categoryId, defaultExpanded)
+      setExpandedSections(savedExpanded)
       
     } catch (error) {
       // 에러 시에도 기본 필터 제공
@@ -116,18 +159,28 @@ function FilterSidebar({
         const fallbackConfig = getConfigByCategoryId('9') // CIS 기본값
         if (fallbackConfig) {
           setStaticFilters(fallbackConfig.filters)
+          
+          // 폴백 시에도 저장된 상태 로드 시도
+          const fallbackDefaults = new Set<string>()
+          fallbackConfig.filters.forEach(filter => {
+            if (filter.defaultExpanded) {
+              fallbackDefaults.add(filter.param)
+            }
+          })
+          const savedExpanded = loadExpandedSections(categoryId, fallbackDefaults)
+          setExpandedSections(savedExpanded)
         } else {
           setStaticFilters([])
+          setExpandedSections(new Set())
         }
       } catch (fallbackError) {
         setStaticFilters([])
+        setExpandedSections(new Set())
       }
-      
-      setExpandedSections(new Set())
     } finally {
       setLoading(false)
     }
-  }, [filters.categories, categoryName])
+  }, [filters.categories, categoryName, loadExpandedSections])
 
   // URL update function - 단순화된 버전
   const updateUrl = useCallback((newFilters: Record<string, unknown>) => {
@@ -250,9 +303,13 @@ function FilterSidebar({
       } else {
         newExpanded.add(section)
       }
+      
+      // localStorage에 변경된 상태 저장
+      saveExpandedSections(currentCategoryId, newExpanded)
+      
       return newExpanded
     })
-  }, [])
+  }, [currentCategoryId, saveExpandedSections])
 
   const handleCategoryChange = useCallback((categoryId: string, checked: boolean) => {
     const newCategories = checked

@@ -191,7 +191,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
       {
         name: "No. of Line",
         type: "checkbox",
-        param: "no_of_line",
+        param: "number_of_line",
         options: [
             { display: "257 이상", value: ">=257" },
             { display: "193 ~ 256", value: "[193,256]" },
@@ -307,9 +307,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         defaultExpanded: true,
         options: [
             { display: "401kHz 이상", value: ">=401" },
-            { display: "301 ~ 400kHz", value: "BETWEEN 301 AND 400" },
-            { display: "201 ~ 300kHz", value: "BETWEEN 201 AND 300" },
-            { display: "101 ~ 200kHz", value: "BETWEEN 101 AND 200" },
+            { display: "301 ~ 400kHz", value: "[301,400]" },
+            { display: "201 ~ 300kHz", value: "[201,300]" },
+            { display: "101 ~ 200kHz", value: "[101,200]" },
             { display: "~ 100kHz", value: "<=100" }
         ]
       },
