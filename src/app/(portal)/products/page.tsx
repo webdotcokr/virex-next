@@ -1,5 +1,4 @@
 import { Metadata } from 'next'
-import { Suspense } from 'react'
 import ProductsContent from './ProductsContent'
 
 export async function generateMetadata({ searchParams }: {
@@ -134,8 +133,6 @@ export async function generateMetadata({ searchParams }: {
 }
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<ProductGridSkeleton />}>
-      <ProductsContent />
-    </Suspense>
+    <ProductsContent />
   )
 }
