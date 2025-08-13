@@ -16,21 +16,23 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "VIREX - 머신비전 & 광학 솔루션 전문기업",
-  description: "바이렉스의 B2B 제품 포털에서 2,000개 이상의 제품을 검색하고 비교하세요. 산업용 카메라, 렌즈, 프레임그래버, 조명 등 머신비전 솔루션 전문기업",
+  description: "바이렉스는 는 머신비전 관련 컴포넌트 전문 기업으로, 광학 컨설팅, 신규 메이커 발굴, 맞춤형 솔루션 연구개발을 제공합니다. 최신 기술로 고객의 혁신적인 비즈니스 성장을 지원합니다.",
   keywords: "머신비전, 산업용카메라, CIS카메라, TDI카메라, 프레임그래버, 렌즈, 조명, VIREX, 바이렉스, Teledyne DALSA, FLIR",
   authors: [{ name: "VIREX" }],
   openGraph: {
     title: "VIREX - 머신비전 & 광학 솔루션 전문기업",
-    description: "바이렉스의 B2B 제품 포털에서 2,000개 이상의 제품을 검색하고 비교하세요.",
+    description: "바이렉스는 는 머신비전 관련 컴포넌트 전문 기업으로, 광학 컨설팅, 신규 메이커 발굴, 맞춤형 솔루션 연구개발을 제공합니다. 최신 기술로 고객의 혁신적인 비즈니스 성장을 지원합니다.",
     url: "https://virex.co.kr",
     siteName: "VIREX",
     locale: "ko_KR",
     type: "website",
+    images: ['/img/site-image.png'],
   },
   twitter: {
     card: "summary_large_image",
     title: "VIREX - 머신비전 & 광학 솔루션 전문기업",
-    description: "바이렉스의 B2B 제품 포털에서 2,000개 이상의 제품을 검색하고 비교하세요.",
+    description: "바이렉스는 는 머신비전 관련 컴포넌트 전문 기업으로, 광학 컨설팅, 신규 메이커 발굴, 맞춤형 솔루션 연구개발을 제공합니다. 최신 기술로 고객의 혁신적인 비즈니스 성장을 지원합니다.",
+    images: ['/img/site-image.png'],
   },
   robots: {
     index: true,
