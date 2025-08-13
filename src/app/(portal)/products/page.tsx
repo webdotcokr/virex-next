@@ -1,6 +1,8 @@
 import { Metadata } from 'next'
 import ProductsContent from './ProductsContent'
 
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ searchParams }: {
   searchParams: { [key: string]: string | string[] | undefined }
 }): Promise<Metadata> {

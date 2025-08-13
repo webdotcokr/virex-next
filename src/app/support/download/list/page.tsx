@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import PageContentContainer from '@/components/PageContentContainer'
 import Pagination from '@/components/ui/Pagination'
@@ -23,7 +25,7 @@ interface DownloadCategory {
 
 const ITEMS_PER_PAGE = 10
 
-export default function DownloadListPage() {
+function DownloadListPage() {
   const [downloads, setDownloads] = useState<Download[]>([])
   const [category, setCategory] = useState<DownloadCategory | null>(null)
   const [loading, setLoading] = useState(true)
@@ -261,5 +263,13 @@ export default function DownloadListPage() {
         </div>
       </PageContentContainer>
     </div>
+  )
+}
+
+export default function DownloadListPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DownloadListPage />
+    </Suspense>
   )
 }

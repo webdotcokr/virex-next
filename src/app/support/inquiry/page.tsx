@@ -1,10 +1,8 @@
-import Image from 'next/image';
-import Link from 'next/link';
+import { Suspense } from 'react';
 import PageContentContainer from '@/components/PageContentContainer';
 import InquiryForm from '@/components/InquiryForm';
 
 const CompanyPage = () => {
-  const DIR_ROOT = ''; // public 폴더 기준 경로
   const page_title_en = "Leading your vision to success";
   const page_title_ko = "고객지원";
 
@@ -27,7 +25,9 @@ const CompanyPage = () => {
         <h2>제품문의</h2>
       </div>
       <div className="content-body">
-        <InquiryForm />
+        <Suspense fallback={<div>Loading...</div>}>
+          <InquiryForm />
+        </Suspense>
       </div>
       </PageContentContainer>
     </div>

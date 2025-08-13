@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
@@ -34,7 +36,7 @@ interface FormErrors {
   [key: string]: string
 }
 
-export default function SignupPage() {
+function SignupPage() {
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -440,5 +442,13 @@ export default function SignupPage() {
         </form>
       </div>
     </PageContentContainer>
+  )
+}
+
+export default function SignupPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignupPage />
+    </Suspense>
   )
 }
