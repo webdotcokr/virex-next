@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useFilterStore } from '@/lib/store'
 import { buildFilterUrl } from '@/lib/utils'
-import { getConfigByCategoryName } from '../config/category-filters'
+import { getConfigByCategoryName, getConfigByCategoryId } from '../config/category-filters'
 import { encodeRangeToken } from '../utils/url-params'
 import { X } from 'lucide-react'
 import styles from '../../../app/(portal)/products/products.module.css'
@@ -73,23 +73,32 @@ function FilterSidebar({
     return filters.categories.length > 0 ? filters.categories[0] : '9'
   }, [filters.categories])
 
-  // 정적 필터 로딩 함수 (ASP 원본 기반)
+  // 정적 필터 로딩 함수 (ID 기반으로 개선)
   const loadFilters = useCallback(() => {
     try {
       setLoading(true)
-      console.log('🔄 FilterSidebar: Loading filters for category:', categoryName)
       
-      // category-filters.ts에서 설정 가져오기
-      const config = getConfigByCategoryName(categoryName || 'CIS')
+      // 카테고리 ID 우선 사용 (더 안정적)
+      const categoryId = filters.categories[0] || '9' // 기본값 CIS
+      
+      // ID 기반으로 설정 가져오기 (primary method)
+      let config = getConfigByCategoryId(categoryId)
+      
+      // ID로 찾지 못한 경우 이름으로 재시도 (fallback)
+      if (!config && categoryName) {
+        config = getConfigByCategoryName(categoryName)
+      }
+      
+      // 그래도 없으면 기본값 사용 (final fallback)
+      if (!config) {
+        config = getConfigByCategoryId('9') // CIS 기본값
+      }
       
       if (!config || !config.filters) {
-        console.warn('⚠️ No filter config found for category:', categoryName)
         setStaticFilters([])
         setExpandedSections(new Set())
         return
       }
-      
-      console.log(`✅ Loaded ${config.filters.length} filters for ${categoryName}:`, config.filters.map(f => f.param))
       setStaticFilters(config.filters)
 
       // 기본 확장 섹션 설정
@@ -100,14 +109,25 @@ function FilterSidebar({
         }
       })
       setExpandedSections(defaultExpanded)
+      
     } catch (error) {
-      console.error('❌ Error loading static filters:', error)
-      setStaticFilters([])
+      // 에러 시에도 기본 필터 제공
+      try {
+        const fallbackConfig = getConfigByCategoryId('9') // CIS 기본값
+        if (fallbackConfig) {
+          setStaticFilters(fallbackConfig.filters)
+        } else {
+          setStaticFilters([])
+        }
+      } catch (fallbackError) {
+        setStaticFilters([])
+      }
+      
       setExpandedSections(new Set())
     } finally {
       setLoading(false)
     }
-  }, [categoryName])
+  }, [filters.categories, categoryName])
 
   // URL update function - 단순화된 버전
   const updateUrl = useCallback((newFilters: Record<string, unknown>) => {
@@ -154,12 +174,9 @@ function FilterSidebar({
 
   // 슬라이더 값 안전 파싱 함수
   const getCurrentSliderValue = (paramValue: any, defaultRange: number[]): [number, number] => {
-    console.log(`🔧 getCurrentSliderValue processing:`, paramValue, 'defaultRange:', defaultRange)
-    
     // 배열인 경우
     if (Array.isArray(paramValue) && paramValue.length >= 2) {
       const result = [Number(paramValue[0]), Number(paramValue[1])] as [number, number]
-      console.log('   Array case result:', result)
       return result
     }
     
@@ -169,7 +186,6 @@ function FilterSidebar({
       if (!isNaN(singleValue)) {
         // 단일 값을 고정값으로 처리 (min=max=값)
         const result = [singleValue, singleValue] as [number, number]
-        console.log('   Single array value result:', result)
         return result
       }
     }
@@ -207,7 +223,6 @@ function FilterSidebar({
 
   // URL에서 파싱된 filters.parameters가 변경되었을 때 UI 강제 동기화
   useEffect(() => {
-    console.log('🔄 FilterSidebar: filters.parameters changed:', filters.parameters)
     
     // 슬라이더 값들을 filters.parameters에 맞게 초기화
     if (staticFilters.length > 0) {
@@ -218,13 +233,11 @@ function FilterSidebar({
           const defaultRange = filter.range || [0, 100]
           const currentValue = getCurrentSliderValue(paramValue, defaultRange)
           newSliderValues[filter.param] = currentValue
-          console.log(`   Slider [${filter.param}] initialized to:`, currentValue)
         }
       })
       
       if (Object.keys(newSliderValues).length > 0) {
         setSliderValues(newSliderValues)
-        console.log('✅ Slider values synchronized from URL:', newSliderValues)
       }
     }
   }, [filters.parameters, staticFilters])
@@ -517,10 +530,6 @@ function FilterSidebar({
       currentValues = [String(paramValue)]
     }
     
-    // 디버깅: 체크박스 상태 로깅
-    if (paramValue !== null && paramValue !== undefined) {
-      console.log(`📋 Checkbox [${filter.param}] current values:`, currentValues)
-    }
     
     if (!filter.options) return null
     
@@ -583,6 +592,10 @@ function FilterSidebar({
           {/* 동적으로 로드된 필터 그룹들 */}
           {loading ? (
             <div className={styles.loadingMessage}>필터를 불러오는 중...</div>
+          ) : staticFilters.length === 0 ? (
+            <div className={styles.loadingMessage} style={{ color: '#ff6b6b' }}>
+              필터 설정을 찾을 수 없습니다.
+            </div>
           ) : (
             staticFilters.map((filter, index) => {
               const isExpanded = expandedSections.has(filter.param)

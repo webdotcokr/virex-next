@@ -187,7 +187,6 @@ function ProductsContent() {
       setCategoryError(null)
       
       try {
-        console.log('🔍 Loading category info for ID:', currentCategoryId)
         const { data: dbCategory, error } = await httpQueries.getCategoryById(currentCategoryId)
         
         if (!mounted) return
@@ -209,7 +208,6 @@ function ProductsContent() {
           backgroundImage: dbCategory.background_image || '/img/backgrounds/camera-cis-bg.png'
         }
         
-        console.log('✅ Category info loaded:', categoryInfo)
         setCategoryInfo(categoryInfo)
         
       } catch (err) {
@@ -232,8 +230,6 @@ function ProductsContent() {
   // Series 데이터 로딩 및 매핑 함수
   const loadSeriesData = useCallback(async () => {
     try {
-      console.log('🔄 Loading series data for mapping...')
-      
       const { data, error } = await httpQueries.getAllSeries()
       
       if (error) {
@@ -258,7 +254,6 @@ function ProductsContent() {
       })
       
       setSeriesMap(newSeriesMap)
-      console.log(`✅ Series data loaded: ${newSeriesMap.size} series mapped`)
       
     } catch (err) {
       console.error('❌ Failed to load series data:', err)
@@ -277,16 +272,6 @@ function ProductsContent() {
     try {
       setLoading(true)
       setError(null)
-      
-      console.log('🌐 HTTP VERSION: Loading products...', { 
-        categoryId: currentCategoryId, 
-        page, 
-        itemsPerPage, 
-        sortBy, 
-        sortDirection,
-        search: filters.search,
-        filtersParameters: filters.parameters
-      })
       
       // 카테고리에 해당하는 테이블 가져오기
       const tableName = CATEGORY_TABLE_MAP[currentCategoryId] || 'products_cis'
@@ -419,7 +404,6 @@ function ProductsContent() {
   useEffect(() => {
     // 초기 로드 중이거나 URL에 필터 파라미터가 있는 경우는 스킵
     if (isInitialLoad) {
-      console.log('⏭️ Skipping filter reset during initial load')
       return
     }
     
@@ -429,11 +413,9 @@ function ProductsContent() {
     )
     
     if (hasUrlFilters) {
-      console.log('⏭️ Skipping filter reset - URL has filter parameters')
       return
     }
     
-    console.log('🔄 Resetting filter parameters due to category change')
     const { updateFilter } = useFilterStore.getState()
     // 사용자의 카테고리 변경 시에만 필터 파라미터 초기화
     updateFilter('parameters', {})

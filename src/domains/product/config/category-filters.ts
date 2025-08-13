@@ -1160,7 +1160,43 @@ const categoryNameToConfig: Record<string, string> = {
   'Scientific': 'scientific'
 };
 
-// 카테고리 이름으로 설정 가져오기
+// 카테고리 ID → config key 매핑 테이블
+const categoryIdToConfig: Record<string, string> = {
+  '9': 'cis',        // CIS Camera
+  '10': 'tdi',       // TDI Camera  
+  '11': 'line',      // Line Camera
+  '12': 'area',      // Area Camera
+  '13': 'invisible', // Invisible Camera
+  '14': 'scientific',// Scientific Camera
+  '15': 'large_format', // Large Format Lens
+  '16': 'telecentric',  // Telecentric Lens
+  '17': 'fa_lens',      // FA Lens
+  '18': 'laser_3d',     // 3D Laser Profiler
+  '19': 'stereo_3d',    // 3D Stereo Camera
+  '20': 'light',        // Light
+  '21': 'controller',   // Light sources → Controller로 매핑
+  '22': 'controller',   // Controller
+  '23': 'frame_grabber', // Frame Grabber
+  '24': 'gige_card',    // GigE Lan Card
+  '25': 'usb_card',     // USB Card
+  '26': 'cable',        // Cable
+  '27': 'accessory',    // Accessory
+  '4': 'auto_focus_module', // AF Module
+  '7': 'software'       // Software
+};
+
+// 카테고리 ID로 설정 가져오기 (안정적인 방법)
+export function getConfigByCategoryId(categoryId: string): CategoryConfig | null {
+  const configKey = categoryIdToConfig[categoryId];
+  if (configKey && categoryConfigs[configKey]) {
+    return categoryConfigs[configKey];
+  }
+  
+  // 기본값으로 CIS 반환 (항상 유효한 설정 보장)
+  return categoryConfigs['cis'];
+}
+
+// 카테고리 이름으로 설정 가져오기 (호환성 유지)
 export function getConfigByCategoryName(categoryName: string): CategoryConfig | null {
   const configKey = categoryNameToConfig[categoryName];
   return configKey ? categoryConfigs[configKey] : null;

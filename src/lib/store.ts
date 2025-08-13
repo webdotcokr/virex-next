@@ -135,7 +135,6 @@ export const useFilterStore = create<FilterStore>()(
         
         // Process each parameter group
         Object.entries(paramGroups).forEach(([key, values]) => {
-          console.log(`🔄 URL→FILTER Processing parameter: ${key} = ${JSON.stringify(values)}`)
           
           if (values.length === 1) {
             // 단일값 처리 - 변환 없이 원본 사용
@@ -157,8 +156,6 @@ export const useFilterStore = create<FilterStore>()(
             // 다중값 - 원본 그대로 사용
             parameters[key] = values
           }
-          
-          console.log(`   Final parameter [${key}]:`, parameters[key])
         })
         
         if (Object.keys(parameters).length > 0) {
