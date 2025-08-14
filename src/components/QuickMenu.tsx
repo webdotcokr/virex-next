@@ -1,0 +1,71 @@
+'use client';
+
+import { useEffect } from 'react';
+import Link from 'next/link';
+// import './QuickMenu.css';
+
+const QuickMenu = () => {
+  useEffect(() => {
+    const handleTopClick = (e: Event) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const topBtn = document.getElementById('quick-top-btn');
+    if (topBtn) {
+      topBtn.addEventListener('click', handleTopClick);
+    }
+
+    return () => {
+      if (topBtn) {
+        topBtn.removeEventListener('click', handleTopClick);
+      }
+    };
+  }, []);
+
+  return (
+    <div className="quick-menu">
+      <div className="quick-menu-item mobile-visible" data-page="inquiry">
+        <div className="icon">
+          <Link href="/support/inquiry">
+            <img className="desktop-only" src="/icon/icon-question.svg" alt="제품 문의" />
+            <img className="mobile-only" src="/icon/icon-question.svg" alt="제품 문의" />
+          </Link>
+        </div>
+        <span>제품 문의</span>
+      </div>
+      <div className="quick-menu-divider"></div>
+
+      <div className="quick-menu-item mobile-visible" data-page="knowledge">
+        <div className="icon">
+          <a href="https://blog.virex.co.kr">
+            <img className="desktop-only" src="/icon/icon-tech.svg" alt="기술지식" />
+            <img className="mobile-only" src="/icon/icon-tech.svg" alt="기술지식" />
+          </a>
+        </div>
+        <span>기술지식</span>
+      </div>
+      <div className="quick-menu-divider"></div>
+
+      <div className="quick-menu-item mobile-visible" data-page="blog">
+        <div className="icon">
+          <a href="https://blog.naver.com/virex_sales" target="_blank" rel="noopener noreferrer">
+            <img src="/icon/icon-blog.svg" alt="블로그" />
+          </a>
+        </div>
+        <span>블로그</span>
+      </div>
+      <div className="quick-menu-divider"></div>
+
+      <div className="quick-menu-item desktop-only" data-page="top">
+        <div className="icon">
+          <a href="#" id="quick-top-btn">
+            <img src="/icon/icon-top.svg" alt="맨위로" />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default QuickMenu;
