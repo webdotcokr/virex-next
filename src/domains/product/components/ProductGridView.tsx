@@ -17,6 +17,7 @@ interface ProductGridViewProps {
   onPageChange?: (page: number) => void
   onCompareChange?: (productIds: string[]) => void
   isLoading?: boolean
+  categoryId?: number  // 카테고리 ID 추가
 }
 
 type ViewMode = 'table' | 'card'
@@ -30,7 +31,8 @@ export default function ProductGridView({
   onSort,
   onPageChange,
   onCompareChange,
-  isLoading = false
+  isLoading = false,
+  categoryId
 }: ProductGridViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('table')
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
@@ -126,6 +128,7 @@ export default function ProductGridView({
           onPageChange={onPageChange}
           onCompareChange={handleCompareChange}
           isLoading={isLoading}
+          categoryId={categoryId}
         />
       ) : (
         <>

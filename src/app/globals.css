@@ -3110,9 +3110,9 @@ body.megamenu-open {
   }
   
   .mobile-menu-header .user-info .user-icon img {
-    width: 60%;
-    height: 60%;
-    opacity: 0.7;
+    width: 100%;
+    height: 100%;
+    opacity: 1;
   }
   
   .mobile-menu-header .user-info .user-status {

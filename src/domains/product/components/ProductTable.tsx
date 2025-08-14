@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, memo, useRef, useEffect } from 'react'
 import styles from '../../../app/(portal)/products/products.module.css'
 import type { Product } from '../types'
 import Pagination from '@/components/ui/Pagination'
-import { formatValueWithUnit } from '@/lib/units'
+import { getColumnConfigForCategory, formatColumnValue, type ColumnConfig } from '@/config/productColumns'
 
 interface ProductTableProps {
   products: Product[]
@@ -17,7 +17,8 @@ interface ProductTableProps {
   onPageChange?: (page: number) => void
   onCompareChange?: (productIds: string[]) => void
   isLoading?: boolean
-  columnConfigs?: any[]  // 동적 컬럼 설정
+  columnConfigs?: ColumnConfig[]  // 동적 컬럼 설정
+  categoryId?: number  // 카테고리 ID 추가
 }
 
 function ProductTable({ 
@@ -31,7 +32,8 @@ function ProductTable({
   onPageChange,
   onCompareChange,
   isLoading = false,
-  columnConfigs = []
+  columnConfigs = [],
+  categoryId
 }: ProductTableProps) {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   
@@ -55,17 +57,17 @@ function ProductTable({
 
   // displayColumns를 먼저 정의
   const displayColumns = useMemo(() => {
+    // 1. 전달받은 columnConfigs 사용 (최우선)
     if (columnConfigs && columnConfigs.length > 0) {
-      // DB에서 로드된 컬럼 설정 사용
-      return columnConfigs.map(config => ({
-        column_name: config.column_name,
-        column_label: config.column_label,
-        is_sortable: config.is_sortable || false,
-        column_width: config.column_width || null
-      }))
+      return columnConfigs
     }
     
-    // Fallback: 제품 데이터에서 자동으로 컬럼 생성
+    // 2. 카테고리 기반 설정 파일 사용
+    if (categoryId) {
+      return getColumnConfigForCategory(categoryId)
+    }
+    
+    // 3. Fallback: 제품 데이터에서 자동으로 컬럼 생성
     if (!products || products.length === 0) return []
     
     const firstProduct = products[0]
@@ -101,7 +103,7 @@ function ProductTable({
       is_sortable: true,
       column_width: null
     }))
-  }, [columnConfigs, products])
+  }, [columnConfigs, categoryId, products])
 
   // 스크롤 이벤트 리스너 등록
   useEffect(() => {
@@ -288,7 +290,7 @@ function ProductTable({
                           )
                         } else if (value !== null && value !== undefined) {
                           // 일반 값 표시 (숫자, 문자열 등) - 단위 포함
-                          displayValue = formatValueWithUnit(value, column.column_name)
+                          displayValue = formatColumnValue(value, column)
                         }
                         
                         return (
