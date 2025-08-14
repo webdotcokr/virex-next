@@ -2,11 +2,15 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Navigation, Pagination } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
 import styles from './page.module.css'
 
 export default function HomeContent() {
-  const [currentSlide, setCurrentSlide] = useState(1)
-  const [newProductsIndex, setNewProductsIndex] = useState(0)
+  const [currentSlide, setCurrentSlide] = useState(1)  
 
   // Main slider auto-rotation
   useEffect(() => {
@@ -128,15 +132,6 @@ export default function HomeContent() {
     setCurrentSlide(slideNo)
   }
 
-  const handleNewProductsNav = (direction: 'prev' | 'next') => {
-    const totalGroups = Math.ceil(newProducts.length / 4)
-    
-    if (direction === 'next') {
-      setNewProductsIndex(prev => (prev + 1) % totalGroups) // 무한 루프
-    } else {
-      setNewProductsIndex(prev => prev === 0 ? totalGroups - 1 : prev - 1) // 무한 루프
-    }
-  }
 
   return (
     <div className="landing-page">
@@ -221,53 +216,61 @@ export default function HomeContent() {
           <div className={styles.newProductsWrapper}>
             <h2>신제품</h2>
             
-            <button 
-              className={styles.btnNewProductPrev}
-              onClick={() => handleNewProductsNav('prev')}
-            >
+            <div className={styles.newProductsItemsContainer}>
+              <Swiper
+                modules={[Navigation, Pagination]}
+                spaceBetween={16}
+                loop={true}
+                navigation={{
+                  prevEl: `.${styles.btnNewProductPrev}`,
+                  nextEl: `.${styles.btnNewProductNext}`,
+                }}
+                pagination={{
+                  el: `.${styles.sliderDotController}`,
+                  clickable: true,
+                }}
+                breakpoints={{
+                  320: {
+                    slidesPerView: 1,
+                    slidesPerGroup: 1,
+                  },
+                  768: {
+                    slidesPerView: 4,
+                    slidesPerGroup: 4,
+                  },
+                }}
+                className={styles.newProductsSwiper}
+              >
+                {newProducts.map((product) => (
+                  <SwiperSlide key={product.id}>
+                    <Link href={product.link_url} className={styles.newProductItemLink}>
+                      <div className={styles.newProductItem}>
+                        <div className={styles.newProductImageArea}>
+                          <img src={product.img_url} alt={product.title} loading="lazy" />
+                        </div>
+                        <div className={styles.newProductItemTitleOuterWrapper}>
+                          <div className={styles.newProductItemTitleInnerWrapper}>
+                            <h3 className={styles.newProductItemTitle}>{product.title}</h3>
+                            <div className={styles.newProductItemArrow}></div>
+                          </div>
+                          <div className={styles.newProductItemDesc}>
+                            {product.description}
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+            
+            <button className={styles.btnNewProductPrev}>
               <img src="/img/btn-slide-prev-gray.svg" alt="Previous" />
             </button>
             
-            <div className={styles.newProductsItemsContainer}>
-              <div 
-                className={styles.newProductsItems}
-                style={{ transform: `translateX(-${newProductsIndex * 100}%)` }}
-              >
-                {newProducts.map((product) => (
-                  <Link key={product.id} href={product.link_url} className={styles.newProductItemLink}>
-                    <div className={styles.newProductItem}>
-                      <div className={styles.newProductImageArea}>
-                        <img src={product.img_url} alt={product.title} loading="lazy" />
-                      </div>
-                      <div className={styles.newProductItemTitleOuterWrapper}>
-                        <div className={styles.newProductItemTitleInnerWrapper}>
-                          <h3 className={styles.newProductItemTitle}>{product.title}</h3>
-                          <div className={styles.newProductItemArrow}></div>
-                        </div>
-                        <div className={styles.newProductItemDesc}>
-                          {product.description}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-            
-            <div className={styles.sliderDotController}>
-              {Array.from({ length: Math.ceil(newProducts.length / 4) }).map((_, index) => (
-                <button
-                  key={index}
-                  className={`${styles.sliderDot} ${index === newProductsIndex ? styles.active : ''}`}
-                  onClick={() => setNewProductsIndex(index)}
-                />
-              ))}
-            </div>
+            <div className={styles.sliderDotController}></div>
 
-            <button 
-              className={styles.btnNewProductNext}
-              onClick={() => handleNewProductsNav('next')}
-            >
+            <button className={styles.btnNewProductNext}>
               <img src="/img/btn-slide-next-gray.svg" alt="Next" />
             </button>
           </div>
