@@ -42,18 +42,8 @@ function ProductTable({
   const bottomScrollRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const [tableWidth, setTableWidth] = useState('1000px')
+  const isSyncing = useRef(false)
 
-  // 동적 컬럼 설정 사용 (전달받은 columnConfigs 또는 fallback)
-  // 스크롤 동기화 함수
-  const syncScroll = useCallback((source: 'top' | 'bottom') => {
-    if (!topScrollRef.current || !bottomScrollRef.current) return
-    
-    if (source === 'top') {
-      bottomScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft
-    } else {
-      topScrollRef.current.scrollLeft = bottomScrollRef.current.scrollLeft
-    }
-  }, [])
 
   // displayColumns를 먼저 정의
   const displayColumns = useMemo(() => {
@@ -105,37 +95,69 @@ function ProductTable({
     }))
   }, [columnConfigs, categoryId, products])
 
-  // 스크롤 이벤트 리스너 등록
+  // 스크롤 이벤트 리스너 등록 - DOM 요소가 렌더링된 후에 실행
   useEffect(() => {
-    const topScroll = topScrollRef.current
-    const bottomScroll = bottomScrollRef.current
-    
-    const handleTopScroll = () => syncScroll('top')
-    const handleBottomScroll = () => syncScroll('bottom')
-    
-    if (topScroll) {
-      topScroll.addEventListener('scroll', handleTopScroll)
-    }
-    if (bottomScroll) {
-      bottomScroll.addEventListener('scroll', handleBottomScroll)
-    }
-    
-    return () => {
-      if (topScroll) {
-        topScroll.removeEventListener('scroll', handleTopScroll)
+    // DOM 요소가 존재할 때까지 기다리는 함수
+    const setupScrollListeners = () => {
+      const topScroll = topScrollRef.current
+      const bottomScroll = bottomScrollRef.current
+      
+      // 요소가 아직 없으면 다시 시도
+      if (!topScroll || !bottomScroll) {
+        setTimeout(setupScrollListeners, 100)
+        return
       }
-      if (bottomScroll) {
+      
+      // syncScroll 함수 정의
+      const syncScroll = (source: 'top' | 'bottom') => {
+        if (isSyncing.current) return
+        if (!topScrollRef.current || !bottomScrollRef.current) return
+        
+        isSyncing.current = true
+        
+        if (source === 'top') {
+          bottomScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft
+        } else {
+          topScrollRef.current.scrollLeft = bottomScrollRef.current.scrollLeft
+        }
+        
+        // 동기화 완료 후 플래그 리셋
+        requestAnimationFrame(() => {
+          isSyncing.current = false
+        })
+      }
+      
+      const handleTopScroll = () => syncScroll('top')
+      const handleBottomScroll = () => syncScroll('bottom')
+      
+      // 이벤트 리스너 등록
+      topScroll.addEventListener('scroll', handleTopScroll)
+      bottomScroll.addEventListener('scroll', handleBottomScroll)
+      
+      // 클린업 함수 반환
+      return () => {
+        topScroll.removeEventListener('scroll', handleTopScroll)
         bottomScroll.removeEventListener('scroll', handleBottomScroll)
       }
     }
-  }, [syncScroll])
+    
+    // 초기 설정 시도
+    const cleanup = setupScrollListeners()
+    
+    return cleanup
+  }, [products, displayColumns]) // products나 displayColumns가 변경될 때마다 다시 설정
 
   // 테이블 너비 업데이트
   useEffect(() => {
     const updateTableWidth = () => {
       if (tableRef.current) {
-        const width = tableRef.current.scrollWidth
-        setTableWidth(`${width}px`)
+        // 약간의 지연을 주어 테이블이 완전히 렌더링된 후 실행
+        setTimeout(() => {
+          if (tableRef.current) {
+            const width = tableRef.current.scrollWidth
+            setTableWidth(`${width}px`)
+          }
+        }, 100)
       }
     }
     
@@ -170,7 +192,7 @@ function ProductTable({
 
   const handleRowClick = useCallback((product: Product, e: React.MouseEvent) => {
     // 체크박스 클릭은 제외
-    if ((e.target as HTMLElement).type === 'checkbox') {
+    if ((e.target as HTMLInputElement).type === 'checkbox') {
       return
     }
     window.location.href = `/products/${product.part_number}`
