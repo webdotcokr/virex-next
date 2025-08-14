@@ -20,6 +20,9 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   
   // 관리자 페이지인지 확인
   const isAdminPage = isClient && pathname?.startsWith('/admin')
+  
+  // products 페이지인지 확인
+  const isProductsPage = isClient && pathname?.startsWith('/products')
 
   if (isAdminPage) {
     // 관리자 페이지: Header, Footer, QuickMenu 없이 순수하게 children만
@@ -32,7 +35,7 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
       <Header />
       <main>{children}</main>
       <Footer />
-      <QuickMenu />
+      {!isProductsPage && <QuickMenu />}
     </>
   )
 }

@@ -15,7 +15,6 @@
 }
 
 .productHeroContent {
-  max-width: var(--container-width-xl);
   margin: 0 auto;
   padding: 0 20px;
   position: relative;
@@ -125,7 +124,6 @@
 }
 
 .categoryNavigation .menuContainer {
-  max-width: var(--container-width-xl);
   margin: 0 auto;
   padding: 0 20px;
 }
@@ -180,7 +178,6 @@
 
 /* Main Container - 캡처본과 동일한 레이아웃 */
 .productsContainer {
-  max-width: var(--container-width-xl);
   margin: 0 auto;
   padding: 20px;
   display: flex;
@@ -1062,7 +1059,7 @@
   left: 0;
   right: 0;
   height: 6px;
-  background: var(--primary);
+  background: var(--gray200);
   border-radius: 3px;
   pointer-events: none;
 }
@@ -1071,7 +1068,7 @@
   position: absolute;
   top: 0;
   height: 100%;
-  background: linear-gradient(90deg, var(--primary400), var(--primary500));
+  background: var(--primary);
   border-radius: 3px;
   transition: all 0.2s ease;
 }

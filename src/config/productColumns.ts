@@ -30,7 +30,7 @@ export const PRODUCT_COLUMN_CONFIGS: Record<number, ColumnConfig[]> = {
   10: [
     { column_name: 'series', column_label: 'Series', is_sortable: true, column_width: '120px' },
     { column_name: 'part_number', column_label: 'Part Number', is_sortable: true, column_width: '150px' },
-    { column_name: 'resolution', column_label: 'Resolution', is_sortable: true, column_width: '100px', unit: 'μm' },
+    { column_name: 'resolution', column_label: 'Resolution', is_sortable: true, column_width: '100px' },
     { column_name: 'number_of_line', column_label: 'No. of Line', is_sortable: true, column_width: '120px' },
     { column_name: 'line_rate', column_label: 'Line Rate', is_sortable: true, column_width: '90px', unit: 'kHz' },
     { column_name: 'pixel_size', column_label: 'Pixel Size', is_sortable: true, column_width: '90px', unit: 'μm' },
