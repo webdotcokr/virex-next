@@ -20,7 +20,7 @@ footer #newsletter {
 /* Main Hero Section */
 .pageContentContainer {
   background: url('/img/bg-main.jpg') center/cover no-repeat;
-  min-height: 33rem;
+  min-height: 30rem;
   display: flex;
   align-items: flex-end;
   position: relative;
@@ -609,10 +609,6 @@ footer #newsletter {
     font-size: 2.5rem;
   }
   
-  .mainSliderWrapper {
-    max-width: 500px;
-  }
-  
   .btnNewProductPrev,
   .btnNewProductNext {
     display: none;
@@ -753,7 +749,9 @@ footer #newsletter {
   }
   
   .pageContent {
-    padding: 0 16px;
+    padding: 100px 16px;
+    padding-bottom: 0px;;
+    align-items: normal;
   }
   
   .pageTitle {
