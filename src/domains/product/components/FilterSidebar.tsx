@@ -46,7 +46,6 @@ function FilterSidebar({
   const [staticFilters, setStaticFilters] = useState<CategoryFilter[]>([])
   const [loading, setLoading] = useState(true)
   const [sliderValues, setSliderValues] = useState<Record<string, [number, number]>>({})
-  const [applyingFilters, setApplyingFilters] = useState<Set<string>>(new Set())
   const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({})
 
   // Close sidebar on escape key
@@ -443,17 +442,9 @@ function FilterSidebar({
       clearTimeout(debounceTimers.current[paramName])
     }
     
-    // 로딩 상태 표시
-    setApplyingFilters(prev => new Set(prev).add(paramName))
-    
     // 새 타이머 설정 (500ms 지연)
     debounceTimers.current[paramName] = setTimeout(() => {
       handleParameterChange(paramName, value)
-      setApplyingFilters(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(paramName)
-        return newSet
-      })
     }, 500)
   }, [handleParameterChange])
 
@@ -476,14 +467,6 @@ function FilterSidebar({
     
     return (
       <div className={styles.sliderContainer}>
-        {/* 범위 값 표시 */}
-        <div className={styles.sliderValues}>
-          <span>{min.toFixed(1)} - {max.toFixed(1)}{filter.unit || ''}</span>
-          {applyingFilters.has(filter.param) && (
-            <span className={styles.sliderLoading}>적용중...</span>
-          )}
-        </div>
-        
         {/* 범위 입력 필드 */}
         <div className={styles.sliderInputs}>
           <input
