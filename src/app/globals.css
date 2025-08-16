@@ -52,7 +52,7 @@
 }
 
 body {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 400;
   font-family: var(--ft-default);
   letter-spacing: -0.03375rem;
@@ -91,7 +91,7 @@ body[data-type="main"] h2 {
 input, select, label {
   color: var(--gray999, #000);
   font-family: var(--ft-default);
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-style: normal;
   font-weight: 500;
   line-height: normal;
@@ -493,7 +493,7 @@ header.scrolled .horizontal-line {
   color: white;
   font-family: var(--ft-default);
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 1.1rem;
   text-decoration: none;
 }
 
@@ -700,44 +700,54 @@ header .horizontal-menu .top-menu-item.active a {
     margin-top: -1px;
 }
 /* Breadcrumb styling */
-#page-content #breadcrumb {
+#page-content #breadcrumb,
+.breadcrumb {
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  font-size: 0.875rem;
+  font-size: 1rem;
   margin-bottom: 1rem;
   width: 100%;
   justify-content: flex-start;
 }
 
-#page-content #breadcrumb span a {
+#page-content #breadcrumb span a,
+.breadcrumb a {
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-#page-content #breadcrumb span a:hover {
+#page-content #breadcrumb span a:hover,
+.breadcrumb a:hover {
   color: white;
 }
 
-#page-content #breadcrumb .active {
+#page-content #breadcrumb .active,
+.breadcrumb .active {
   color: var(--white);
   font-weight: 500;
 }
 
-#page-content #breadcrumb .arrow {
+#page-content #breadcrumb .arrow,
+.breadcrumb .arrow {
   margin: 0 0.5rem;
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
 }
 
-#page-content #breadcrumb .arrow img {
-  display: inline;
+#page-content #breadcrumb .arrow img,
+.breadcrumb .arrow img {
+  display: inline-block;
+  margin-left: 0.5rem;
 }
 
 /* Title styling */
 #page-content .page-title-en {
   color: rgba(255, 255, 255, 0.4);
   font-family: "Montserrat", sans-serif;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-style: normal;
   font-weight: 500;
   line-height: normal;
@@ -757,7 +767,7 @@ header .horizontal-menu .top-menu-item.active a {
 }
 
 #page-content .page-title-ko {
-  font-size: 2.75rem;
+  font-size: 3rem;
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
@@ -823,16 +833,15 @@ footer #newsletter .newsletter-contents {
 }
 
 .newsletter-header-en {
-  color: var (--gray300);
   font-family: var(--ft-en);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 500;
   letter-spacing: -0.01875rem;
 }
 
 footer #newsletter .newsletter-title {
   color: var(--white);
-  font-size: 2.125rem;
+  font-size: 2.3rem;
   font-weight: 600;
   letter-spacing: -0.04em;
   margin-top: 0.69rem;
@@ -872,7 +881,7 @@ footer #newsletter .newsletter-input {
   border: none;
   outline: none;
   color: var(--white);
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   /* 20px */
   font-weight: 400;
 }
@@ -970,14 +979,14 @@ footer #footer-contents #footer-company-info {
 .info-item .info-item-label {
   color: var(--fg-info-label);
   font-family: var(--ft-en);
-  font-size: 0.8125rem;
+  font-size: 0.95rem;
   font-weight: 500;
   letter-spacing: -0.01625rem;
 }
 
 .info-item .info-item-value {
   color: var(--white);
-  font-size: 0.8375rem;
+  font-size: 1rem;
   font-weight: 400;
   letter-spacing: -0.01875rem;
 }
@@ -990,7 +999,7 @@ footer #footer-gnb-menu {
 
 footer #footer-gnb-menu .gnb-menu-group .gnb-menu-group-title {
   color: var(--fg-gnb-label);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.01875rem;
   padding-bottom: 1rem;
@@ -998,7 +1007,7 @@ footer #footer-gnb-menu .gnb-menu-group .gnb-menu-group-title {
 
 footer #footer-gnb-menu .gnb-menu-group .gnb-menu-group-item {
   color: var(--white);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 500;
   line-height: 2.25rem;
   letter-spacing: -0.01875rem;
@@ -1032,7 +1041,7 @@ footer #footer-bottom #footer-logo img {
 
 footer #footer-bottom #footer-copyright {
   color: var(--fg-copyright);
-  font-size: 0.8125rem;
+  font-size: 0.9rem;
   font-weight: 300;
   letter-spacing: -0.01625rem;
 }
@@ -1067,7 +1076,7 @@ footer #footer-bottom #footer-copyright {
     }
     .quick-menu-item span {
       color: var(--gray800);
-      font-size: 0.8125rem;
+      font-size: 0.9rem;
       font-weight: 500;
       line-height: 0.9375rem;
     }
@@ -1356,7 +1365,7 @@ footer #footer-bottom #footer-copyright {
     color: var(--gray999);
     text-align: center;
     font-family: var(--ft-default);
-    font-size: 2.1875rem;
+    font-size: 2.3rem;
     font-style: normal;
     font-weight: 700;
     line-height: 2.8125rem; /* 128.571% */
@@ -1901,7 +1910,7 @@ footer #footer-bottom #footer-copyright {
           justify-content: space-between;
           align-items: end;
           width: 100%;
-          font-size: 0.875rem;
+          font-size: 1rem;
           font-weight: 600;
           letter-spacing: -0.42px;
         }
@@ -1995,7 +2004,7 @@ footer #footer-bottom #footer-copyright {
               border-top: 1px solid var(--gray300);
               color: var(--gray900);
               font-family: var(--ft-default);
-              font-size: 1.125rem;
+              font-size: 1.25rem;
               font-style: normal;
               font-weight: 600;
               line-height: normal;
@@ -2041,7 +2050,7 @@ footer #footer-bottom #footer-copyright {
 
             #general-article-view .article-view-header .article-view-info {
               color: var(--zinc-500, #71717A);
-              font-size: 0.875rem;
+              font-size: 1rem;
               font-style: normal;
               font-weight: 600;
               line-height: 1.25rem;
@@ -2336,8 +2345,12 @@ footer #footer-bottom #footer-copyright {
     padding: 4rem 1.25rem 2.5rem 1.25rem
   }
 
-  #page-content #breadcrumb span a {
+  #page-content #breadcrumb span a,
+  .breadcrumb a {
     font-size: 12px;
+  }
+  .breadcrumb {
+    font-size: 0.75rem;
   }
 
   #page-content .page-title-en {
