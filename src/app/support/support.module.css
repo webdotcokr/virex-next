@@ -61,7 +61,7 @@
       .download-item-text-first {
           grid-area: title;
           color: var(--gray999);
-          font-size: 1.375rem;
+          font-size: 1.5rem;
           font-style: normal;
           font-weight: 700;
           line-height: normal;
@@ -71,7 +71,7 @@
       .download-item-text-second {
           grid-area: description;
           color: var(--gray800);
-          font-size: 1rem;
+          font-size: 1.1rem;
           font-style: normal;
           font-weight: 400;
           line-height: 24px;
@@ -97,7 +97,7 @@
         display: flex;
         gap: 0.5rem;
           color: var(--gray999);
-          font-size: 1.4rem;
+          font-size: 1.65rem;
           font-weight: 700;
         }
   
@@ -120,12 +120,12 @@
           color: var(--white);
         }
           .content-body .download-banner .download-banner-title {
-            font-size: 1.875rem;
+            font-size: 2rem;
             font-weight: 700;
             text-align: center;
           }
           .content-body .download-banner .download-banner-description {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 400;
           }
   
@@ -152,12 +152,12 @@
           gap: 0.4rem;
           align-items: center;
           color: var(--gray999);
-          font-size: 1.875rem;
+          font-size: 2rem;
           font-weight: 700;
         }
         .content-body .remote-banner .remote-banner-description {
           color: var(--gray800);
-          font-size: 1rem;
+          font-size: 1.1rem;
           font-weight: 400;
         }
   
@@ -194,12 +194,12 @@
         }
           .remote-item .remote-item-step-no {
             color: var(--secondary);
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-family: var(--ft-en);
             font-weight: bold;
           }
           .remote-item .remote-item-title {
-            font-size: 1.375rem;
+            font-size: 1.5rem;
             font-weight: bold;
             letter-spacing: -0.05em;;
           }

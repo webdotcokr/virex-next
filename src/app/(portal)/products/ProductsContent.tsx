@@ -581,6 +581,7 @@ export default function ProductsContent() {
             onPageChange={setCurrentPage}
             onCompareChange={handleCompareChange}
             isLoading={loading}
+            categoryId={parseInt(currentCategoryId)}
           />
         </div>
       </div>

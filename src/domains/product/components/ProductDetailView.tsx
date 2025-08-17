@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Download, Mail, ExternalLink, Share2 } from 'lucide-react'
-import { formatParameterValue } from '@/lib/utils'
+import { getColumnConfigForCategory, formatColumnValue } from '@/config/productColumns'
 import InquiryForm from './InquiryForm'
 import RelatedProductsSlider from './RelatedProductsSlider'
 import type { Product } from '../types'
@@ -82,33 +82,28 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
     'is_active', 'is_new', 'image_url', 'is_discontinued',
   ]
 
-  // 파라미터 라벨 포맷팅
+  // 파라미터 라벨 포맷팅 (productColumns.ts 활용)
   const formatParameterLabel = (key: string): string => {
+    // productColumns.ts에서 카테고리별 컬럼 설정 가져오기
+    const columnConfigs = getColumnConfigForCategory(product.category_id)
+    const config = columnConfigs.find(c => c.column_name === key)
+    
+    if (config) {
+      // 설정이 있으면 정의된 라벨 사용
+      return config.column_label
+    }
+    
+    // 설정이 없으면 fallback 라벨 매핑
     const labelMap: Record<string, string> = {
-      'scan_width': 'Scan Width',
-      'dpi': 'DPI',
-      'resolution': 'Resolution',
-      'line_rate': 'Line Rate',
-      'speed': 'Speed',
-      'wd': 'Working Distance',
-      'no_of_pixels': 'Number of Pixels',
-      'spectrum': 'Spectrum',
-      'interface': 'Interface',
-      'pixel_size': 'Pixel Size',
-      'line_length': 'Line Length',
-      'data_rate': 'Data Rate',
       'resolution_h': 'Resolution (H)',
       'resolution_v': 'Resolution (V)',
+      'no_of_pixels': 'Number of Pixels',
+      'line_length': 'Line Length',
+      'data_rate': 'Data Rate',
       'sensor_size': 'Sensor Size',
-      'frame_rate': 'Frame Rate',
       'sensor_length': 'Sensor Length',
-      'magnification': 'Magnification',
-      'focal_length': 'Focal Length',
-      'aperture': 'Aperture',
       'working_distance': 'Working Distance',
       'mount_type': 'Mount Type',
-      'coating': 'Coating',
-      'distortion': 'Distortion',
       'relative_illumination': 'Relative Illumination'
     }
 
@@ -117,14 +112,24 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
     ).join(' ')
   }
 
-  // 파라미터 값 포맷팅
+  // productColumns.ts의 설정을 사용한 값 포맷팅
   const formatSpecValue = (key: string, value: unknown): string => {
     if (value === null || value === undefined || value === '') return '-'
     
+    // productColumns.ts에서 카테고리별 컬럼 설정 가져오기
+    const columnConfigs = getColumnConfigForCategory(product.category_id)
+    const config = columnConfigs.find(c => c.column_name === key)
+    
+    if (config) {
+      // 설정이 있으면 formatColumnValue 사용 (단위 포함)
+      return formatColumnValue(value, config)
+    }
+    
+    // 설정이 없는 필드는 기존 fallback 방식으로 처리
     const stringValue = String(value)
     const lowerKey = key.toLowerCase()
     
-    // 단위가 필요한 필드들
+    // 기본적인 단위 추론 (fallback)
     if (lowerKey.includes('width') || lowerKey.includes('length') || lowerKey.includes('distance')) {
       return `${stringValue} mm`
     }
@@ -290,11 +295,19 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
           )}
           
           {/* Text Content */}
-          {product.series_data.textItems?.some(item => item.title || item.desc || item.image) && (
-            <section className={styles.textContentContainer}>
-              <div className={styles.textContentGrid}>
-                {product.series_data.textItems.map((item, index) => (
-                  (item.title || item.desc || item.image) && (
+          {product.series_data.textItems?.some(item => item.title || item.desc || item.image) && (() => {
+            // 실제 콘텐츠가 있는 아이템들만 필터링
+            const validItems = product.series_data.textItems.filter(item => item.title || item.desc || item.image);
+            // 실제 콘텐츠 개수에 따른 그리드 컬럼 설정
+            const columnCount = Math.min(validItems.length, 3); // 최대 3개 컬럼
+            const gridStyle = {
+              gridTemplateColumns: `repeat(${columnCount}, 1fr)`
+            };
+
+            return (
+              <section className={styles.textContentContainer}>
+                <div className={styles.textContentGrid} style={gridStyle}>
+                  {validItems.map((item, index) => (
                     <div key={index} className={styles.textContentItem}>
                       {item.image && (
                         <div className={styles.textImage}>
@@ -310,11 +323,11 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                         )}
                       </div>
                     </div>
-                  )
-                ))}
-              </div>
-            </section>
-          )}
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
           
           {/* Strengths */}
           {product.series_data.strengths?.some(s => s) && (

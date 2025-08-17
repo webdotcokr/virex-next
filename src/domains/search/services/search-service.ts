@@ -136,6 +136,19 @@ export class SearchService {
     limit: number, 
     results: SearchResults
   ): Promise<void> {
+    // 1단계: series 테이블에서 매칭되는 series_id들 찾기
+    let seriesIds: number[] = []
+    try {
+      const { data: matchingSeries } = await supabase
+        .from('series')
+        .select('id')
+        .ilike('series_name', `%${searchTerm}%`)
+      
+      seriesIds = matchingSeries?.map(s => s.id) || []
+    } catch (err) {
+      console.warn('Error searching series:', err)
+    }
+
     const categoryIds = Object.keys(CATEGORY_TABLE_MAPPING).map(Number)
     
     for (const categoryId of categoryIds) {
@@ -143,6 +156,12 @@ export class SearchService {
       const categoryName = CATEGORY_NAME_MAPPING[categoryId]
       
       try {
+        // 2단계: OR 조건 동적 생성
+        let orCondition = `part_number.ilike.%${searchTerm}%,maker.ilike.%${searchTerm}%`
+        if (seriesIds.length > 0) {
+          orCondition += `,series_id.in.(${seriesIds.join(',')})`
+        }
+
         const { data: products, error } = await supabase
           .from(tableName)
           .select(`
@@ -153,7 +172,7 @@ export class SearchService {
             maker,
             series(id, series_name)
           `)
-          .or(`part_number.ilike.%${searchTerm}%,maker.ilike.%${searchTerm}%`)
+          .or(orCondition)
           .eq('is_active', true)
           .limit(limit)
 

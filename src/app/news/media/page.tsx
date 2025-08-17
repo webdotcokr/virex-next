@@ -166,9 +166,7 @@ const MediaPage = () => {
           
           .grid-item {
             background: white;
-            border-radius: 8px;
             overflow: hidden;
-            border: 1px solid #e5e7eb;
             transition: all 0.2s ease;
           }
           
@@ -185,7 +183,7 @@ const MediaPage = () => {
           }
           
           .grid-item-content {
-            padding: 18px;
+            padding-bottom: 16px;
           }
           
           .grid-item-title {

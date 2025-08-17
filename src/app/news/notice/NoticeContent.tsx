@@ -114,7 +114,7 @@ const NoticeContent = () => {
                       <tr key={item.id}>
                         <td className="text-center">
                           {item.is_featured ? (
-                            <img src="/img/icon_notice.gif" className="vmiddle" alt="notice" />
+                            <img src="/img/icon_notice.gif" className="vmiddle" alt="notice" style={{display: 'inline'}} />
                           ) : (
                             displayNumber
                           )}

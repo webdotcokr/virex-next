@@ -18,7 +18,7 @@
 }
 
 .productHeroContent {
-  max-width: 1200px;
+  max-width: var(--container-width-xl);
   margin: 0 auto;
   padding: 0 20px;
   position: relative;
@@ -26,50 +26,23 @@
   width: 100%;
 }
 
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-}
-
-.breadcrumb a {
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.breadcrumb a:hover {
-  color: white;
-}
-
-.breadcrumb .active {
-  color: white;
-  font-weight: 500;
-}
-
-.arrow {
-  width: 16px;
-  height: 16px;
-  opacity: .6;
-}
+/* Breadcrumb styles now managed globally in globals.css */
 
 
 
 .leftAligned {
-  max-width: 600px;
+  text-align: center;
 }
 
 .pageTitleEn {
   color: rgba(255, 255, 255, 0.4);
   font-family: "Montserrat", sans-serif;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-style: normal;
   font-weight: 500;
   line-height: normal;
   letter-spacing: -0.03rem;
-  margin-top: 2.69rem;
+  margin-top: 4rem;
 }
 
 .pageTitleKo {
@@ -82,7 +55,8 @@
 }
 
 .pageTitleKo h1 {
-  margin: 0;
+  font-size: 3.2rem;
+  margin-top: 1.5rem;
 }
 
 /* Horizontal Menu */
@@ -133,6 +107,7 @@
   transition: all 0.3s;
   position: relative;
   cursor: pointer;
+  font-size: 1.2rem;
 }
 
 .menuItem a:hover {
@@ -156,7 +131,7 @@
 }
 
 .categoryTitle h2 {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 700;
   color: #000;
   margin: 0;
@@ -206,7 +181,7 @@
     color: var(--gray999);
     text-align: center;
     font-family: var(--ft-default);
-    font-size: 1.5625rem;
+    font-size: 1.7rem;
     font-style: normal;
     font-weight: 700;
     line-height: normal;
@@ -219,7 +194,7 @@
     color: var(--gray700, #495057);
     text-align: center;
     font-family: var(--ft-default);
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-style: normal;
     font-weight: 400;
     line-height: 1.5rem;
@@ -241,7 +216,7 @@
     background-color: var(--white);
     color: var(--primary);
     font-family: var(--ft-default);
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-style: normal;
     font-weight: 500;
     line-height: normal;

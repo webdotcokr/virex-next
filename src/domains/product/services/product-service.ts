@@ -400,6 +400,7 @@ export class ProductService {
           return {
             id: productId,
             part_number,
+            category_id: categoryId,
             series_id,
             is_active,
             is_new,
@@ -507,6 +508,7 @@ export class ProductService {
             return {
               id,
               part_number,
+              category_id: categoryId,
               series_id,
               is_active,
               is_new,
@@ -684,6 +686,7 @@ export class ProductService {
       const result = {
         id,
         part_number,
+        category_id: categoryId,
         series_id,
         is_active,
         is_new,
