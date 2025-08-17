@@ -49,7 +49,7 @@
 .productImage {
   width: 100%;
   height: 200px;
-  object-fit: contain;
+  object-fit: cover;
   border: 1px solid #E8ECEF;
   border-radius: 8px;
 }

@@ -27,24 +27,24 @@ function ProductHeroSection({ categoryInfo, breadcrumbs }: ProductHeroSectionPro
       className={styles.productHeroSection}
       style={{ backgroundImage: `url(${backgroundImage})` }}
     >
-      <div className={styles.productHeroContent}>
+      <div id="page-content" className={styles.productHeroContent}>
         {/* Breadcrumb */}
-        <nav className={styles.breadcrumb}>
+        <div id="breadcrumb">
           {breadcrumbs.map((item, index) => (
             <span key={index}>
-              {item.href && !item.active ? (
+              {item.href ? (
                 <a href={item.href}>{item.label}</a>
               ) : (
-                <span className={item.active ? styles.active : ''}>{item.label}</span>
+                <span className="active">{item.label}</span>
               )}
               {index < breadcrumbs.length - 1 && (
-                <span className={styles.arrow}>
-                  <img src="/img/icon-breadcrumb-arrow.svg" alt=">" />
+                <span className="arrow">
+                  <img src="/icon/icon-breadcrumb-arrow.svg" alt="arrow" />
                 </span>
               )}
             </span>
           ))}
-        </nav>
+        </div>
 
         {/* Category Title */}
         <div className={styles.leftAligned}>

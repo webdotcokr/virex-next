@@ -295,11 +295,19 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
           )}
           
           {/* Text Content */}
-          {product.series_data.textItems?.some(item => item.title || item.desc || item.image) && (
-            <section className={styles.textContentContainer}>
-              <div className={styles.textContentGrid}>
-                {product.series_data.textItems.map((item, index) => (
-                  (item.title || item.desc || item.image) && (
+          {product.series_data.textItems?.some(item => item.title || item.desc || item.image) && (() => {
+            // 실제 콘텐츠가 있는 아이템들만 필터링
+            const validItems = product.series_data.textItems.filter(item => item.title || item.desc || item.image);
+            // 실제 콘텐츠 개수에 따른 그리드 컬럼 설정
+            const columnCount = Math.min(validItems.length, 3); // 최대 3개 컬럼
+            const gridStyle = {
+              gridTemplateColumns: `repeat(${columnCount}, 1fr)`
+            };
+
+            return (
+              <section className={styles.textContentContainer}>
+                <div className={styles.textContentGrid} style={gridStyle}>
+                  {validItems.map((item, index) => (
                     <div key={index} className={styles.textContentItem}>
                       {item.image && (
                         <div className={styles.textImage}>
@@ -315,11 +323,11 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                         )}
                       </div>
                     </div>
-                  )
-                ))}
-              </div>
-            </section>
-          )}
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
           
           {/* Strengths */}
           {product.series_data.strengths?.some(s => s) && (

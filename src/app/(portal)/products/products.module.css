@@ -148,7 +148,6 @@
 /* Main Container - 캡처본과 동일한 레이아웃 */
 .productsContainer {
   max-width: 100%;
-  margin: 0 auto;
   padding: 20px;
   display: flex;
   gap: 20px;
