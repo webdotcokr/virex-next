@@ -78,7 +78,6 @@ export default function Header() {
   )
   const [isMegaMenuActive, setIsMegaMenuActive] = useState(false)
   const [hoveredMenuItem, setHoveredMenuItem] = useState<string | null>(null)
-  const [menuPositions, setMenuPositions] = useState<Record<string, number>>({})
   
   // Use AuthContext for actual session management
   const { user, profile, signOut } = useAuth()
@@ -218,73 +217,7 @@ export default function Header() {
     }
   }
 
-  // Enhanced menu item position calculation with debugging
-  const calculateMenuPositions = useCallback(() => {
-    const positions: Record<string, number> = {}
-    
-    // Get container element
-    const containerElement = document.getElementById('top-menu')
-    if (!containerElement) {
-      console.warn('top-menu container not found')
-      return
-    }
-    
-    const containerRect = containerElement.getBoundingClientRect()
-    
-    Object.keys(MENU_CONFIG).forEach((menuKey) => {
-      const menuElement = document.querySelector(`[data-menu="${menuKey}"]`) as HTMLElement
-      const submenuElement = menuElement?.querySelector('.submenu-column') as HTMLElement
-      
-      if (menuElement && submenuElement) {
-        const menuRect = menuElement.getBoundingClientRect()
-        
-        // Calculate center position of menu item relative to container
-        const menuCenter = menuRect.left + menuRect.width / 2 - containerRect.left
-        
-        // Get submenu width more reliably
-        const currentDisplay = submenuElement.style.display
-        const currentVisibility = submenuElement.style.visibility
-        const currentOpacity = submenuElement.style.opacity
-        
-        // Temporarily show to measure
-        submenuElement.style.display = 'block'
-        submenuElement.style.visibility = 'hidden'
-        submenuElement.style.opacity = '0'
-        
-        const submenuWidth = submenuElement.offsetWidth
-        
-        // Restore original styles
-        submenuElement.style.display = currentDisplay
-        submenuElement.style.visibility = currentVisibility
-        submenuElement.style.opacity = currentOpacity
-        
-        // Calculate optimal left position to center submenu under menu item
-        const submenuHalfWidth = submenuWidth / 2
-        let optimalLeft = menuCenter - submenuHalfWidth
-        
-        // Prevent submenu from going outside container bounds
-        const containerWidth = containerRect.width
-        const maxLeft = containerWidth - submenuWidth - 20 // 20px padding
-        const minLeft = 20 // 20px padding
-        
-        optimalLeft = Math.max(minLeft, Math.min(maxLeft, optimalLeft))
-        
-        positions[menuKey] = optimalLeft
-        
-        // Menu position calculated
-      } else {
-        console.warn(`Menu element or submenu not found for ${menuKey}`)
-      }
-    })
-    
-    setMenuPositions(positions)
-  }, [])
 
-  // Throttled position calculation
-  const throttledCalculatePositions = useCallback(
-    throttle(calculateMenuPositions, 100),
-    [calculateMenuPositions, throttle]
-  )
 
   // Setup scroll listener
   useEffect(() => {
@@ -298,37 +231,6 @@ export default function Header() {
     }
   }, [throttledHandleScroll, handleScroll])
 
-  // Setup position calculation with ResizeObserver
-  useEffect(() => {
-    // Calculate positions after component mounts
-    const timer = setTimeout(calculateMenuPositions, 100)
-    
-    // Recalculate on window resize
-    window.addEventListener('resize', throttledCalculatePositions, { passive: true })
-    
-    // Add ResizeObserver to watch header size changes
-    const headerElement = document.querySelector('header')
-    let resizeObserver: ResizeObserver | null = null
-    
-    if (headerElement && window.ResizeObserver) {
-      resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          if (entry.target === headerElement) {
-            throttledCalculatePositions()
-          }
-        }
-      })
-      resizeObserver.observe(headerElement)
-    }
-    
-    return () => {
-      clearTimeout(timer)
-      window.removeEventListener('resize', throttledCalculatePositions)
-      if (resizeObserver) {
-        resizeObserver.disconnect()
-      }
-    }
-  }, [calculateMenuPositions, throttledCalculatePositions])
 
   // Cleanup hover timeout on unmount
   useEffect(() => {
@@ -339,17 +241,6 @@ export default function Header() {
     }
   }, [hoverTimeout])
 
-  // Recalculate positions when megamenu becomes active
-  useEffect(() => {
-    if (isMegaMenuActive && hoveredMenuItem) {
-      // Immediate calculation when menu becomes active
-      calculateMenuPositions()
-      
-      // Also schedule a second calculation to handle any layout shifts
-      const timer = setTimeout(calculateMenuPositions, 50)
-      return () => clearTimeout(timer)
-    }
-  }, [isMegaMenuActive, hoveredMenuItem, calculateMenuPositions])
 
   // Generate dynamic classes
   const headerClasses = [
@@ -398,12 +289,7 @@ export default function Header() {
                 onMouseLeave={handleMenuItemLeave}
               >
                 <Link href={config.mainLink}>{config.title}</Link>
-                <div 
-                  className="submenu-column"
-                  style={{
-                    left: menuPositions[key] !== undefined ? `${menuPositions[key]}px` : undefined
-                  }}
-                >
+                <div className="submenu-column" data-test="no-inline-style">
                   <ul>
                     {config.items.map((item, index) => (
                       <li key={index}>

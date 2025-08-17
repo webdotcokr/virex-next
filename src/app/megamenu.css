@@ -41,7 +41,8 @@
   display: none;
   position: absolute;
   top: 100%;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   background-color: transparent;
   margin-top: 2.3rem;
   opacity: 0.6;
@@ -56,11 +57,11 @@ header.megamenu-active .submenu-column {
   opacity: 1;
 }
 
-/* Dynamic positioning */
+/* Static positioning - centered under menu item */
 .top-menu-item[data-menu] .submenu-column {
-  left: auto;
-  transition: left 0.2s ease, opacity 0.2s ease;
-  will-change: left;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 /* Submenu content */
@@ -72,7 +73,7 @@ header.megamenu-active .submenu-column {
 
 .submenu-column ul li {
   margin-bottom: 0.5rem;
-  text-align: left;
+  text-align: center;
   line-height: 2rem;
 }
 

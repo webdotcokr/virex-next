@@ -558,16 +558,19 @@ header.megamenu-active .submenu-column {
 /* Adjust horizontal menu item styling for hover state */
 header .horizontal-menu {
   display: flex;
-  justify-content: flex-start;
-  gap: 6.125rem;
+  justify-content: space-between;
+  gap: 0;
   width: 100%;
   max-width: 50rem;
   position: relative; /* For absolute positioning of submenus */
 }
 
 header .horizontal-menu .top-menu-item {
-  position: static; /* This allows children to be positioned relative to horizontal-menu */
+  position: relative;
   cursor: pointer;
+  flex: 1;
+  max-width: 200px;
+  text-align: center;
 }
 
 header .horizontal-menu .top-menu-item a {
@@ -580,11 +583,11 @@ header .horizontal-menu .top-menu-item.active a {
   font-weight: bold;
 }
 
-/* Dynamic positioning - React will calculate and set left positions */
+/* Static positioning - centered under menu item */
 .top-menu-item[data-menu] .submenu-column {
-  left: auto; /* Will be set dynamically by React */
-  transition: left 0.2s ease, opacity 0.2s ease;
-  will-change: left; /* Optimize for position changes */
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 /* Style the submenu content */
@@ -596,7 +599,7 @@ header .horizontal-menu .top-menu-item.active a {
 
 .submenu-column ul li {
   margin-bottom: 0.5rem;
-  text-align: left;
+  text-align: center;
   line-height: 2rem;
 }
 
@@ -2385,9 +2388,10 @@ footer #footer-bottom #footer-copyright {
     gap: 3rem;
   }
   
-  /* Dynamic positioning for smaller screens - React will calculate positions */
+  /* Centered positioning for smaller screens */
   .top-menu-item[data-menu] .submenu-column {
-    left: auto !important; /* Override any fixed positions */
+    left: 50% !important;
+    transform: translateX(-50%) !important;
   }
 }
 
@@ -3867,11 +3871,11 @@ header.scrolled #search-bar .close-icon {
   pointer-events: auto;
 }
 
-/* Enhanced submenu positioning - React handles all positioning dynamically */
+/* Enhanced submenu positioning - centered under menu item */
 .top-menu-item[data-menu] .submenu-column {
-  left: auto !important; /* Let React handle all positioning */
+  left: 50% !important;
+  transform: translateX(-50%) !important;
   transition: opacity 0.2s ease, visibility 0.2s ease;
-  will-change: left; /* Optimize for position changes */
 }
 
 
