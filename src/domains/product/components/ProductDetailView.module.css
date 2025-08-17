@@ -7,6 +7,7 @@
 
 .grid {
   display: grid;
+  align-items: center;
 }
 
 .gridTwoCols {
@@ -22,10 +23,9 @@
 }
 
 .productImage {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  border: 1px solid #E8ECEF;
+  width: 500px;
+  height: 400px;
+  object-fit: contain;
 }
 
 .productInfo {
@@ -125,16 +125,17 @@
 
 .videoContainer {
   position: relative;
-  padding-bottom: 56.25%;
-  height: 0;
+  width: 70%;
+  aspect-ratio: 16 / 9;
+  margin: 30px auto;
   overflow: hidden;
-  margin: 30px 0;
 }
 
 .videoContainer iframe {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 100%;
   height: 100%;
 }
@@ -196,6 +197,18 @@
   height: auto;
   border-radius: 8px;
   border: 2px solid #E8ECEF;
+}
+
+.featureImageContainer {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.featureImageContainer img {
+  width: 70%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0 auto;
 }
 
 /* Text Content */
@@ -345,6 +358,8 @@
   width: 100%;
   border-radius: 8px;
   border: 1px solid #E8ECEF;
+  height: 300px;
+  object-fit: cover;
 }
 
 /* Related Products */

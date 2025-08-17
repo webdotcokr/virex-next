@@ -256,6 +256,13 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
               </div>
             )}
             
+            {/* Feature Image - intro_text 다음에 표시 */}
+            {product.series_data.feature_image_url && (
+              <div className={styles.featureImageContainer}>
+                <img src={product.series_data.feature_image_url} alt="Feature Image" />
+              </div>
+            )}
+            
             {product.series_data.youtube_url && (
               <div className={styles.videoContainer}>
                 <iframe 
@@ -286,11 +293,6 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                   )
                 ))}
               </div>
-              {product.series_data.feature_image_url && (
-                <div className={styles.featureImage}>
-                  <img src={product.series_data.feature_image_url} alt="Feature Image" />
-                </div>
-              )}
             </section>
           )}
           
