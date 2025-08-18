@@ -528,22 +528,10 @@ header.scrolled .horizontal-line {
   height: 480px; /* Reduced height without h3 titles */
 }
 
-/* Hide all submenu columns by default */
-.submenu-column {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background-color: transparent;
-  margin-top: 2.3rem;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-}
+/* 기존 서브메뉴 스타일 제거 - 새로운 메가메뉴 구조는 megamenu.css에서 관리 */
 
 /* Make visible and active when parent is hovered/active */
-.top-menu-item.active .submenu-column {
-  opacity: 1;
-}
+/* 제거됨: 새로운 메가메뉴에서 불필요 */
 
 /* Show ALL submenu columns when megamenu is active - this is the key change */
 #megamenu-container.active ~ #top-menu .submenu-column {
@@ -569,7 +557,7 @@ header .horizontal-menu .top-menu-item {
   position: relative;
   cursor: pointer;
   flex: 1;
-  max-width: 200px;
+  max-width: 280px; /* 너비 제한 완화로 서브메뉴 공간 확보 */
   text-align: center;
 }
 
@@ -588,34 +576,10 @@ header .horizontal-menu .top-menu-item.active a {
   transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-/* Style the submenu content */
-.submenu-column ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.submenu-column ul li {
-  margin-bottom: 0.5rem;
-  text-align: center;
-  line-height: 2rem;
-}
-
-.submenu-column ul li a {
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  transition: color 0.2s ease;
-  font-weight: 400;
-}
-
-.submenu-column ul li a:hover {
-  color: white;
-}
+/* 기존 서브메뉴 스타일 제거 - megamenu.css에서 관리 */
 
 /* Highlight the active menu item's submenu */
-.top-menu-item.active .submenu-column {
-  opacity: 1;
-}
+/* 제거됨: 새로운 메가메뉴에서 불필요 */
 
 #page-content-container {
   width: 100%;

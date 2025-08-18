@@ -289,15 +289,6 @@ export default function Header() {
                 onMouseLeave={handleMenuItemLeave}
               >
                 <Link href={config.mainLink}>{config.title}</Link>
-                <div className="submenu-column" data-test="no-inline-style">
-                  <ul>
-                    {config.items.map((item, index) => (
-                      <li key={index}>
-                        <Link href={item.href}>{item.label}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
               </div>
             ))}
           </div>
@@ -365,7 +356,22 @@ export default function Header() {
           onMouseLeave={handleMegaMenuLeave}
         >
           <div className="megamenu-wrapper">
-            {/* The megamenu content is handled by CSS - shows all submenu-columns when active */}
+            {/* Submenu columns positioned independently */}
+            {Object.entries(MENU_CONFIG).map(([key, config]) => (
+              <div 
+                key={key}
+                className={`submenu-column ${hoveredMenuItem === key ? 'active' : ''}`}
+                data-menu={key}
+              >
+                <ul>
+                  {config.items.map((item, index) => (
+                    <li key={index}>
+                      <Link href={item.href}>{item.label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
       </header>

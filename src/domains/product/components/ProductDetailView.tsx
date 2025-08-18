@@ -350,6 +350,19 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
             <h2 className={styles.sectionTitle}>주요사양</h2>
             <table className={styles.specTable}>
               <tbody>
+                {/* 시리즈명 행 */}
+                <tr>
+                  <th>Series</th>
+                  <td>{product.series_data?.series_name || product.series || '-'}</td>
+                </tr>
+                
+                {/* 파트넘버 행 */}
+                <tr>
+                  <th>Part Number</th>
+                  <td>{product.part_number}</td>
+                </tr>
+                
+                {/* 기존 동적 사양들 */}
                 {renderSpecifications()?.map(([label, value], index) => (
                   <tr key={index}>
                     <th>{label}</th>

@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NODE_ENV === 'production' 
+    ? 'https://virex.co.kr' 
+    : 'http://localhost:3002'),
   title: "VIREX - 머신비전 & 광학 솔루션 전문기업",
   description: "바이렉스는 머신비전 관련 컴포넌트 전문 기업으로, 광학 컨설팅, 신규 메이커 발굴, 맞춤형 솔루션 연구개발을 제공합니다. 최신 기술로 고객의 혁신적인 비즈니스 성장을 지원합니다.",
   keywords: "머신비전, 산업용카메라, CIS카메라, TDI카메라, 프레임그래버, 렌즈, 조명, VIREX, 바이렉스, Teledyne DALSA, FLIR",
@@ -26,13 +29,23 @@ export const metadata: Metadata = {
     siteName: "VIREX",
     locale: "ko_KR",
     type: "website",
-    images: ['/img/site-image.png'],
+    images: [{
+      url: '/img/site-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'VIREX - Leading your vision to success'
+    }],
   },
   twitter: {
     card: "summary_large_image",
     title: "VIREX - 머신비전 & 광학 솔루션 전문기업",
-    description: "바이렉스는 는 머신비전 관련 컴포넌트 전문 기업으로, 광학 컨설팅, 신규 메이커 발굴, 맞춤형 솔루션 연구개발을 제공합니다. 최신 기술로 고객의 혁신적인 비즈니스 성장을 지원합니다.",
-    images: ['/img/site-image.png'],
+    description: "바이렉스는 머신비전 관련 컴포넌트 전문 기업으로, 광학 컨설팅, 신규 메이커 발굴, 맞춤형 솔루션 연구개발을 제공합니다. 최신 기술로 고객의 혁신적인 비즈니스 성장을 지원합니다.",
+    images: [{
+      url: '/img/site-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'VIREX - Leading your vision to success'
+    }],
   },
   robots: {
     index: true,

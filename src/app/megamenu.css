@@ -33,48 +33,53 @@
   max-width: var(--mw-container);
   margin: 0 auto;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: center;
+  gap: 3rem;
 }
 
-/* Submenu Columns */
+/* Submenu Columns - 새로운 독립적 위치 지정 */
 .submenu-column {
   display: none;
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  position: relative;
+  flex-shrink: 0;
   background-color: transparent;
-  margin-top: 2.3rem;
   opacity: 0.6;
   transition: opacity 0.3s ease;
+  min-width: 200px;
 }
 
-header.megamenu-active .submenu-column {
+/* 메가메뉴 활성화 시 모든 서브메뉴 표시 */
+#megamenu-container.active .submenu-column {
   display: block;
 }
 
-.top-menu-item.active .submenu-column {
+/* 호버된 메뉴의 서브메뉴만 강조 */
+#megamenu-container .submenu-column.active {
   opacity: 1;
 }
 
-/* Static positioning - centered under menu item */
-.top-menu-item[data-menu] .submenu-column {
-  left: 50%;
-  transform: translateX(-50%);
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-}
+/* 서브메뉴 위치를 메뉴 아이템 순서에 따라 자동 배치 */
+.submenu-column[data-menu="products"] { order: 1; }
+.submenu-column[data-menu="knowledge"] { order: 2; }
+.submenu-column[data-menu="news"] { order: 3; }
+.submenu-column[data-menu="support"] { order: 4; }
+.submenu-column[data-menu="contact"] { order: 5; }
+.submenu-column[data-menu="company"] { order: 6; }
 
 /* Submenu content */
 .submenu-column ul {
   list-style: none;
-  padding: 0 1rem;
+  padding: 0 1rem; /* 적절한 패딩 */
   margin: 0;
+  width: 100%;
 }
 
 .submenu-column ul li {
   margin-bottom: 0.5rem;
   text-align: center;
   line-height: 2rem;
+  white-space: nowrap; /* 줄바꿈 방지 */
 }
 
 .submenu-column ul li a {
