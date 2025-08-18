@@ -370,6 +370,10 @@
     padding: 0 1.25rem;
     font-size: 0.875rem;
   }
+
+  .content-body .sub-title-area {
+    font-size: 1.25rem;
+  }
   
   .content-body .sub-title-area.justify-center {
     justify-content: center;

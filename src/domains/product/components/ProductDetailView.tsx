@@ -32,23 +32,104 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
   const [showInquiryForm, setShowInquiryForm] = useState(false)
   const [activeSection, setActiveSection] = useState('intro')
 
-  // Debug logging
-  useEffect(() => {
-    console.log('🎨 ProductDetailView received product:', {
-      part_number: product.part_number,
-      has_series_data: !!product.series_data,
-      series_name: product.series_data?.series_name,
-      has_intro: !!product.series_data?.intro_text,
-      has_features: !!product.series_data?.features?.length,
-      related_products_count: product.related_products?.length || 0
-    })
+  // 카테고리별 h1 제목 생성 함수
+  const generateProductTitle = () => {
+    const categoryName = product.category_name?.toLowerCase() || ''
+    const categoryId = product.category_id
+    const seriesName = product.series_data?.series_name || product.series || ''
+    const specs = product.specifications as Record<string, any> || {}
     
-    if (product.series_data) {
-      console.log('📊 Series data details:', product.series_data)
-    } else {
-      console.warn('⚠️ No series_data in product!')
+    // 카테고리별 제목 생성
+    if (categoryName.includes('cis')) {
+      // CIS: series_name + dpi + scan_width + line_rate
+      const parts = [
+        seriesName,
+        specs.dpi ? `${specs.dpi} DPI` : '',
+        specs.scan_width ? `${specs.scan_width}mm` : '',
+        specs.line_rate ? `${specs.line_rate} kHz` : ''
+      ].filter(Boolean)
+      return parts.join(' / ')
     }
-  }, [product])
+    
+    if (categoryName.includes('tdi')) {
+      // TDI: series_name + "TDI Camera" + Line_Rate
+      const parts = [
+        seriesName,
+        'TDI Camera',
+        specs.line_rate ? `${specs.line_rate} kHz` : ''
+      ].filter(Boolean)
+      return parts.join(' / ')
+    }
+    
+    if (categoryName.includes('line')) {
+      // Line: Series_name + "Line Scan Camera" + Line Rate
+      const parts = [
+        seriesName,
+        'Line Scan Camera',
+        specs.line_rate ? `${specs.line_rate} kHz` : ''
+      ].filter(Boolean)
+      return parts.join(' / ')
+    }
+    
+    if (categoryName.includes('area')) {
+      // Area: Series_name + mega_pixel + "Camera" + frame_rate
+      const parts = [
+        seriesName,
+        specs.mega_pixel ? `${specs.mega_pixel} MP` : '',
+        'Camera',
+        specs.frame_rate ? `${specs.frame_rate} fps` : ''
+      ].filter(Boolean)
+      return parts.join(' / ')
+    }
+    
+    if (categoryName.includes('invisible')) {
+      // Invisible: series_name + spectrum + type + "Camera"
+      const parts = [
+        seriesName,
+        specs.spectrum || '',
+        specs.type || '',
+        'Camera'
+      ].filter(Boolean)
+      return parts.join(' / ')
+    }
+    
+    if (categoryName.includes('scientific')) {
+      // Scientific: mega_pixel + frame_rate
+      const parts = [
+        specs.mega_pixel ? `${specs.mega_pixel} MP` : '',
+        specs.frame_rate ? `${specs.frame_rate} fps` : ''
+      ].filter(Boolean)
+      return parts.join(' / ')
+    }
+    
+    if (categoryName.includes('프레임그래버') || categoryName.includes('frame grabber')) {
+      // 프레임그래버: model
+      return specs.model || ''
+    }
+    
+    // 주변기기 (category_id: 26, 27, 28, parent_id: 8)
+    if ((categoryId && [26, 27, 28].includes(categoryId)) || categoryName.includes('주변기기') || categoryName.includes('peripheral') || categoryName.includes('accessories') || categoryName.includes('cable') || categoryName.includes('케이블')) {
+      // 주변기기: series_name
+      return seriesName
+    }
+    
+    if (categoryName.includes('3d') && categoryName.includes('camera')) {
+      // 3D Camera: series_name
+      return seriesName
+    }
+    
+    // 렌즈 하위 카테고리들, 오토포커스모듈, 조명, 소프트웨어: 빈값
+    const blankCategories = ['lens', 'telecentric', 'fa lens', 'large format', '오토포커스', '조명', '소프트웨어']
+    const isBlankCategory = blankCategories.some(cat => categoryName.includes(cat.toLowerCase()))
+    
+    if (isBlankCategory) {
+      return '' // 빈값
+    }
+    
+    // 기본값: 빈값 (매칭되지 않는 카테고리는 소제목 표시 안함)
+    return ''
+  }
+
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)
@@ -193,8 +274,8 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
           <div className={styles.productInfo}>
             <hr className={styles.divider} />
             <h1 className={styles.productTitle}>{product.part_number}</h1>
-            {product.series_data?.series_name && (
-              <p className={styles.seriesName}>{product.series_data.series_name}</p>
+            {product.series_data?.series_name && generateProductTitle() && (
+              <p className={styles.seriesName}>{generateProductTitle()}</p>
             )}
             <p className={styles.shortText}>
               {product.series_data?.short_text || product.description}
