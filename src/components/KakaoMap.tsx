@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 
 interface KakaoMapProps {
-  /** 위도 (기본값: 37.3863) */
+  /** WCONGNAMUL X 좌표 (urlX) 또는 WGS84 위도 */
   latitude?: number;
-  /** 경도 (기본값: 126.9507) */
+  /** WCONGNAMUL Y 좌표 (urlY) 또는 WGS84 경도 */
   longitude?: number;
+  /** 좌표계 타입 (기본값: 'WCONGNAMUL') */
+  coordType?: 'WCONGNAMUL' | 'WGS84';
   /** 지도 확대 레벨 1-14 (기본값: 3) */
   level?: number;
   /** 지도 컨테이너 너비 (기본값: '100%') */
@@ -33,6 +35,26 @@ interface KakaoMapSDK {
       addListener: (target: any, type: string, handler: () => void) => void;
     };
     load: (callback: () => void) => void;
+    services: {
+      Geocoder: new () => {
+        transCoord: (
+          x: number,
+          y: number,
+          callback: (result: Array<{ x: number; y: number }>, status: any) => void,
+          options: {
+            input_coord: any;
+            output_coord: any;
+          }
+        ) => void;
+      };
+      Coords: {
+        WCONGNAMUL: any;
+        WGS84: any;
+      };
+      Status: {
+        OK: any;
+      };
+    };
   };
 }
 
@@ -43,8 +65,9 @@ declare global {
 }
 
 export default function KakaoMap({ 
-  latitude = 37.3863,  // 기본값: 바이렉스 본사 위치 (대략적)
-  longitude = 126.9507,
+  latitude = 493875,  // 기본값: 바이렉스 본사 WCONGNAMUL X 좌표
+  longitude = 1081558, // 기본값: 바이렉스 본사 WCONGNAMUL Y 좌표
+  coordType = 'WCONGNAMUL',
   level = 3,
   width = '100%',
   height = '400px',
@@ -55,8 +78,6 @@ export default function KakaoMap({
 }: KakaoMapProps) {
   // Props 유효성 검사
   const validatedLevel = Math.max(1, Math.min(14, level));
-  const validatedLatitude = Math.max(-90, Math.min(90, latitude));
-  const validatedLongitude = Math.max(-180, Math.min(180, longitude));
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +94,7 @@ export default function KakaoMap({
       // 위치가 변경되면 지도 업데이트
       updateMapLocation();
     }
-  }, [validatedLatitude, validatedLongitude, validatedLevel]);
+  }, [latitude, longitude, validatedLevel, coordType]);
 
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {
@@ -104,7 +125,7 @@ export default function KakaoMap({
     // 카카오맵 스크립트 동적 로드
     const script = document.createElement('script');
     script.type = 'text/javascript';
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false`;
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false&libraries=services`;
     
     script.onload = () => {
       // 카카오맵 스크립트 로드 후 지도 초기화
@@ -129,7 +150,7 @@ export default function KakaoMap({
     document.head.appendChild(script);
   };
 
-  const initializeMap = () => {
+  const createMapWithCoords = (lat: number, lng: number) => {
     if (!mapContainer.current || !window.kakao || !window.kakao.maps) {
       const errorMsg = '지도를 초기화할 수 없습니다.';
       setError(errorMsg);
@@ -140,7 +161,7 @@ export default function KakaoMap({
 
     try {
       const options = {
-        center: new window.kakao.maps.LatLng(validatedLatitude, validatedLongitude),
+        center: new window.kakao.maps.LatLng(lat, lng),
         level: validatedLevel
       };
 
@@ -148,7 +169,7 @@ export default function KakaoMap({
       map.current = new window.kakao.maps.Map(mapContainer.current, options);
 
       // 마커 생성 및 추가
-      const markerPosition = new window.kakao.maps.LatLng(validatedLatitude, validatedLongitude);
+      const markerPosition = new window.kakao.maps.LatLng(lat, lng);
       const marker = new window.kakao.maps.Marker({
         position: markerPosition,
         title: markerTitle
@@ -157,7 +178,16 @@ export default function KakaoMap({
 
       // 인포윈도우 생성
       const infowindow = new window.kakao.maps.InfoWindow({
-        content: `<div style="padding:5px;font-size:12px;color:#333;">${markerTitle}</div>`
+        content: `
+          <div style="padding:10px;font-size:13px;color:#333;min-width:200px;">
+            <strong style="color:#566BDA;font-size:14px;">${markerTitle}</strong><br/>
+            <div style="margin-top:5px;font-size:12px;color:#666;line-height:1.4;">
+              경기도 안양시 동안구<br/>
+              흥안대로 427번길38, 1214호<br/>
+              <span style="color:#888;">(관양동, 인덕원성지스타위드)</span>
+            </div>
+          </div>
+        `
       });
 
       // 마커 클릭 이벤트
@@ -177,12 +207,50 @@ export default function KakaoMap({
     }
   };
 
-  const updateMapLocation = () => {
-    if (!map.current || !window.kakao) return;
+  const initializeMap = () => {
+    if (!window.kakao || !window.kakao.maps) {
+      const errorMsg = '카카오맵 API가 로드되지 않았습니다.';
+      setError(errorMsg);
+      setIsLoading(false);
+      onError?.(errorMsg);
+      return;
+    }
 
-    const moveLatLon = new window.kakao.maps.LatLng(validatedLatitude, validatedLongitude);
-    map.current.setCenter(moveLatLon);
-    map.current.setLevel(validatedLevel);
+    // 좌표계에 따른 처리
+    if (coordType === 'WGS84') {
+      // WGS84 좌표인 경우 바로 사용
+      createMapWithCoords(latitude, longitude);
+    } else {
+      // WCONGNAMUL 좌표인 경우 변환 필요
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      
+      geocoder.transCoord(
+        latitude,   // WCONGNAMUL X (urlX)
+        longitude,  // WCONGNAMUL Y (urlY)
+        (result: Array<{ x: number; y: number }>, status: any) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            const wgs84Lng = result[0].x; // 경도
+            const wgs84Lat = result[0].y; // 위도
+            createMapWithCoords(wgs84Lat, wgs84Lng);
+          } else {
+            console.error('좌표 변환 실패:', status);
+            const errorMsg = '좌표 변환에 실패했습니다.';
+            setError(errorMsg);
+            setIsLoading(false);
+            onError?.(errorMsg);
+          }
+        },
+        {
+          input_coord: window.kakao.maps.services.Coords.WCONGNAMUL,
+          output_coord: window.kakao.maps.services.Coords.WGS84,
+        }
+      );
+    }
+  };
+
+  const updateMapLocation = () => {
+    // 좌표 변환이 필요한 경우 다시 초기화
+    initializeMap();
   };
 
   const handleRetry = () => {
