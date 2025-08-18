@@ -35,8 +35,9 @@ const LocationPage = () => {
           <div className={`${styles['location-container']} mt-37px`}>
             {/* 카카오맵 - JavaScript API */}
             <KakaoMap 
-              latitude={37.3863} 
-              longitude={126.9507} 
+              latitude={493875}  // WCONGNAMUL X 좌표 (urlX)
+              longitude={1081558} // WCONGNAMUL Y 좌표 (urlY)
+              coordType="WCONGNAMUL"
               level={3}
               markerTitle="바이렉스 본사"
               height="400px"
