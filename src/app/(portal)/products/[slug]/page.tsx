@@ -12,8 +12,12 @@ interface ProductPageProps {
 
 async function getProduct(slug: string): Promise<Product | null> {
   try {
+    // Decode URL-encoded slug (handles spaces and special characters)
+    const decodedSlug = decodeURIComponent(slug)
+    console.log('🔍 Product lookup:', { originalSlug: slug, decodedSlug })
+    
     // Use getProductByPartNumber for full data with series and related products
-    const product = await ProductService.getProductByPartNumber(slug)
+    const product = await ProductService.getProductByPartNumber(decodedSlug)
     return product
   } catch (error) {
     console.error('Error fetching product:', error)

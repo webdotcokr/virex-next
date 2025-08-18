@@ -539,7 +539,13 @@ export class ProductService {
    */
   static async getProductByPartNumber(partNumber: string): Promise<Product | null> {
     try {
-      console.log('🔍 getProductByPartNumber called with:', partNumber)
+      // Ensure part number is properly decoded (handle URL encoding)
+      const decodedPartNumber = decodeURIComponent(partNumber)
+      console.log('🔍 ProductService.getProductByPartNumber:', { 
+        original: partNumber, 
+        decoded: decodedPartNumber,
+        hasSpaces: decodedPartNumber.includes(' ')
+      })
       
       // Search across all category tables for the part_number
       const categoryIds = Object.keys(CATEGORY_TABLE_MAPPING).map(Number)
@@ -548,26 +554,27 @@ export class ProductService {
       
       for (const catId of categoryIds) {
         const tableName = CATEGORY_TABLE_MAPPING[catId]
+        console.log(`🔍 Searching in ${tableName} for part_number: "${decodedPartNumber}"`)
+        
         const { data, error } = await supabase
           .from(tableName)
           .select(`
             *,
             series(id, series_name)
           `)
-          .eq('part_number', partNumber)
+          .eq('part_number', decodedPartNumber)
           .eq('is_active', true)
           .single()
 
-        if (!error && data) {
+        if (error) {
+          console.log(`❌ ${tableName}: ${error.message}`)
+        } else if (data) {
+          console.log(`✅ Found product in ${tableName}:`, data.part_number)
           product = data
           categoryId = catId
-          console.log('✅ Product found in table:', tableName, 'categoryId:', categoryId)
-          console.log('📦 Product data:', { 
-            id: product.id, 
-            part_number: product.part_number, 
-            series_id: product.series_id 
-          })
           break
+        } else {
+          console.log(`🔍 ${tableName}: No data found`)
         }
       }
 
@@ -577,10 +584,8 @@ export class ProductService {
 
       // Separately fetch series data if series_id exists
       let seriesData = undefined
-      console.log('🔍 Product series_id:', product.series_id)
       
       if (product.series_id) {
-        console.log('📡 Fetching series data for series_id:', product.series_id)
         const { data: series, error: seriesError } = await supabase
           .from('series')
           .select(`
@@ -600,14 +605,7 @@ export class ProductService {
         if (seriesError) {
           console.error('❌ Series fetch error:', seriesError)
         } else if (!series) {
-          console.log('⚠️ No series data returned for series_id:', product.series_id)
         } else if (series) {
-          console.log('✅ Series data fetched successfully:', {
-            id: series.id,
-            series_name: series.series_name,
-            has_intro: !!series.intro_text,
-            has_features: !!series.feature_title_1
-          })
           seriesData = {
             series_name: series.series_name || '',
             intro_text: series.intro_text || '',
@@ -704,13 +702,6 @@ export class ProductService {
         specifications
       }
       
-      console.log('📤 Returning product with series_data:', {
-        has_series_data: !!result.series_data,
-        series_name: result.series_data?.series_name,
-        has_intro: !!result.series_data?.intro_text,
-        has_features: !!result.series_data?.features?.length,
-        related_products_count: result.related_products?.length || 0
-      })
       
       return result
     } catch (error) {
