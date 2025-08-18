@@ -392,11 +392,6 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                 <div className={styles.textContentGrid} style={gridStyle}>
                   {validItems.map((item, index) => (
                     <div key={index} className={styles.textContentItem}>
-                      {item.image && (
-                        <div className={styles.textImage}>
-                          <img src={item.image} alt={item.title} />
-                        </div>
-                      )}
                       <div className={styles.textContent}>
                         {item.title && (
                           <h3 className={styles.textTitle}>{item.title}</h3>
@@ -405,6 +400,11 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                           <div className={styles.textDescription}>{item.desc}</div>
                         )}
                       </div>
+                      {item.image && (
+                        <div className={styles.textImage}>
+                          <img src={item.image} alt={item.title} />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
