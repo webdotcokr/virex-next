@@ -195,7 +195,7 @@ function ProductTable({
     if ((e.target as HTMLInputElement).type === 'checkbox') {
       return
     }
-    window.location.href = `/products/${product.part_number}`
+    window.location.href = `/products/${encodeURIComponent(product.part_number)}`
   }, [])
 
   // Calculate pagination with memoization

@@ -65,7 +65,7 @@ function ProductCard({ product }: ProductCardProps) {
   
   return (
     <Link 
-      href={`/products/${slug}`}
+      href={`/products/${encodeURIComponent(slug)}`}
       className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200"
     >
       <div className="aspect-square bg-gray-100 relative overflow-hidden">

@@ -226,6 +226,7 @@
 .textContentItem {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 1rem;
   padding: 1.5rem;
   border: 1px solid #E8ECEF;
@@ -359,7 +360,7 @@
   width: 100%;
   border-radius: 8px;
   border: 1px solid #E8ECEF;
-  height: 300px;
+  aspect-ratio: 4/3;
   object-fit: cover;
 }
 

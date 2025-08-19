@@ -139,7 +139,7 @@ export default function RelatedProductsSlider({ products }: RelatedProductsSlide
           {extendedProducts.map((product, index) => (
             <Link
               key={`${product.id || product.part_number || product.partnumber}-${index}`}
-              href={`/products/${product.part_number || product.partnumber}`}
+              href={`/products/${encodeURIComponent(product.part_number || product.partnumber)}`}
               className={styles.relatedProductItemLink}
             >
               <div className={styles.relatedProductItem}>

@@ -226,7 +226,7 @@ function SearchContent() {
                         </div>
                         <div className={styles.productInfo}>
                           <h3 className={styles.partNumber}>
-                            <Link href={`/products/${product.part_number}`}>
+                            <Link href={`/products/${encodeURIComponent(product.part_number)}`}>
                               {highlightSearchTerm(product.part_number, query)}
                             </Link>
                           </h3>

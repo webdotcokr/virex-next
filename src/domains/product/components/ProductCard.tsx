@@ -31,7 +31,7 @@ export default function ProductCard({
   const displaySpecs = showAllSpecs ? specificationFields : specificationFields.slice(0, 3)
 
   const handleCardClick = () => {
-    window.location.href = `/products/${product.part_number}`
+    window.location.href = `/products/${encodeURIComponent(product.part_number)}`
   }
 
   const handleCompareChange = (e: React.ChangeEvent<HTMLInputElement>) => {
