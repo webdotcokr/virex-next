@@ -34,6 +34,7 @@
   --container-width-xl: 87.5rem; /* 1400px - 대형 콘텐츠용 */
   --container-width-lg: 75rem; /* 1200px - 일반 콘텐츠용 */
   --container-width-md: 64rem; /* 1024px - 중형 콘텐츠용 */
+  --container-width-xxl: 120rem; /* 1920px - 초대형 콘텐츠용 */
 
   /** Fonts */
   --ft-default: "Pretendard", sans-serif;
@@ -406,6 +407,7 @@ header #top-menu {
   z-index: 1000; /* Ensure it's above other elements */
   padding: 1rem 1.25rem;
   transition: all 0.3s ease; /* Add transition for smooth changes */
+  max-width: var(--container-width-xxl);
 }
 
 header #logo {
