@@ -498,36 +498,83 @@ header.scrolled .horizontal-line {
   text-decoration: none;
 }
 
-/* Megamenu styles - improved for better hover detection */
+/* Megamenu styles - Transform-based smooth slide */
 #megamenu-container {
   position: absolute;
-  top: 100%;
+  top: 80px; /* 메뉴 바 높이만큼 위로 이동 */
   left: 0;
   width: 100%;
-  height: 0;
+  height: 480px; /* 항상 full 높이로 hover 감지 보장 */
   overflow: hidden;
-  transition: height 0.3s ease;
+  transform: translateY(-100%); /* 위로 완전히 숨김 */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 부드러운 이징 */
   background-color: var(--primary);
   background-image: url(/img/bg-megamenu.svg);
   background-repeat: no-repeat;
   background-position: bottom right;
   background-size: auto;
-  z-index: 998;
-  pointer-events: none; /* 기본적으로 hover 차단 */
+  z-index: 999;
+  pointer-events: auto; /* 항상 hover 감지 활성화 */
+  margin-top: 0;
 }
 
 #megamenu-container .megamenu-wrapper {
   position: relative;
   height: 100%;
+  padding: 160px 0 2.5rem 0; /* 상단에 메뉴 바 영역 패딩 추가 (80px + 80px) */
   max-width: var(--mw-container);
   margin: 0 auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 3rem;
   pointer-events: inherit; /* 부모 container에서 관리 */
   min-height: 100%;
 }
 
 #megamenu-container.active {
-  height: 480px;
-  pointer-events: auto; /* 활성화시에만 hover 감지 */
+  transform: translateY(0); /* 자연스럽게 슬라이드 다운 */
+}
+
+/* 투명 오버레이로 전체 영역 hover 감지 보장 */
+#megamenu-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  pointer-events: auto;
+  z-index: 998;
+}
+
+/* 호버 브릿지 강화 */
+.top-menu-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -10px;
+  right: -10px;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+header.megamenu-active .top-menu-item::before {
+  bottom: -560px; /* 새로운 메가메뉴 높이에 맞춰 조정 */
+}
+
+/* 전체 메뉴 바 영역 호버 브릿지 강화 */
+header.megamenu-active .horizontal-menu::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: -560px;
+  z-index: 1;
+  pointer-events: auto;
 }
 
 /* 기존 서브메뉴 스타일 제거 - 새로운 메가메뉴 구조는 megamenu.css에서 관리 */
@@ -557,7 +604,7 @@ header .horizontal-menu .top-menu-item {
   cursor: pointer;
   flex: 1;
   max-width: 280px; /* 너비 제한 완화로 서브메뉴 공간 확보 */
-  text-align: center;
+  text-align: left;
 }
 
 header .horizontal-menu .top-menu-item a {
@@ -579,8 +626,6 @@ header .horizontal-menu .top-menu-item.active a {
 .top-menu-item .submenu-column {
   position: absolute;
   top: 200%;
-  left: 50%;
-  transform: translateX(-50%);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -2399,11 +2444,6 @@ footer #footer-bottom #footer-copyright {
     gap: 3rem;
   }
   
-  /* Centered positioning for smaller screens */
-  .top-menu-item[data-menu] .submenu-column {
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-  }
 }
 
 /* 태블릿 크기 메가메뉴 스타일 */
@@ -3891,8 +3931,6 @@ header.scrolled #search-bar .close-icon {
 
 /* Enhanced submenu positioning - centered under menu item */
 .top-menu-item[data-menu] .submenu-column {
-  left: 50% !important;
-  transform: translateX(-50%) !important;
   transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 

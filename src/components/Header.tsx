@@ -189,7 +189,7 @@ export default function Header() {
     const timeout = setTimeout(() => {
       setHoveredMenuItem(null)
       setIsMegaMenuActive(false)
-    }, 100) // Slightly longer delay for mouse travel time
+    }, 200) // 더 넉넉한 딜레이로 안정적인 호버 경험 제공
     
     setHoverTimeout(timeout)
   }
@@ -205,15 +205,23 @@ export default function Header() {
     setIsMegaMenuActive(true)
   }
 
-  const handleMegaMenuLeave = () => {
-    // Hide immediately when leaving megamenu area
-    setHoveredMenuItem(null)
-    setIsMegaMenuActive(false)
+  const handleMegaMenuLeave = (e: React.MouseEvent) => {
+    // Event Delegation: relatedTarget으로 실제 영역 이탈 여부 정확히 판단
+    const megaMenuContainer = document.getElementById('megamenu-container')
+    const relatedTarget = e.relatedTarget as Element
     
-    // Clear any pending timeout
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout)
-      setHoverTimeout(null)
+    // relatedTarget이 megamenu-container나 submenu-column 영역이 아닐 때만 닫기
+    if (!megaMenuContainer?.contains(relatedTarget) && 
+        !relatedTarget?.closest('.submenu-column') &&
+        !relatedTarget?.closest('.top-menu-item')) {
+      setHoveredMenuItem(null)
+      setIsMegaMenuActive(false)
+      
+      // Clear any pending timeout
+      if (hoverTimeout) {
+        clearTimeout(hoverTimeout)
+        setHoverTimeout(null)
+      }
     }
   }
 
@@ -292,7 +300,6 @@ export default function Header() {
                 <div 
                   className={`submenu-column ${hoveredMenuItem === key ? 'active' : ''}`}
                   onMouseEnter={handleMegaMenuEnter}
-                  onMouseLeave={handleMegaMenuLeave}
                 >
                   <ul>
                     {config.items.map((item, index) => (
