@@ -50,6 +50,35 @@ interface Series {
   feature_desc_3?: string
   feature_title_4?: string
   feature_desc_4?: string
+  strength_1?: string
+  strength_2?: string
+  strength_3?: string
+  strength_4?: string
+  strength_5?: string
+  strength_6?: string
+  app_title_1?: string
+  app_image_1?: string
+  app_title_2?: string
+  app_image_2?: string
+  app_title_3?: string
+  app_image_3?: string
+  app_title_4?: string
+  app_image_4?: string
+  text_title_1?: string
+  text_desc_1?: string
+  text_image_url_1?: string
+  text_title_2?: string
+  text_desc_2?: string
+  text_image_url_2?: string
+  text_title_3?: string
+  text_desc_3?: string
+  text_image_url_3?: string
+  text_title_4?: string
+  text_desc_4?: string
+  text_image_url_4?: string
+  text_title_5?: string
+  text_desc_5?: string
+  text_image_url_5?: string
   created_at?: string
   updated_at?: string
 }
@@ -87,6 +116,35 @@ export default function SeriesDataGrid() {
     featureDesc3: '',
     featureTitle4: '',
     featureDesc4: '',
+    strength1: '',
+    strength2: '',
+    strength3: '',
+    strength4: '',
+    strength5: '',
+    strength6: '',
+    appTitle1: '',
+    appImage1: '',
+    appTitle2: '',
+    appImage2: '',
+    appTitle3: '',
+    appImage3: '',
+    appTitle4: '',
+    appImage4: '',
+    textTitle1: '',
+    textDesc1: '',
+    textImageUrl1: '',
+    textTitle2: '',
+    textDesc2: '',
+    textImageUrl2: '',
+    textTitle3: '',
+    textDesc3: '',
+    textImageUrl3: '',
+    textTitle4: '',
+    textDesc4: '',
+    textImageUrl4: '',
+    textTitle5: '',
+    textDesc5: '',
+    textImageUrl5: '',
   });
 
   // Add dialog state
@@ -106,6 +164,35 @@ export default function SeriesDataGrid() {
     featureDesc3: '',
     featureTitle4: '',
     featureDesc4: '',
+    strength1: '',
+    strength2: '',
+    strength3: '',
+    strength4: '',
+    strength5: '',
+    strength6: '',
+    appTitle1: '',
+    appImage1: '',
+    appTitle2: '',
+    appImage2: '',
+    appTitle3: '',
+    appImage3: '',
+    appTitle4: '',
+    appImage4: '',
+    textTitle1: '',
+    textDesc1: '',
+    textImageUrl1: '',
+    textTitle2: '',
+    textDesc2: '',
+    textImageUrl2: '',
+    textTitle3: '',
+    textDesc3: '',
+    textImageUrl3: '',
+    textTitle4: '',
+    textDesc4: '',
+    textImageUrl4: '',
+    textTitle5: '',
+    textDesc5: '',
+    textImageUrl5: '',
   });
   
   // Snackbar state
@@ -320,6 +407,35 @@ export default function SeriesDataGrid() {
       featureDesc3: series.feature_desc_3 || '',
       featureTitle4: series.feature_title_4 || '',
       featureDesc4: series.feature_desc_4 || '',
+      strength1: series.strength_1 || '',
+      strength2: series.strength_2 || '',
+      strength3: series.strength_3 || '',
+      strength4: series.strength_4 || '',
+      strength5: series.strength_5 || '',
+      strength6: series.strength_6 || '',
+      appTitle1: series.app_title_1 || '',
+      appImage1: series.app_image_1 || '',
+      appTitle2: series.app_title_2 || '',
+      appImage2: series.app_image_2 || '',
+      appTitle3: series.app_title_3 || '',
+      appImage3: series.app_image_3 || '',
+      appTitle4: series.app_title_4 || '',
+      appImage4: series.app_image_4 || '',
+      textTitle1: series.text_title_1 || '',
+      textDesc1: series.text_desc_1 || '',
+      textImageUrl1: series.text_image_url_1 || '',
+      textTitle2: series.text_title_2 || '',
+      textDesc2: series.text_desc_2 || '',
+      textImageUrl2: series.text_image_url_2 || '',
+      textTitle3: series.text_title_3 || '',
+      textDesc3: series.text_desc_3 || '',
+      textImageUrl3: series.text_image_url_3 || '',
+      textTitle4: series.text_title_4 || '',
+      textDesc4: series.text_desc_4 || '',
+      textImageUrl4: series.text_image_url_4 || '',
+      textTitle5: series.text_title_5 || '',
+      textDesc5: series.text_desc_5 || '',
+      textImageUrl5: series.text_image_url_5 || '',
     });
   };
 
@@ -367,6 +483,35 @@ export default function SeriesDataGrid() {
         feature_desc_3: editDialog.featureDesc3,
         feature_title_4: editDialog.featureTitle4,
         feature_desc_4: editDialog.featureDesc4,
+        strength_1: editDialog.strength1,
+        strength_2: editDialog.strength2,
+        strength_3: editDialog.strength3,
+        strength_4: editDialog.strength4,
+        strength_5: editDialog.strength5,
+        strength_6: editDialog.strength6,
+        app_title_1: editDialog.appTitle1,
+        app_image_1: editDialog.appImage1,
+        app_title_2: editDialog.appTitle2,
+        app_image_2: editDialog.appImage2,
+        app_title_3: editDialog.appTitle3,
+        app_image_3: editDialog.appImage3,
+        app_title_4: editDialog.appTitle4,
+        app_image_4: editDialog.appImage4,
+        text_title_1: editDialog.textTitle1,
+        text_desc_1: editDialog.textDesc1,
+        text_image_url_1: editDialog.textImageUrl1,
+        text_title_2: editDialog.textTitle2,
+        text_desc_2: editDialog.textDesc2,
+        text_image_url_2: editDialog.textImageUrl2,
+        text_title_3: editDialog.textTitle3,
+        text_desc_3: editDialog.textDesc3,
+        text_image_url_3: editDialog.textImageUrl3,
+        text_title_4: editDialog.textTitle4,
+        text_desc_4: editDialog.textDesc4,
+        text_image_url_4: editDialog.textImageUrl4,
+        text_title_5: editDialog.textTitle5,
+        text_desc_5: editDialog.textDesc5,
+        text_image_url_5: editDialog.textImageUrl5,
       });
 
       if (error) throw error;
@@ -471,6 +616,35 @@ export default function SeriesDataGrid() {
         feature_desc_3: addDialog.featureDesc3,
         feature_title_4: addDialog.featureTitle4,
         feature_desc_4: addDialog.featureDesc4,
+        strength_1: addDialog.strength1,
+        strength_2: addDialog.strength2,
+        strength_3: addDialog.strength3,
+        strength_4: addDialog.strength4,
+        strength_5: addDialog.strength5,
+        strength_6: addDialog.strength6,
+        app_title_1: addDialog.appTitle1,
+        app_image_1: addDialog.appImage1,
+        app_title_2: addDialog.appTitle2,
+        app_image_2: addDialog.appImage2,
+        app_title_3: addDialog.appTitle3,
+        app_image_3: addDialog.appImage3,
+        app_title_4: addDialog.appTitle4,
+        app_image_4: addDialog.appImage4,
+        text_title_1: addDialog.textTitle1,
+        text_desc_1: addDialog.textDesc1,
+        text_image_url_1: addDialog.textImageUrl1,
+        text_title_2: addDialog.textTitle2,
+        text_desc_2: addDialog.textDesc2,
+        text_image_url_2: addDialog.textImageUrl2,
+        text_title_3: addDialog.textTitle3,
+        text_desc_3: addDialog.textDesc3,
+        text_image_url_3: addDialog.textImageUrl3,
+        text_title_4: addDialog.textTitle4,
+        text_desc_4: addDialog.textDesc4,
+        text_image_url_4: addDialog.textImageUrl4,
+        text_title_5: addDialog.textTitle5,
+        text_desc_5: addDialog.textDesc5,
+        text_image_url_5: addDialog.textImageUrl5,
       });
 
       if (error) throw error;
@@ -547,7 +721,15 @@ export default function SeriesDataGrid() {
     }
 
     const csvContent = [
-      ['ID', 'Series Name', 'Category ID', 'Intro Text', 'Short Text', 'YouTube URL', 'Feature Image URL', 'Created Date'],
+      [
+        'ID', 'Series Name', 'Category ID', 'Intro Text', 'Short Text', 'YouTube URL', 'Feature Image URL',
+        'Feature Title 1', 'Feature Desc 1', 'Feature Title 2', 'Feature Desc 2', 'Feature Title 3', 'Feature Desc 3', 'Feature Title 4', 'Feature Desc 4',
+        'Strength 1', 'Strength 2', 'Strength 3', 'Strength 4', 'Strength 5', 'Strength 6',
+        'App Title 1', 'App Image 1', 'App Title 2', 'App Image 2', 'App Title 3', 'App Image 3', 'App Title 4', 'App Image 4',
+        'Text Title 1', 'Text Desc 1', 'Text Image URL 1', 'Text Title 2', 'Text Desc 2', 'Text Image URL 2',
+        'Text Title 3', 'Text Desc 3', 'Text Image URL 3', 'Text Title 4', 'Text Desc 4', 'Text Image URL 4',
+        'Text Title 5', 'Text Desc 5', 'Text Image URL 5', 'Created Date'
+      ],
       ...rows.map(row => [
         row.id,
         row.series_name || '',
@@ -556,6 +738,43 @@ export default function SeriesDataGrid() {
         row.short_text || '',
         row.youtube_url || '',
         row.feature_image_url || '',
+        row.feature_title_1 || '',
+        row.feature_desc_1 || '',
+        row.feature_title_2 || '',
+        row.feature_desc_2 || '',
+        row.feature_title_3 || '',
+        row.feature_desc_3 || '',
+        row.feature_title_4 || '',
+        row.feature_desc_4 || '',
+        row.strength_1 || '',
+        row.strength_2 || '',
+        row.strength_3 || '',
+        row.strength_4 || '',
+        row.strength_5 || '',
+        row.strength_6 || '',
+        row.app_title_1 || '',
+        row.app_image_1 || '',
+        row.app_title_2 || '',
+        row.app_image_2 || '',
+        row.app_title_3 || '',
+        row.app_image_3 || '',
+        row.app_title_4 || '',
+        row.app_image_4 || '',
+        row.text_title_1 || '',
+        row.text_desc_1 || '',
+        row.text_image_url_1 || '',
+        row.text_title_2 || '',
+        row.text_desc_2 || '',
+        row.text_image_url_2 || '',
+        row.text_title_3 || '',
+        row.text_desc_3 || '',
+        row.text_image_url_3 || '',
+        row.text_title_4 || '',
+        row.text_desc_4 || '',
+        row.text_image_url_4 || '',
+        row.text_title_5 || '',
+        row.text_desc_5 || '',
+        row.text_image_url_5 || '',
         row.created_at ? new Date(row.created_at).toLocaleDateString('ko-KR') : ''
       ])
     ]
@@ -595,6 +814,35 @@ export default function SeriesDataGrid() {
       featureDesc3: '',
       featureTitle4: '',
       featureDesc4: '',
+      strength1: '',
+      strength2: '',
+      strength3: '',
+      strength4: '',
+      strength5: '',
+      strength6: '',
+      appTitle1: '',
+      appImage1: '',
+      appTitle2: '',
+      appImage2: '',
+      appTitle3: '',
+      appImage3: '',
+      appTitle4: '',
+      appImage4: '',
+      textTitle1: '',
+      textDesc1: '',
+      textImageUrl1: '',
+      textTitle2: '',
+      textDesc2: '',
+      textImageUrl2: '',
+      textTitle3: '',
+      textDesc3: '',
+      textImageUrl3: '',
+      textTitle4: '',
+      textDesc4: '',
+      textImageUrl4: '',
+      textTitle5: '',
+      textDesc5: '',
+      textImageUrl5: '',
     });
   };
 
@@ -615,6 +863,35 @@ export default function SeriesDataGrid() {
       featureDesc3: '',
       featureTitle4: '',
       featureDesc4: '',
+      strength1: '',
+      strength2: '',
+      strength3: '',
+      strength4: '',
+      strength5: '',
+      strength6: '',
+      appTitle1: '',
+      appImage1: '',
+      appTitle2: '',
+      appImage2: '',
+      appTitle3: '',
+      appImage3: '',
+      appTitle4: '',
+      appImage4: '',
+      textTitle1: '',
+      textDesc1: '',
+      textImageUrl1: '',
+      textTitle2: '',
+      textDesc2: '',
+      textImageUrl2: '',
+      textTitle3: '',
+      textDesc3: '',
+      textImageUrl3: '',
+      textTitle4: '',
+      textDesc4: '',
+      textImageUrl4: '',
+      textTitle5: '',
+      textDesc5: '',
+      textImageUrl5: '',
     });
   };
 
@@ -690,182 +967,236 @@ export default function SeriesDataGrid() {
       <Dialog
         open={editDialog.open}
         onClose={resetEditDialog}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
+        PaperProps={{
+          sx: { height: '90vh', maxHeight: '90vh' }
+        }}
       >
         <DialogTitle>Edit Series</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Series Name"
-            fullWidth
-            variant="outlined"
-            value={editDialog.seriesName}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, seriesName: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+        <DialogContent sx={{ pt: 2, overflow: 'auto' }}>
+          {/* Basic Information Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            📋 기본 정보
+          </Typography>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            <TextField
+              autoFocus
+              label="Series Name"
+              variant="outlined"
+              value={editDialog.seriesName}
+              onChange={(e) => setEditDialog(prev => ({ ...prev, seriesName: e.target.value }))}
+              size="small"
+              required
+            />
 
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={editDialog.categoryId || ''}
-              onChange={(e) => setEditDialog(prev => ({ 
-                ...prev, 
-                categoryId: e.target.value ? Number(e.target.value) : null 
-              }))}
-              label="Category"
-            >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              {categories.map((category) => (
-                <MenuItem key={category.id} value={category.id}>
-                  {category.name}
+            <FormControl size="small">
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={editDialog.categoryId || ''}
+                onChange={(e) => setEditDialog(prev => ({ 
+                  ...prev, 
+                  categoryId: e.target.value ? Number(e.target.value) : null 
+                }))}
+                label="Category"
+              >
+                <MenuItem value="">
+                  <em>None</em>
                 </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          <TextField
-            margin="dense"
-            label="Introduction Text"
-            fullWidth
-            multiline
-            rows={3}
-            variant="outlined"
-            value={editDialog.introText}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, introText: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+                {categories.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-          <TextField
-            margin="dense"
-            label="Short Text"
-            fullWidth
-            multiline
-            rows={2}
-            variant="outlined"
-            value={editDialog.shortText}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, shortText: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+            <TextField
+              label="YouTube URL"
+              variant="outlined"
+              value={editDialog.youtubeUrl}
+              onChange={(e) => setEditDialog(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+              size="small"
+              placeholder="https://youtube.com/watch?v=..."
+            />
+          </Box>
 
-          <TextField
-            margin="dense"
-            label="YouTube URL"
-            fullWidth
-            variant="outlined"
-            value={editDialog.youtubeUrl}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-            sx={{ mb: 2 }}
-            placeholder="https://youtube.com/watch?v=..."
-          />
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            <TextField
+              label="Introduction Text"
+              multiline
+              rows={3}
+              variant="outlined"
+              value={editDialog.introText}
+              onChange={(e) => setEditDialog(prev => ({ ...prev, introText: e.target.value }))}
+              size="small"
+            />
 
-          {/* Feature 1 */}
-          <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-            Feature 1
+            <TextField
+              label="Short Text"
+              multiline
+              rows={3}
+              variant="outlined"
+              value={editDialog.shortText}
+              onChange={(e) => setEditDialog(prev => ({ ...prev, shortText: e.target.value }))}
+              size="small"
+            />
+          </Box>
+
+          {/* Features Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            ⭐ 주요 특징 (Features)
           </Typography>
-          <TextField
-            margin="dense"
-            label="Feature 1 Title"
-            fullWidth
-            variant="outlined"
-            value={editDialog.featureTitle1}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, featureTitle1: e.target.value }))}
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            margin="dense"
-            label="Feature 1 Description"
-            fullWidth
-            multiline
-            rows={2}
-            variant="outlined"
-            value={editDialog.featureDesc1}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, featureDesc1: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {[1, 2, 3, 4].map((num) => (
+              <Box key={num} sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, bgcolor: '#fafafa' }}>
+                <Typography variant="subtitle2" gutterBottom color="primary">Feature {num}</Typography>
+                <TextField
+                  label={`Title`}
+                  fullWidth
+                  variant="outlined"
+                  value={editDialog[`featureTitle${num}` as keyof typeof editDialog] as string}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`featureTitle${num}`]: e.target.value }))}
+                  sx={{ mb: 1 }}
+                  size="small"
+                />
+                <TextField
+                  label={`Description`}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  variant="outlined"
+                  value={editDialog[`featureDesc${num}` as keyof typeof editDialog] as string}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`featureDesc${num}`]: e.target.value }))}
+                  size="small"
+                />
+              </Box>
+            ))}
+          </Box>
 
-          {/* Feature 2 */}
-          <Typography variant="subtitle2" gutterBottom>
-            Feature 2
+          {/* Strengths Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            💪 강점 (Strengths)
           </Typography>
-          <TextField
-            margin="dense"
-            label="Feature 2 Title"
-            fullWidth
-            variant="outlined"
-            value={editDialog.featureTitle2}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, featureTitle2: e.target.value }))}
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            margin="dense"
-            label="Feature 2 Description"
-            fullWidth
-            multiline
-            rows={2}
-            variant="outlined"
-            value={editDialog.featureDesc2}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, featureDesc2: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {[1, 2, 3, 4, 5, 6].map((num) => (
+              <TextField
+                key={num}
+                label={`Strength ${num}`}
+                variant="outlined"
+                value={editDialog[`strength${num}` as keyof typeof editDialog] as string}
+                onChange={(e) => setEditDialog(prev => ({ ...prev, [`strength${num}`]: e.target.value }))}
+                size="small"
+              />
+            ))}
+          </Box>
 
-          {/* Feature 3 */}
-          <Typography variant="subtitle2" gutterBottom>
-            Feature 3
+          {/* Applications Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            🎯 응용 분야 (Applications)
           </Typography>
-          <TextField
-            margin="dense"
-            label="Feature 3 Title"
-            fullWidth
-            variant="outlined"
-            value={editDialog.featureTitle3}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, featureTitle3: e.target.value }))}
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            margin="dense"
-            label="Feature 3 Description"
-            fullWidth
-            multiline
-            rows={2}
-            variant="outlined"
-            value={editDialog.featureDesc3}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, featureDesc3: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {[1, 2, 3, 4].map((num) => (
+              <Box key={num} sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, bgcolor: '#fafafa' }}>
+                <Typography variant="subtitle2" gutterBottom color="primary">Application {num}</Typography>
+                <TextField
+                  label={`App Title`}
+                  fullWidth
+                  variant="outlined"
+                  value={editDialog[`appTitle${num}` as keyof typeof editDialog] as string}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`appTitle${num}`]: e.target.value }))}
+                  sx={{ mb: 1 }}
+                  size="small"
+                />
+                <TextField
+                  label={`App Image URL`}
+                  fullWidth
+                  variant="outlined"
+                  value={editDialog[`appImage${num}` as keyof typeof editDialog] as string}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`appImage${num}`]: e.target.value }))}
+                  size="small"
+                  placeholder="Image URL"
+                />
+              </Box>
+            ))}
+          </Box>
 
-          {/* Feature 4 */}
-          <Typography variant="subtitle2" gutterBottom>
-            Feature 4
+          {/* Text Content Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            📝 텍스트 콘텐츠 (Text Content)
           </Typography>
-          <TextField
-            margin="dense"
-            label="Feature 4 Title"
-            fullWidth
-            variant="outlined"
-            value={editDialog.featureTitle4}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, featureTitle4: e.target.value }))}
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            margin="dense"
-            label="Feature 4 Description"
-            fullWidth
-            multiline
-            rows={2}
-            variant="outlined"
-            value={editDialog.featureDesc4}
-            onChange={(e) => setEditDialog(prev => ({ ...prev, featureDesc4: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {[1, 2, 3, 4, 5].map((num) => (
+              <Box key={num} sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, bgcolor: '#fafafa' }}>
+                <Typography variant="subtitle2" gutterBottom color="primary">Text Content {num}</Typography>
+                <TextField
+                  label={`Title`}
+                  fullWidth
+                  variant="outlined"
+                  value={editDialog[`textTitle${num}` as keyof typeof editDialog] as string}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`textTitle${num}`]: e.target.value }))}
+                  sx={{ mb: 1 }}
+                  size="small"
+                />
+                <TextField
+                  label={`Description`}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  variant="outlined"
+                  value={editDialog[`textDesc${num}` as keyof typeof editDialog] as string}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`textDesc${num}`]: e.target.value }))}
+                  sx={{ mb: 1 }}
+                  size="small"
+                />
+                <TextField
+                  label={`Image URL`}
+                  fullWidth
+                  variant="outlined"
+                  value={editDialog[`textImageUrl${num}` as keyof typeof editDialog] as string}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`textImageUrl${num}`]: e.target.value }))}
+                  size="small"
+                  placeholder="Image URL"
+                />
+              </Box>
+            ))}
+          </Box>
 
+          {/* Feature Image Upload */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            🖼️ 대표 이미지 (Feature Image)
+          </Typography>
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Feature Image
-            </Typography>
             <FileUploadComponent
               category="series"
               onUpload={(fileUrl, fileName) => {
@@ -891,132 +1222,236 @@ export default function SeriesDataGrid() {
       <Dialog
         open={addDialog.open}
         onClose={resetAddDialog}
-        maxWidth="md"
+        maxWidth="lg"
         fullWidth
+        PaperProps={{
+          sx: { height: '90vh', maxHeight: '90vh' }
+        }}
       >
         <DialogTitle>Add Series</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Series Name"
-            fullWidth
-            variant="outlined"
-            value={addDialog.seriesName}
-            onChange={(e) => setAddDialog(prev => ({ ...prev, seriesName: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+        <DialogContent sx={{ pt: 2, overflow: 'auto' }}>
+          {/* Basic Information Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            📋 기본 정보
+          </Typography>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            <TextField
+              autoFocus
+              label="Series Name"
+              variant="outlined"
+              value={addDialog.seriesName}
+              onChange={(e) => setAddDialog(prev => ({ ...prev, seriesName: e.target.value }))}
+              size="small"
+              required
+            />
 
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={addDialog.categoryId || ''}
-              onChange={(e) => setAddDialog(prev => ({ 
-                ...prev, 
-                categoryId: e.target.value ? Number(e.target.value) : null 
-              }))}
-              label="Category"
-            >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              {categories.map((category) => (
-                <MenuItem key={category.id} value={category.id}>
-                  {category.name}
+            <FormControl size="small">
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={addDialog.categoryId || ''}
+                onChange={(e) => setAddDialog(prev => ({ 
+                  ...prev, 
+                  categoryId: e.target.value ? Number(e.target.value) : null 
+                }))}
+                label="Category"
+              >
+                <MenuItem value="">
+                  <em>None</em>
                 </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          <TextField
-            margin="dense"
-            label="Introduction Text"
-            fullWidth
-            multiline
-            rows={3}
-            variant="outlined"
-            value={addDialog.introText}
-            onChange={(e) => setAddDialog(prev => ({ ...prev, introText: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+                {categories.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-          <TextField
-            margin="dense"
-            label="Short Text"
-            fullWidth
-            multiline
-            rows={2}
-            variant="outlined"
-            value={addDialog.shortText}
-            onChange={(e) => setAddDialog(prev => ({ ...prev, shortText: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+            <TextField
+              label="YouTube URL"
+              variant="outlined"
+              value={addDialog.youtubeUrl}
+              onChange={(e) => setAddDialog(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+              size="small"
+              placeholder="https://youtube.com/watch?v=..."
+            />
+          </Box>
 
-          <TextField
-            margin="dense"
-            label="YouTube URL"
-            fullWidth
-            variant="outlined"
-            value={addDialog.youtubeUrl}
-            onChange={(e) => setAddDialog(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-            sx={{ mb: 2 }}
-            placeholder="https://youtube.com/watch?v=..."
-          />
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            <TextField
+              label="Introduction Text"
+              multiline
+              rows={3}
+              variant="outlined"
+              value={addDialog.introText}
+              onChange={(e) => setAddDialog(prev => ({ ...prev, introText: e.target.value }))}
+              size="small"
+            />
 
-          {/* Feature 1 */}
-          <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-            Feature 1
+            <TextField
+              label="Short Text"
+              multiline
+              rows={3}
+              variant="outlined"
+              value={addDialog.shortText}
+              onChange={(e) => setAddDialog(prev => ({ ...prev, shortText: e.target.value }))}
+              size="small"
+            />
+          </Box>
+
+          {/* Features Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            ⭐ 주요 특징 (Features)
           </Typography>
-          <TextField
-            margin="dense"
-            label="Feature 1 Title"
-            fullWidth
-            variant="outlined"
-            value={addDialog.featureTitle1}
-            onChange={(e) => setAddDialog(prev => ({ ...prev, featureTitle1: e.target.value }))}
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            margin="dense"
-            label="Feature 1 Description"
-            fullWidth
-            multiline
-            rows={2}
-            variant="outlined"
-            value={addDialog.featureDesc1}
-            onChange={(e) => setAddDialog(prev => ({ ...prev, featureDesc1: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {[1, 2, 3, 4].map((num) => (
+              <Box key={num} sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, bgcolor: '#fafafa' }}>
+                <Typography variant="subtitle2" gutterBottom color="primary">Feature {num}</Typography>
+                <TextField
+                  label={`Title`}
+                  fullWidth
+                  variant="outlined"
+                  value={addDialog[`featureTitle${num}` as keyof typeof addDialog] as string}
+                  onChange={(e) => setAddDialog(prev => ({ ...prev, [`featureTitle${num}`]: e.target.value }))}
+                  sx={{ mb: 1 }}
+                  size="small"
+                />
+                <TextField
+                  label={`Description`}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  variant="outlined"
+                  value={addDialog[`featureDesc${num}` as keyof typeof addDialog] as string}
+                  onChange={(e) => setAddDialog(prev => ({ ...prev, [`featureDesc${num}`]: e.target.value }))}
+                  size="small"
+                />
+              </Box>
+            ))}
+          </Box>
 
-          {/* Feature 2 */}
-          <Typography variant="subtitle2" gutterBottom>
-            Feature 2
+          {/* Strengths Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            💪 강점 (Strengths)
           </Typography>
-          <TextField
-            margin="dense"
-            label="Feature 2 Title"
-            fullWidth
-            variant="outlined"
-            value={addDialog.featureTitle2}
-            onChange={(e) => setAddDialog(prev => ({ ...prev, featureTitle2: e.target.value }))}
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            margin="dense"
-            label="Feature 2 Description"
-            fullWidth
-            multiline
-            rows={2}
-            variant="outlined"
-            value={addDialog.featureDesc2}
-            onChange={(e) => setAddDialog(prev => ({ ...prev, featureDesc2: e.target.value }))}
-            sx={{ mb: 2 }}
-          />
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {[1, 2, 3, 4, 5, 6].map((num) => (
+              <TextField
+                key={num}
+                label={`Strength ${num}`}
+                variant="outlined"
+                value={addDialog[`strength${num}` as keyof typeof addDialog] as string}
+                onChange={(e) => setAddDialog(prev => ({ ...prev, [`strength${num}`]: e.target.value }))}
+                size="small"
+              />
+            ))}
+          </Box>
 
+          {/* Applications Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            🎯 응용 분야 (Applications)
+          </Typography>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {[1, 2, 3, 4].map((num) => (
+              <Box key={num} sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, bgcolor: '#fafafa' }}>
+                <Typography variant="subtitle2" gutterBottom color="primary">Application {num}</Typography>
+                <TextField
+                  label={`App Title`}
+                  fullWidth
+                  variant="outlined"
+                  value={addDialog[`appTitle${num}` as keyof typeof addDialog] as string}
+                  onChange={(e) => setAddDialog(prev => ({ ...prev, [`appTitle${num}`]: e.target.value }))}
+                  sx={{ mb: 1 }}
+                  size="small"
+                />
+                <TextField
+                  label={`App Image URL`}
+                  fullWidth
+                  variant="outlined"
+                  value={addDialog[`appImage${num}` as keyof typeof addDialog] as string}
+                  onChange={(e) => setAddDialog(prev => ({ ...prev, [`appImage${num}`]: e.target.value }))}
+                  size="small"
+                  placeholder="Image URL"
+                />
+              </Box>
+            ))}
+          </Box>
+
+          {/* Text Content Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            📝 텍스트 콘텐츠 (Text Content)
+          </Typography>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {[1, 2, 3, 4, 5].map((num) => (
+              <Box key={num} sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, bgcolor: '#fafafa' }}>
+                <Typography variant="subtitle2" gutterBottom color="primary">Text Content {num}</Typography>
+                <TextField
+                  label={`Title`}
+                  fullWidth
+                  variant="outlined"
+                  value={addDialog[`textTitle${num}` as keyof typeof addDialog] as string}
+                  onChange={(e) => setAddDialog(prev => ({ ...prev, [`textTitle${num}`]: e.target.value }))}
+                  sx={{ mb: 1 }}
+                  size="small"
+                />
+                <TextField
+                  label={`Description`}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  variant="outlined"
+                  value={addDialog[`textDesc${num}` as keyof typeof addDialog] as string}
+                  onChange={(e) => setAddDialog(prev => ({ ...prev, [`textDesc${num}`]: e.target.value }))}
+                  sx={{ mb: 1 }}
+                  size="small"
+                />
+                <TextField
+                  label={`Image URL`}
+                  fullWidth
+                  variant="outlined"
+                  value={addDialog[`textImageUrl${num}` as keyof typeof addDialog] as string}
+                  onChange={(e) => setAddDialog(prev => ({ ...prev, [`textImageUrl${num}`]: e.target.value }))}
+                  size="small"
+                  placeholder="Image URL"
+                />
+              </Box>
+            ))}
+          </Box>
+
+          {/* Feature Image Upload */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            🖼️ 대표 이미지 (Feature Image)
+          </Typography>
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Feature Image
-            </Typography>
             <FileUploadComponent
               category="series"
               onUpload={(fileUrl, fileName) => {
