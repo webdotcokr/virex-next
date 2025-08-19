@@ -60,6 +60,15 @@ export async function POST(request: NextRequest) {
           )
         }
 
+        // Send email notification for reactivation
+        try {
+          const { sendNewsletterNotification } = await import('@/lib/email-server')
+          await sendNewsletterNotification(email.toLowerCase().trim())
+        } catch (emailError) {
+          console.error('Email notification failed:', emailError)
+          // Don't fail the API call if email fails
+        }
+
         return NextResponse.json({ 
           message: '뉴스레터 구독이 재활성화되었습니다.' 
         })
@@ -80,6 +89,15 @@ export async function POST(request: NextRequest) {
         { error: '구독 처리 중 오류가 발생했습니다.' },
         { status: 500 }
       )
+    }
+
+    // Send email notification
+    try {
+      const { sendNewsletterNotification } = await import('@/lib/email-server')
+      await sendNewsletterNotification(email.toLowerCase().trim())
+    } catch (emailError) {
+      console.error('Email notification failed:', emailError)
+      // Don't fail the API call if email fails
     }
 
     return NextResponse.json({ 

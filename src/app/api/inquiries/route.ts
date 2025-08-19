@@ -108,6 +108,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Send email notification
+    try {
+      const { sendContactNotification } = await import('@/lib/email-server')
+      await sendContactNotification({
+        company,
+        name,
+        phone,
+        email,
+        jobTitle,
+        productName,
+        contactPath,
+        inquiryType,
+        description
+      })
+    } catch (emailError) {
+      console.error('Email notification failed:', emailError)
+      // Don't fail the API call if email fails
+    }
+
     return NextResponse.json({
       success: true,
       message: '문의가 성공적으로 등록되었습니다.',
