@@ -11,16 +11,32 @@ export const metadata: Metadata = {
   ].join(', '),
   openGraph: {
     title: "VIREX - 머신비전 & 광학 솔루션 전문기업",
-    description: "검증된 파트너 바이렉스와 함께 최적의 비전 솔루션을 구축하세요. 2,000개 이상의 제품을 검색하고 비교할 수 있습니다.",
+    description: "바이렉스는 머신비전 관련 컴포넌트 전문 기업으로, 광학 컨설팅, 신규 메이커 발굴, 맞춤형 솔루션 연구개발을 제공합니다. 최신 기술로 고객의 혁신적인 비즈니스 성장을 지원합니다.",
     url: "https://virex.co.kr",
     siteName: "VIREX",
     locale: "ko_KR",
     type: "website",
+    images: [{
+      url: process.env.NODE_ENV === 'production' 
+        ? 'https://virex.co.kr/img/site-image.png'
+        : 'http://localhost:3002/img/site-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'VIREX - Leading your vision to success'
+    }],
   },
   twitter: {
     card: "summary_large_image",
     title: "VIREX - 머신비전 & 광학 솔루션 전문기업",
     description: "검증된 파트너 바이렉스와 함께 최적의 비전 솔루션을 구축하세요.",
+    images: [{
+      url: process.env.NODE_ENV === 'production' 
+        ? 'https://virex.co.kr/img/site-image.png'
+        : 'http://localhost:3002/img/site-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'VIREX - Leading your vision to success'
+    }],
   },
   alternates: {
     canonical: "https://virex.co.kr",
