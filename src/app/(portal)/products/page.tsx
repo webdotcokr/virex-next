@@ -65,14 +65,6 @@ export async function generateMetadata({ searchParams }: {
       description,
       url: `https://virex.co.kr/products${categories ? `?categories=${categories}` : ''}`,
       siteName: "VIREX",
-      images: [
-        {
-          url: `https://virex.co.kr/img/backgrounds/camera-${currentCategory === '9' ? 'cis' : currentCategory === '10' ? 'tdi' : currentCategory === '11' ? 'line' : currentCategory === '12' ? 'area' : 'cis'}-bg.webp`,
-          width: 1200,
-          height: 630,
-          alt: `${categoryInfo.name} 제품 목록`,
-        },
-      ],
       locale: "ko_KR",
       type: "website",
     },

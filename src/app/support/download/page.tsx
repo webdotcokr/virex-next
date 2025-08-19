@@ -14,14 +14,6 @@ export const metadata: Metadata = {
     description: "VIREX 제품 관련 모든 기술 자료를 한 곳에서 다운로드하세요. 카탈로그부터 소프트웨어까지 완벽 지원.",
     url: "https://virex.co.kr/support/download",
     siteName: "VIREX",
-    images: [
-      {
-        url: "https://virex.co.kr/img/bg-support.webp",
-        width: 1200,
-        height: 630,
-        alt: "VIREX 다운로드 센터",
-      },
-    ],
     locale: "ko_KR",
     type: "website",
   },
@@ -29,7 +21,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "다운로드 센터 - VIREX | 카탈로그, 매뉴얼, 소프트웨어 자료실",
     description: "VIREX 제품 관련 모든 기술 자료를 한 곳에서 다운로드하세요.",
-    images: ["https://virex.co.kr/img/bg-support.webp"],
   },
   alternates: {
     canonical: "https://virex.co.kr/support/download",

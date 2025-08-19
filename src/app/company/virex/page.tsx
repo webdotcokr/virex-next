@@ -16,14 +16,6 @@ export const metadata: Metadata = {
     description: "Leading your vision to success. 바이렉스는 최적의 비전 시스템 구축을 함께하는 혁신적 파트너입니다.",
     url: "https://virex.co.kr/company/virex",
     siteName: "VIREX",
-    images: [
-      {
-        url: "https://virex.co.kr/img/virex-content-02.jpg",
-        width: 1200,
-        height: 630,
-        alt: "VIREX 회사소개",
-      },
-    ],
     locale: "ko_KR",
     type: "website",
   },
@@ -31,7 +23,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "회사소개 - VIREX | 머신비전 & 광학 솔루션 전문기업",
     description: "Leading your vision to success. 바이렉스는 최적의 비전 시스템 구축을 함께하는 혁신적 파트너입니다.",
-    images: ["https://virex.co.kr/img/virex-content-02.jpg"],
   },
   alternates: {
     canonical: "https://virex.co.kr/company/virex",

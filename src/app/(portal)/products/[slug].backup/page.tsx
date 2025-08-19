@@ -62,14 +62,6 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       description: shortText || `${categoryName} specifications and details`,
       url: canonicalUrl,
       type: 'website',
-      images: product.image_url ? [
-        {
-          url: product.image_url,
-          width: 800,
-          height: 600,
-          alt: product.part_number,
-        }
-      ] : undefined,
     },
     other: {
       // Structured Data (JSON-LD)

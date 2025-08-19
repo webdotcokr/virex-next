@@ -14,14 +14,6 @@ export const metadata: Metadata = {
     description: "검증된 파트너 바이렉스와 함께 최적의 비전 솔루션을 구축하세요. 2,000개 이상의 제품을 검색하고 비교할 수 있습니다.",
     url: "https://virex.co.kr",
     siteName: "VIREX",
-    images: [
-      {
-        url: "https://virex.co.kr/img/main-carousel/01.png",
-        width: 1200,
-        height: 630,
-        alt: "VIREX 머신비전 솔루션",
-      },
-    ],
     locale: "ko_KR",
     type: "website",
   },
@@ -29,7 +21,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "VIREX - 머신비전 & 광학 솔루션 전문기업",
     description: "검증된 파트너 바이렉스와 함께 최적의 비전 솔루션을 구축하세요.",
-    images: ["https://virex.co.kr/img/main-carousel/01.png"],
   },
   alternates: {
     canonical: "https://virex.co.kr",

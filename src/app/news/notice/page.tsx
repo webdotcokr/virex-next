@@ -13,14 +13,6 @@ export const metadata: Metadata = {
     description: "VIREX의 최신 공지사항과 머신비전 업계 동향을 확인하세요. 제품 업데이트부터 이벤트 소식까지 모든 정보를 제공합니다.",
     url: "https://virex.co.kr/news/notice",
     siteName: "VIREX",
-    images: [
-      {
-        url: "https://virex.co.kr/img/bg-news.webp",
-        width: 1200,
-        height: 630,
-        alt: "VIREX 공지사항",
-      },
-    ],
     locale: "ko_KR",
     type: "website",
   },
@@ -28,7 +20,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "공지사항 - VIREX | 머신비전 최신 소식 및 공지",
     description: "VIREX의 최신 공지사항과 머신비전 업계 동향을 확인하세요.",
-    images: ["https://virex.co.kr/img/bg-news.webp"],
   },
   alternates: {
     canonical: "https://virex.co.kr/news/notice",
