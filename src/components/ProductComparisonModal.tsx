@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { X } from 'lucide-react'
 import type { Product } from '../domains/product/types'
+import { getColumnConfigForCategory, formatColumnValue, type ColumnConfig } from '../config/productColumns'
 
 interface ProductComparisonModalProps {
   isOpen: boolean
@@ -11,42 +12,49 @@ interface ProductComparisonModalProps {
   onRemoveProduct: (productId: string) => void
 }
 
-// 스펙 필드 라벨 매핑
-const specFieldLabels: Record<string, string> = {
-  scan_width: 'Scan width',
-  dpi: 'DPI',
-  resolution: 'Resolution',
-  line_rate: 'Line rate',
-  speed: 'Speed',
-  wd: 'WD',
-  no_of_pixels: 'No. of Pixels',
-  spectrum: 'Spectrum',
-  interface: 'Interface',
-  mega_pixel: 'Mega Pixel',
-  frame_rate: 'Frame Rate',
-  sensor_model: 'Sensor Model',
-  lens_mount: 'Lens Mount'
-}
-
 export default function ProductComparisonModal({
   isOpen,
   onClose,
   products,
   onRemoveProduct
 }: ProductComparisonModalProps) {
-  const [specificationFields, setSpecificationFields] = useState<string[]>([])
+  // 카테고리별 동적 컬럼 설정 계산
+  const comparisonFields = useMemo(() => {
+    if (products.length === 0) return []
 
-  useEffect(() => {
-    if (products.length > 0) {
-      // 모든 제품의 스펙 필드를 수집
-      const allFields = new Set<string>()
-      products.forEach(product => {
-        if (product.specifications) {
-          Object.keys(product.specifications).forEach(field => allFields.add(field))
+    // 모든 제품의 카테고리 ID 수집
+    const categoryIds = new Set<number>()
+    products.forEach(product => {
+      if (product.category_id) {
+        categoryIds.add(product.category_id)
+      }
+    })
+
+    // Fallback: 카테고리 ID가 없을 경우 기본 카테고리(CIS=9) 사용
+    if (categoryIds.size === 0) {
+      console.warn('⚠️ No category_id found in products, using default category 9 (CIS)')
+      categoryIds.add(9)
+    }
+
+    console.log('🔍 Detected category IDs:', Array.from(categoryIds))
+
+    // 여러 카테고리가 섞여있을 경우 모든 카테고리의 컬럼을 합침
+    const allColumns: ColumnConfig[] = []
+    Array.from(categoryIds).forEach(categoryId => {
+      const columns = getColumnConfigForCategory(categoryId)
+      console.log(`📋 Category ${categoryId} columns:`, columns.map(c => c.column_name))
+      
+      columns.forEach(col => {
+        // 모든 컬럼 추가 (기본 필드 포함)
+        // 중복 제거: 이미 같은 column_name이 있는지 확인
+        if (!allColumns.some(existing => existing.column_name === col.column_name)) {
+          allColumns.push(col)
         }
       })
-      setSpecificationFields(Array.from(allFields))
-    }
+    })
+
+    console.log('📊 Final comparison fields:', allColumns.map(c => c.column_name))
+    return allColumns
   }, [products])
 
   useEffect(() => {
@@ -63,16 +71,16 @@ export default function ProductComparisonModal({
 
   if (!isOpen) return null
 
-  const getSpecValue = (product: Product, field: string): string => {
-    if (!product.specifications || !product.specifications[field]) {
+  // 실제 제품 필드에서 값을 직접 가져오는 함수
+  const getFieldValue = (product: Product, columnConfig: ColumnConfig): string => {
+    const fieldName = columnConfig.column_name
+    const value = (product as any)[fieldName]
+    
+    if (value === null || value === undefined || value === '') {
       return '-'
     }
-    const value = product.specifications[field]
-    return typeof value === 'object' ? JSON.stringify(value) : String(value)
-  }
 
-  const getFieldLabel = (field: string): string => {
-    return specFieldLabels[field] || field
+    return formatColumnValue(value, columnConfig)
   }
 
   return (
@@ -156,55 +164,19 @@ export default function ProductComparisonModal({
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Series */}
-                    <tr>
-                      <td className="border border-gray-300 bg-gray-100 p-3 text-sm font-medium text-gray-700">
-                        Series
-                      </td>
-                      {products.map((product) => (
-                        <td key={product.id} className="border border-gray-300 p-3 text-sm text-gray-900 text-center">
-                          {product.series || '-'}
-                        </td>
-                      ))}
-                    </tr>
-                    
-                    {/* Part Number */}
-                    <tr>
-                      <td className="border border-gray-300 bg-gray-100 p-3 text-sm font-medium text-gray-700">
-                        Part Number
-                      </td>
-                      {products.map((product) => (
-                        <td key={product.id} className="border border-gray-300 p-3 text-sm text-gray-900 text-center">
-                          {product.part_number}
-                        </td>
-                      ))}
-                    </tr>
-
-                    {/* 동적 스펙 비교 */}
-                    {specificationFields.map((field) => (
-                      <tr key={field}>
+                    {/* 동적 스펙 비교 - productColumns.ts 기반 (모든 필드 포함) */}
+                    {comparisonFields.map((columnConfig) => (
+                      <tr key={columnConfig.column_name}>
                         <td className="border border-gray-300 bg-gray-100 p-3 text-sm font-medium text-gray-700">
-                          {getFieldLabel(field)}
+                          {columnConfig.column_label}
                         </td>
                         {products.map((product) => (
                           <td key={product.id} className="border border-gray-300 p-3 text-sm text-gray-900 text-center">
-                            {getSpecValue(product, field)}
+                            {getFieldValue(product, columnConfig)}
                           </td>
                         ))}
                       </tr>
                     ))}
-                    
-                    {/* Maker */}
-                    <tr>
-                      <td className="border border-gray-300 bg-gray-100 p-3 text-sm font-medium text-gray-700">
-                        Maker
-                      </td>
-                      {products.map((product) => (
-                        <td key={product.id} className="border border-gray-300 p-3 text-sm text-gray-900 text-center">
-                          {product.maker_name || 'INSNEX'}
-                        </td>
-                      ))}
-                    </tr>
                   </tbody>
                 </table>
               </div>

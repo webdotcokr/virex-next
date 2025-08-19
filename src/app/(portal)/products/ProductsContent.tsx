@@ -336,6 +336,7 @@ export default function ProductsContent() {
           series: item.series_id ? (seriesMap.get(item.series_id) || `Series-${item.series_id}`) : 'Unknown',
           is_new: item.is_new || false,
           is_active: item.is_active !== false,
+          category_id: parseInt(currentCategoryId), // 제품 비교를 위한 category_id 추가
         }
         
         // 모든 실제 컬럼들을 직접 Product 객체에 포함 (specifications 사용 안함)
