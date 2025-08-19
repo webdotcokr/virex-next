@@ -72,6 +72,7 @@ function DownloadListPage() {
         
         // Check member access
         if (categoryInfo.is_member_only && !user) {
+          alert('로그인이 필요합니다.')
           const currentUrl = window.location.pathname + window.location.search
           router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`)
           return

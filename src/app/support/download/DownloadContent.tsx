@@ -82,6 +82,16 @@ const DownloadContent = () => {
     window.open(download.file_url, '_blank')
   }
 
+  const handleMemberOnlyClick = (categoryId: number) => {
+    if (!user) {
+      alert('로그인이 필요합니다.')
+      router.push(`/auth/login?redirect=${encodeURIComponent('/support/download')}`)
+      return
+    }
+    // If user is logged in, proceed to the list page
+    router.push(`/support/download/list?category_id=${categoryId}`)
+  }
+
   const getIconForCategory = (categoryName: string) => {
     const name = categoryName.toLowerCase()
     if (name.includes('카달로그') || name.includes('catalog')) return 'icon-download-catalog.svg'
@@ -156,7 +166,12 @@ const DownloadContent = () => {
                 {categories
                   .filter(cat => cat.is_member_only)
                   .map(category => (
-                    <Link key={category.id} href={`/support/download/list?category_id=${category.id}`} className={`${styles['download-item']} ${styles['bg-member-only']}`}>
+                    <div 
+                      key={category.id} 
+                      className={`${styles['download-item']} ${styles['bg-member-only']}`}
+                      onClick={() => handleMemberOnlyClick(category.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className={styles['download-item-content']}>
                         <div className={styles['download-item-image']}>
                           <img src={`${DIR_ROOT}/${getIconForCategory(category.name)}`} alt={category.name} />
@@ -171,7 +186,7 @@ const DownloadContent = () => {
                           <img src={`${DIR_ROOT}/btn-download.svg`} alt="다운로드" />
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   ))
                 }
               </div>
