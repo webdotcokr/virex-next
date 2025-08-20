@@ -6,6 +6,7 @@ import { ArrowLeft, Download, Mail, ExternalLink, Share2 } from 'lucide-react'
 import { getColumnConfigForCategory, formatColumnValue } from '@/config/productColumns'
 import InquiryForm from './InquiryForm'
 import RelatedProductsSlider from './RelatedProductsSlider'
+import SafeImage from '@/components/SafeImage'
 import type { Product } from '../types'
 import styles from './ProductDetailView.module.css'
 
@@ -266,7 +267,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
     <>
       <div className={styles.productHeader}>
         <div className={`${styles.grid} ${styles.gridTwoCols} ${styles.inner}`}>
-          <img 
+          <SafeImage 
             src={product.image_url || '/img/no-image.png'} 
             alt={product.part_number} 
             className={styles.productImage}
@@ -340,7 +341,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
             {/* Feature Image - intro_text 다음에 표시 */}
             {product.series_data.feature_image_url && (
               <div className={styles.featureImageContainer}>
-                <img src={product.series_data.feature_image_url} alt="Feature Image" />
+                <SafeImage src={product.series_data.feature_image_url} alt="Feature Image" />
               </div>
             )}
             
@@ -402,7 +403,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                       </div>
                       {item.image && (
                         <div className={styles.textImage}>
-                          <img src={item.image} alt={item.title} />
+                          <SafeImage src={item.image} alt={item.title} />
                         </div>
                       )}
                     </div>
@@ -467,7 +468,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                   app.title && (
                     <div key={index} className={styles.applicationItem}>
                       <h3>{app.title}</h3>
-                      {app.image && <img src={app.image} alt={app.title} />}
+                      {app.image && <SafeImage src={app.image} alt={app.title} />}
                     </div>
                   )
                 ))}
