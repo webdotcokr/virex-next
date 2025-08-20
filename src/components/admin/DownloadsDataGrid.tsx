@@ -8,6 +8,7 @@ import {
 import { DataGrid, GridColDef, GridActionsCellItem, GridRowId } from '@mui/x-data-grid';
 import { Edit, Delete, Add, OpenInNew, Download as DownloadIcon } from '@mui/icons-material';
 import { httpQueries } from '@/lib/http-supabase';
+import FileDropzone from './FileDropzone';
 
 // Type definitions
 interface Download {
@@ -88,6 +89,8 @@ function DownloadFormDialog({
     category_id: initial?.category_id ?? (categories[0]?.id ?? 1),
   });
 
+  const [showManualInput, setShowManualInput] = useState(false);
+
   useEffect(() => {
     setValues({
       title: initial?.title ?? '',
@@ -95,28 +98,109 @@ function DownloadFormDialog({
       file_url: initial?.file_url ?? '',
       category_id: initial?.category_id ?? (categories[0]?.id ?? 1),
     });
+    setShowManualInput(false);
   }, [initial, categories]);
 
   const handle = (k: keyof typeof values) => (e: React.ChangeEvent<HTMLInputElement> | any) =>
     setValues(v => ({ ...v, [k]: e.target.value }));
 
+  const handleFileUploaded = useCallback((fileUrl: string, fileName: string) => {
+    setValues(v => ({ 
+      ...v, 
+      file_url: fileUrl,
+      file_name: v.file_name || fileName,
+      title: v.title || fileName.replace(/\.[^/.]+$/, '') // 확장자 제거한 파일명을 제목으로
+    }));
+  }, []);
+
+  const isFormValid = values.title && values.file_name && values.file_url && values.category_id;
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>{initial?.id ? 'Edit Download' : 'Add Download'}</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
-        <TextField label="Title" fullWidth sx={{ mb: 2 }} value={values.title} onChange={handle('title')} />
-        <TextField label="File Name" fullWidth sx={{ mb: 2 }} value={values.file_name} onChange={handle('file_name')} />
-        <TextField label="File URL" fullWidth sx={{ mb: 2 }} value={values.file_url} onChange={handle('file_url')} />
-        <FormControl fullWidth>
+        <TextField 
+          label="Title" 
+          fullWidth 
+          sx={{ mb: 2 }} 
+          value={values.title} 
+          onChange={handle('title')}
+          required
+        />
+        
+        <TextField 
+          label="File Name" 
+          fullWidth 
+          sx={{ mb: 2 }} 
+          value={values.file_name} 
+          onChange={handle('file_name')}
+          required
+        />
+
+        <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel>Category</InputLabel>
           <Select label="Category" value={values.category_id} onChange={handle('category_id')}>
             {categories.map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
           </Select>
         </FormControl>
+
+        {/* 파일 업로드 섹션 */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            파일 업로드
+          </Typography>
+          
+          {!showManualInput ? (
+            <Box>
+              <FileDropzone
+                onFileUploaded={handleFileUploaded}
+                categoryId={values.category_id}
+                accept="*/*"
+              />
+              
+              {values.file_url && (
+                <Alert severity="success" sx={{ mt: 2 }}>
+                  파일이 업로드되었습니다: {values.file_name}
+                </Alert>
+              )}
+              
+              <Button 
+                variant="text" 
+                size="small" 
+                onClick={() => setShowManualInput(true)}
+                sx={{ mt: 1 }}
+              >
+                또는 URL 직접 입력
+              </Button>
+            </Box>
+          ) : (
+            <Box>
+              <TextField 
+                label="File URL" 
+                fullWidth 
+                value={values.file_url} 
+                onChange={handle('file_url')}
+                placeholder="https://example.com/file.pdf"
+              />
+              <Button 
+                variant="text" 
+                size="small" 
+                onClick={() => setShowManualInput(false)}
+                sx={{ mt: 1 }}
+              >
+                파일 업로드로 돌아가기
+              </Button>
+            </Box>
+          )}
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={() => onSubmit(values)}>
+        <Button 
+          variant="contained" 
+          onClick={() => onSubmit(values)}
+          disabled={!isFormValid}
+        >
           {initial?.id ? 'Save Changes' : 'Add Download'}
         </Button>
       </DialogActions>
@@ -180,9 +264,42 @@ export default function DownloadsDataGrid() {
 
   const handleDelete = async (id: GridRowId) => {
     if (!confirm('Delete this item?')) return;
-    const { error } = await httpQueries.deleteGeneric('downloads', id);
-    setSnack({ open: true, msg: error ? `Delete failed: ${error.message}` : 'Deleted', sev: error ? 'error' : 'success' });
-    refresh();
+    
+    // Find the download record to get the file URL
+    const downloadRecord = rows.find(row => row.id === id);
+    
+    try {
+      // Delete from database first
+      const { error: dbError } = await httpQueries.deleteGeneric('downloads', id);
+      
+      if (dbError) {
+        throw new Error(dbError.message);
+      }
+
+      // Delete from storage if file URL exists and is from Supabase Storage
+      if (downloadRecord?.file_url?.includes('/storage/v1/object/public/downloads/')) {
+        try {
+          const response = await fetch(`/api/admin/file-delete?fileUrl=${encodeURIComponent(downloadRecord.file_url)}`, {
+            method: 'DELETE'
+          });
+          
+          if (!response.ok) {
+            console.warn('Failed to delete file from storage, but database record was deleted');
+          }
+        } catch (storageError) {
+          console.warn('Storage deletion failed:', storageError);
+        }
+      }
+
+      setSnack({ open: true, msg: 'Deleted successfully', sev: 'success' });
+      refresh();
+    } catch (error) {
+      setSnack({ 
+        open: true, 
+        msg: `Delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+        sev: 'error' 
+      });
+    }
   };
 
   const handleSubmit = async (values: { title: string; file_name: string; file_url: string; category_id: number }) => {
