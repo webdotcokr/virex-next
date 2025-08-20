@@ -307,9 +307,6 @@ const CompanyPage = () => {
               <source srcSet={`${DIR_ROOT}/img/virex-content-06.png`} media="(min-width: 768px)" />
               <img src={`${DIR_ROOT}/img/mo/virex-content-06.png`} alt="바이렉스와 함께하세요" />
             </picture>
-            <Link href={`${DIR_ROOT}/sub/recruit/`} className={styles['recruit-button']}>
-              2025 채용공고 바로가기
-            </Link>
           </div>
         </div>
       </div>
