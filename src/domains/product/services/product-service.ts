@@ -30,7 +30,6 @@ const CATEGORIES_WITH_SPECTRUM = [9, 10, 11, 12, 13, 14, 19] // CIS, TDI, Line, 
 
 export class ProductService {
   static async getProducts(filters: Partial<FilterState> = {}): Promise<ProductSearchResult> {
-    console.log('Attempting to fetch products with filters:', filters)
     
     const {
       categories = [],
@@ -144,7 +143,6 @@ export class ProductService {
         }
       }
 
-      console.log('Products fetched successfully:', products?.length || 0, 'products')
       
       // Transform products data for frontend compatibility
       // 모든 컬럼을 그대로 유지하여 반환
@@ -221,7 +219,6 @@ export class ProductService {
                 const numValue = parseFloat(String(fieldValue))
                 const result = !isNaN(numValue) && numValue >= min && numValue <= max
                 
-                console.log(`Range filter check: ${fieldValue} in [${min},${max}] = ${result}`)
                 return result
               } catch (e) {
                 console.warn('Failed to parse range filter:', paramValues, e)
@@ -262,15 +259,6 @@ export class ProductService {
       const hasNextPage = (page * limit) < total
       const hasPreviousPage = page > 1
 
-      console.log('📊 Product Service - Pagination info:', {
-        total,
-        page,
-        limit,
-        productsOnPage: transformedProducts.length,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage,
-        hasPreviousPage
-      })
 
       return {
         products: transformedProducts,
@@ -287,7 +275,6 @@ export class ProductService {
       console.error('Error details:', JSON.stringify(error, null, 2))
       
       // Return empty result instead of throwing error
-      console.log('Returning empty result due to database error')
       return {
         products: [],
         total: 0,
@@ -468,7 +455,6 @@ export class ProductService {
   }
 
   static async getCategories(): Promise<Category[]> {
-    console.log('Attempting to fetch categories from Supabase...')
     
     const { data, error } = await supabase
       .from('categories')
@@ -480,7 +466,6 @@ export class ProductService {
       throw new Error(`Failed to fetch categories: ${error.message}`)
     }
 
-    console.log('Categories fetched successfully:', data?.length || 0, 'categories')
     return data || []
   }
 
@@ -541,11 +526,6 @@ export class ProductService {
     try {
       // Ensure part number is properly decoded (handle URL encoding)
       const decodedPartNumber = decodeURIComponent(partNumber)
-      console.log('🔍 ProductService.getProductByPartNumber:', { 
-        original: partNumber, 
-        decoded: decodedPartNumber,
-        hasSpaces: decodedPartNumber.includes(' ')
-      })
       
       // Search across all category tables for the part_number
       const categoryIds = Object.keys(CATEGORY_TABLE_MAPPING).map(Number)
@@ -554,7 +534,6 @@ export class ProductService {
       
       for (const catId of categoryIds) {
         const tableName = CATEGORY_TABLE_MAPPING[catId]
-        console.log(`🔍 Searching in ${tableName} for part_number: "${decodedPartNumber}"`)
         
         const { data, error } = await supabase
           .from(tableName)
@@ -567,14 +546,11 @@ export class ProductService {
           .single()
 
         if (error) {
-          console.log(`❌ ${tableName}: ${error.message}`)
         } else if (data) {
-          console.log(`✅ Found product in ${tableName}:`, data.part_number)
           product = data
           categoryId = catId
           break
         } else {
-          console.log(`🔍 ${tableName}: No data found`)
         }
       }
 

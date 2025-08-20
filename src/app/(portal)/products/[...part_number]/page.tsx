@@ -14,11 +14,6 @@ async function getProduct(partNumberSegments: string[]): Promise<Product | null>
   try {
     // Reconstruct the part number from URL segments
     const partNumber = partNumberSegments.map(segment => decodeURIComponent(segment)).join('/')
-    console.log('🔍 Product lookup:', { 
-      segments: partNumberSegments, 
-      reconstructed: partNumber,
-      hasForwardSlash: partNumber.includes('/')
-    })
     
     // Use getProductByPartNumber for full data with series and related products
     const product = await ProductService.getProductByPartNumber(partNumber)
