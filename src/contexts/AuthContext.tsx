@@ -60,6 +60,9 @@ interface AuthContextType {
   signUp: (signUpData: SignUpData) => Promise<{ error?: string }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  resetPassword: (email: string) => Promise<{ error?: string }>
+  updatePassword: (newPassword: string) => Promise<{ error?: string }>
+  verifyPassword: (password: string) => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -281,6 +284,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut()
   }
 
+  // 비밀번호 재설정 이메일 전송
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/recovery`
+      })
+
+      if (error) {
+        if (error.message.includes('User not found')) {
+          return { error: '등록되지 않은 이메일입니다.' }
+        }
+        return { error: '비밀번호 재설정 요청 중 오류가 발생했습니다.' }
+      }
+
+      return {}
+    } catch (error) {
+      return { error: '비밀번호 재설정 요청 중 오류가 발생했습니다.' }
+    }
+  }
+
+  // 비밀번호 업데이트
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({ 
+        password: newPassword 
+      })
+
+      if (error) {
+        if (error.message.includes('Auth session missing')) {
+          return { error: '인증 세션이 만료되었습니다. 다시 로그인해주세요.' }
+        }
+        if (error.message.includes('Password should be at least')) {
+          return { error: '비밀번호는 최소 6자 이상이어야 합니다.' }
+        }
+        return { error: '비밀번호 변경 중 오류가 발생했습니다.' }
+      }
+
+      return {}
+    } catch (error) {
+      return { error: '비밀번호 변경 중 오류가 발생했습니다.' }
+    }
+  }
+
+  // 현재 비밀번호 검증 (로그인된 사용자의 비밀번호 확인)
+  const verifyPassword = async (password: string): Promise<boolean> => {
+    try {
+      if (!user?.email) return false
+      
+      const { error } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: password,
+      })
+
+      return !error
+    } catch (error) {
+      return false
+    }
+  }
+
   const value = {
     user,
     profile,
@@ -292,6 +354,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     refreshProfile,
+    resetPassword,
+    updatePassword,
+    verifyPassword,
   }
 
   return (

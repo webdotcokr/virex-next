@@ -23,6 +23,8 @@ export default function MyPageLayout({ children }: MyPageLayoutProps) {
     breadcrumbs.push({ label: "회원정보 수정" })
   } else if (pathname === '/mypage/inquiries') {
     breadcrumbs.push({ label: "문의내역" })
+  } else if (pathname === '/mypage/password') {
+    breadcrumbs.push({ label: "비밀번호 변경" })
   }
 
   const menuItems = [
@@ -37,6 +39,12 @@ export default function MyPageLayout({ children }: MyPageLayoutProps) {
       label: '회원정보 수정',
       icon: '👤',
       active: pathname === '/mypage/profile'
+    },
+    {
+      href: '/mypage/password',
+      label: '비밀번호 변경',
+      icon: '🔒',
+      active: pathname === '/mypage/password'
     },
     {
       href: '/mypage/inquiries',

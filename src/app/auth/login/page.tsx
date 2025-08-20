@@ -17,12 +17,14 @@ function LoginForm() {
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<FormErrors>({})
   const [generalError, setGeneralError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const { signIn, user, profile } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
   const error = searchParams.get('error')
+  const message = searchParams.get('message')
 
   useEffect(() => {
     if (user) {
@@ -37,7 +39,12 @@ function LoginForm() {
     } else if (error === 'server_error') {
       setGeneralError('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
     }
-  }, [error])
+    
+    // URL에서 성공 메시지 처리
+    if (message === 'password_updated') {
+      setSuccessMessage('비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해주세요.')
+    }
+  }, [error, message])
 
   // 입력 값 변경 핸들러
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,6 +127,20 @@ function LoginForm() {
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {successMessage && (
+            <div style={{ 
+              color: '#155724', 
+              backgroundColor: '#d4edda', 
+              border: '1px solid #c3e6cb',
+              padding: '15px',
+              borderRadius: '6px',
+              fontSize: '14px',
+              textAlign: 'center'
+            }}>
+              {successMessage}
+            </div>
+          )}
+          
           {generalError && (
             <div style={{ 
               color: '#dc3545', 
@@ -191,15 +212,14 @@ function LoginForm() {
               </span>
             </div>
             
-            {/* 향후 비밀번호 찾기 기능을 위한 예비 공간 */}
-            {/* <div>
+            <div>
               <Link 
                 href="/auth/forgot-password"
                 style={{ fontSize: '14px', color: '#6c757d', textDecoration: 'none' }}
               >
                 비밀번호를 잊으셨나요?
               </Link>
-            </div> */}
+            </div>
           </div>
         </form>
 

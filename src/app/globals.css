@@ -2404,10 +2404,6 @@ footer #footer-bottom #footer-copyright {
     padding: 4rem 1.25rem 2.5rem 1.25rem
   }
 
-  #page-content #breadcrumb span a,
-  .breadcrumb a {
-    font-size: 12px;
-  }
   .breadcrumb {
     font-size: 0.75rem;
   }
