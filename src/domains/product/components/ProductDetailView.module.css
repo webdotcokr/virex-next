@@ -327,6 +327,12 @@
   font-weight: 600;
 }
 
+/* Downloads */
+.downloadsSection {
+  margin: 100px 0;
+  text-align: center;
+}
+
 /* Applications */
 .applicationsContainer {
   padding: 70px 0 100px 0;

@@ -22,6 +22,7 @@ import {
   Article as NewsIcon,
   NewReleases as NewProductsIcon,
   Category as SeriesIcon,
+  AttachFile as AttachFileIcon,
   ExpandLess,
   ExpandMore,
   ChevronRight,
@@ -70,6 +71,7 @@ const menuItems = [
     hasSubmenu: true,
     submenu: productCategories 
   },
+  { text: 'Product Files Management', icon: <AttachFileIcon />, path: '/admin/product-files' },
   { text: 'Series', icon: <SeriesIcon />, path: '/admin/series' },
   { text: 'Newsletter', icon: <EmailIcon />, path: '/admin/newsletter' },
   { text: 'Downloads', icon: <DownloadIcon />, path: '/admin/downloads' },

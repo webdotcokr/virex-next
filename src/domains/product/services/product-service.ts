@@ -654,8 +654,41 @@ export class ProductService {
         }
       }
 
+      // Get product download files if file references exist
+      let downloadFiles: any[] = []
+      
+      // Assuming we'll have file reference columns in the product data
+      // For now, we'll just pass empty array as the schema hasn't been migrated yet
+      const fileTypes = [
+        { type: 'catalog', id: product.catalog_file_id },
+        { type: 'datasheet', id: product.datasheet_file_id },
+        { type: 'manual', id: product.manual_file_id },
+        { type: 'drawing', id: product.drawing_file_id }
+      ]
+
+      for (const fileType of fileTypes) {
+        if (fileType.id) {
+          const { data: downloadFile, error: downloadError } = await supabase
+            .from('downloads')
+            .select(`
+              id, title, file_name, file_url, hit_count,
+              download_categories(is_member_only)
+            `)
+            .eq('id', fileType.id)
+            .single()
+
+          if (!downloadError && downloadFile) {
+            downloadFiles.push({
+              ...downloadFile,
+              file_type: fileType.type,
+              is_member_only: downloadFile.download_categories?.is_member_only || (fileType.type === 'drawing')
+            })
+          }
+        }
+      }
+
       // Separate common fields from specifications
-      const { id, part_number, series_id, is_active, is_new, image_url, created_at, updated_at, series, ...specifications } = product
+      const { id, part_number, series_id, is_active, is_new, image_url, created_at, updated_at, series, catalog_file_id, datasheet_file_id, manual_file_id, drawing_file_id, ...specifications } = product
 
       const result = {
         id,
@@ -665,6 +698,10 @@ export class ProductService {
         is_active,
         is_new,
         image_url: image_url || '',
+        catalog_file_id,
+        datasheet_file_id,
+        manual_file_id,
+        drawing_file_id,
         created_at,
         updated_at,
         partnumber: part_number,
@@ -675,6 +712,7 @@ export class ProductService {
         category_name: this.getCategoryName(categoryId),
         series_data: seriesData,
         related_products: relatedProducts,
+        download_files: downloadFiles,
         specifications
       }
       

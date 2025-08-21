@@ -8,6 +8,7 @@ const pageConfig: Record<string, { title?: string; showExportButton?: boolean }>
   '/admin': { title: 'Dashboard' },
   '/admin/newsletter': { title: 'Newsletter Subscriptions', showExportButton: true },
   '/admin/products': { title: 'Products' },
+  '/admin/product-files': { title: 'Product Files Management' },
 };
 
 export default function AdminLayoutPage({

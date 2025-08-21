@@ -71,6 +71,10 @@ export type Database = {
           is_active: boolean
           is_new: boolean
           image_url: string | null
+          catalog_file_id: number | null
+          datasheet_file_id: number | null
+          manual_file_id: number | null
+          drawing_file_id: number | null
           created_at: string
           updated_at: string
         }
@@ -84,6 +88,10 @@ export type Database = {
           is_active?: boolean
           is_new?: boolean
           image_url?: string | null
+          catalog_file_id?: number | null
+          datasheet_file_id?: number | null
+          manual_file_id?: number | null
+          drawing_file_id?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -97,6 +105,10 @@ export type Database = {
           is_active?: boolean
           is_new?: boolean
           image_url?: string | null
+          catalog_file_id?: number | null
+          datasheet_file_id?: number | null
+          manual_file_id?: number | null
+          drawing_file_id?: number | null
           created_at?: string
           updated_at?: string
         }

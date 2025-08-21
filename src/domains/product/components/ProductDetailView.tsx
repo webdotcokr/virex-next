@@ -7,6 +7,7 @@ import { getColumnConfigForCategory, formatColumnValue } from '@/config/productC
 import InquiryForm from './InquiryForm'
 import RelatedProductsSlider from './RelatedProductsSlider'
 import SafeImage from '@/components/SafeImage'
+import ProductDownloadTable from '@/components/ProductDownloadTable'
 import type { Product } from '../types'
 import styles from './ProductDetailView.module.css'
 
@@ -24,6 +25,15 @@ interface ProductDetailViewProps {
       textItems: Array<{title: string, desc: string, image: string}>
     }
     related_products?: Product[]
+    download_files?: Array<{
+      id: number
+      title: string
+      file_name: string | null
+      file_url: string
+      hit_count: number
+      is_member_only?: boolean
+      file_type: string
+    }>
     maker_name?: string
     category_name?: string
   }
@@ -457,6 +467,18 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                 )}
               </tbody>
             </table>
+          </section>
+          
+          {/* Downloads */}
+          <section id="downloads" className={styles.downloadsSection}>
+            <h2 className={styles.sectionTitle}>다운로드</h2>
+            {product.download_files && product.download_files.length > 0 ? (
+              <ProductDownloadTable downloads={product.download_files} />
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                다운로드 가능한 파일이 없습니다.
+              </div>
+            )}
           </section>
           
           {/* Applications */}
