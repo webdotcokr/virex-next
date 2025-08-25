@@ -83,9 +83,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const cookies = document.cookie.split('; ')
       const authCookie = cookies.find(c => c.startsWith('sb-') && c.includes('auth-token'))
       console.log('🍪 인증 쿠키 확인:', { found: !!authCookie, cookies: cookies.length })
-      return !!authCookie
+      return { found: !!authCookie, cookie: authCookie }
     }
-    return false
+    return { found: false, cookie: null }
+  }
+  
+  // 쿠키에서 직접 세션 복원 시도
+  const tryRestoreFromCookie = async () => {
+    const { found, cookie } = checkAuthCookie()
+    if (!found || !cookie) return null
+    
+    try {
+      console.log('🔧 쿠키에서 직접 세션 복원 시도')
+      const cookieValue = decodeURIComponent(cookie.split('=')[1])
+      const sessionData = JSON.parse(cookieValue)
+      
+      if (sessionData.access_token && sessionData.user) {
+        console.log('✅ 쿠키에서 세션 데이터 충출 성공')
+        
+        // Supabase 세션 수동 복건
+        const { data, error } = await supabase.auth.setSession({
+          access_token: sessionData.access_token,
+          refresh_token: sessionData.refresh_token
+        })
+        
+        if (data.session && !error) {
+          console.log('✅ 세션 수동 복건 성공')
+          return data.session
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ 쿠키에서 세션 복원 실패:', error)
+    }
+    
+    return null
   }
   
   // 관리자 권한 상태 (더 명확한 검증)
@@ -192,7 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       try {
         // 쿠키 존재 여부 먼저 확인
-        const hasCookie = checkAuthCookie()
+        const { found: hasCookie } = checkAuthCookie()
         console.log('🔐 인증 쿠키 상태:', hasCookie)
         
         if (!hasCookie) {
@@ -204,46 +235,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
         
-        // 1차: getUser() 먼저 시도 (쿠키 기반)
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        console.log('👤 User 조회 결과:', { user: user ? { id: user.id, email: user.email } : null, error: userError })
+        // 배포 환경에서 더 안정적인 세션 복원을 위해 재시도 로직 추가
+        let retryCount = 0
+        const maxRetries = 3
+        let sessionData = null
         
-        if (user && !userError) {
-          // User가 있으면 세션도 조회
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-          console.log('📋 세션 조회 결과:', { 
-            session: session ? { 
-              user_id: session.user.id, 
-              email: session.user.email,
-              expires_at: session.expires_at 
-            } : null, 
-            error: sessionError 
-          })
+        while (retryCount < maxRetries && !sessionData) {
+          console.log(`🔄 세션 조회 시도 ${retryCount + 1}/${maxRetries}`)
           
-          setSession(session)
-          setUser(user)
-          
-          // 프로필 조회
-          const userProfile = await fetchProfile(user.id)
-          setProfile(userProfile)
-        } else {
-          // User가 없으면 세션만 확인 (fallback)
+          // getSession()을 우선 시도 (쿠키에서 직접 읽기)
           const { data: { session }, error: sessionError } = await supabase.auth.getSession()
           
           if (session?.user) {
-            console.log('📋 세션에서 사용자 발견')
-            setSession(session)
-            setUser(session.user)
+            console.log('✅ 세션 조회 성공:', {
+              user_id: session.user.id,
+              email: session.user.email,
+              expires_at: session.expires_at
+            })
+            sessionData = session
+            break
+          }
+          
+          // 세션이 없으면 getUser() 시도
+          const { data: { user }, error: userError } = await supabase.auth.getUser()
+          
+          if (user && !userError) {
+            console.log('✅ 사용자 조회 성공:', { id: user.id, email: user.email })
+            // 사용자는 있지만 세션이 없는 경우, 새 세션 생성 시도
+            const { data: newSession } = await supabase.auth.getSession()
+            if (newSession.session) {
+              sessionData = newSession.session
+              break
+            }
+          }
+          
+          retryCount++
+          if (retryCount < maxRetries) {
+            console.log(`⏳ ${retryCount * 500}ms 대기 후 재시도...`)
+            await new Promise(resolve => setTimeout(resolve, retryCount * 500))
+          }
+        }
+        
+        if (sessionData?.user) {
+          console.log('🎉 세션 복원 성공')
+          setSession(sessionData)
+          setUser(sessionData.user)
+          
+          // 프로필 조회
+          const userProfile = await fetchProfile(sessionData.user.id)
+          setProfile(userProfile)
+        } else {
+          // 일반 방법이 실패하면 쿠키에서 직접 복원 시도
+          console.log('🔧 일반 세션 복원 실패 - 쿠키 직접 복원 시도')
+          const cookieSession = await tryRestoreFromCookie()
+          
+          if (cookieSession?.user) {
+            console.log('✅ 쿠키 직접 복원 성공')
+            setSession(cookieSession)
+            setUser(cookieSession.user)
             
-            const userProfile = await fetchProfile(session.user.id)
+            const userProfile = await fetchProfile(cookieSession.user.id)
             setProfile(userProfile)
           } else {
-            console.log('👤 사용자 세션 없음')
+            console.log('❌ 모든 복원 방법 실패 - 로그아웃 상태로 처리')
             setSession(null)
             setUser(null)
             setProfile(null)
           }
         }
+        
       } catch (error) {
         console.error('❌ 초기 세션 조회 중 오류:', error)
         setSession(null)

@@ -40,11 +40,13 @@ export async function middleware(request: NextRequest) {
               sameSite: 'lax' as const,  // strict → lax로 변경
               path: '/',
               httpOnly: false,     // 클라이언트 접근 허용
-              maxAge: 60 * 60 * 24 * 7,  // 7일
+              maxAge: options?.maxAge || 60 * 60 * 24 * 7,  // 7일
               // sb-auth-token 특별 처리
               ...(name.includes('auth-token') ? {
                 priority: 'high',
-                domain: undefined  // 현재 도메인 사용
+                domain: undefined,  // 현재 도메인 사용
+                // 배포 환경에서 안정성을 위한 추가 옵션
+                encode: true
               } : {})
             }
             
@@ -65,7 +67,14 @@ export async function middleware(request: NextRequest) {
   )
 
   // 이렇게 하면 Supabase가 쿠키를 새로고침하고 유지함
-  await supabase.auth.getUser()
+  // 배포 환경에서 안정성을 위해 getSession()도 함께 시도
+  try {
+    await supabase.auth.getUser()
+    // 추가로 세션 확인
+    await supabase.auth.getSession()
+  } catch (error) {
+    console.warn('미들웨어 인증 예외:', error)
+  }
 
   return response
 }
