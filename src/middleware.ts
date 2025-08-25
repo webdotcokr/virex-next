@@ -20,6 +20,9 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) => {
             // Request cookies 설정
             request.cookies.set(name, value)
+            
+            // 디버깅 로그
+            console.log('🔧 Middleware 쿠키 설정:', { name, hasValue: !!value })
           })
           
           // Response 재생성
@@ -37,12 +40,27 @@ export async function middleware(request: NextRequest) {
               sameSite: 'lax' as const,  // strict → lax로 변경
               path: '/',
               httpOnly: false,     // 클라이언트 접근 허용
-              maxAge: 60 * 60 * 24 * 7  // 7일
+              maxAge: 60 * 60 * 24 * 7,  // 7일
+              // sb-auth-token 특별 처리
+              ...(name.includes('auth-token') ? {
+                priority: 'high',
+                domain: undefined  // 현재 도메인 사용
+              } : {})
             }
+            
             response.cookies.set(name, value, cookieOptions)
+            console.log('✅ Response 쿠키 설정 완료:', name)
           })
         },
       },
+      cookieOptions: {
+        name: 'sb-auth-token',
+        lifetime: 60 * 60 * 24 * 7,
+        domain: '',
+        path: '/',
+        sameSite: 'lax',
+        secure: true
+      }
     }
   )
 

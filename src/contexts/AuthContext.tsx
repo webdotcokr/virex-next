@@ -77,6 +77,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // SSR 친화적 Supabase 클라이언트 생성
   const supabase = createClient()
   
+  // 쿠키 확인 함수
+  const checkAuthCookie = () => {
+    if (typeof document !== 'undefined') {
+      const cookies = document.cookie.split('; ')
+      const authCookie = cookies.find(c => c.startsWith('sb-') && c.includes('auth-token'))
+      console.log('🍪 인증 쿠키 확인:', { found: !!authCookie, cookies: cookies.length })
+      return !!authCookie
+    }
+    return false
+  }
+  
   // 관리자 권한 상태 (더 명확한 검증)
   const isAdmin = Boolean(profile?.role === 'admin' && user)
   const role = profile?.role || null
@@ -180,6 +191,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🚀 초기 세션 조회 시작')
       
       try {
+        // 쿠키 존재 여부 먼저 확인
+        const hasCookie = checkAuthCookie()
+        console.log('🔐 인증 쿠키 상태:', hasCookie)
+        
+        if (!hasCookie) {
+          console.log('⚠️ 인증 쿠키 없음 - 로그아웃 상태로 처리')
+          setSession(null)
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+          return
+        }
+        
         // 1차: getUser() 먼저 시도 (쿠키 기반)
         const { data: { user }, error: userError } = await supabase.auth.getUser()
         console.log('👤 User 조회 결과:', { user: user ? { id: user.id, email: user.email } : null, error: userError })
@@ -260,7 +284,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -276,8 +300,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: error.message }
       }
 
+      // 로그인 성공 시 쿠키 설정 보장
+      if (data?.session?.access_token) {
+        console.log('🔐 로그인 성공 - 쿠키 설정 보장')
+        
+        // 프로젝트 ID 추출 (URL에서)
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+        const projectRef = supabaseUrl.split('//')[1].split('.')[0]
+        
+        // sb-auth-token 쿠키 명시적 설정
+        const cookieName = `sb-${projectRef}-auth-token`
+        const cookieValue = JSON.stringify({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+          expires_at: data.session.expires_at,
+          token_type: data.session.token_type,
+          user: data.session.user
+        })
+        
+        if (typeof document !== 'undefined') {
+          document.cookie = `${cookieName}=${encodeURIComponent(cookieValue)}; path=/; max-age=${60*60*24*7}; secure; samesite=lax`
+          console.log('✅ 인증 쿠키 설정 완료:', cookieName)
+          
+          // 쿠키 설정 확인
+          setTimeout(() => {
+            const isSet = checkAuthCookie()
+            console.log('🔍 쿠키 설정 확인:', isSet)
+          }, 100)
+        }
+      }
+
       return {}
     } catch (error) {
+      console.error('로그인 오류:', error)
       return { error: '로그인 중 오류가 발생했습니다.' }
     }
   }
