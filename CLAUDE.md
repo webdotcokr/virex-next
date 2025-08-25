@@ -178,10 +178,17 @@ Storage: tbl_media나 제품 이미지 같은 파일들은 Supabase Storage를 �
 
 ### 3. 인증 시스템 (Supabase Auth)
 **구현 완료:**
-- `AuthContext` - 전역 인증 상태 관리
+- `AuthContext` - SSR 친화적 전역 인증 상태 관리
 - `/auth/login` - 로그인 페이지
 - `/auth/signup` - 회원가입 페이지
 - 자동 리다이렉트 (비회원이 회원 전용 접근 시)
+- 배포 환경 쿠키 지속성 처리 완료
+- AuthContext 무한 루프 방지 완료
+
+**주요 기술 스택:**
+- `@supabase/ssr` - SSR 전용 쿠키 기반 세션 관리
+- `@supabase/auth-helpers-nextjs` - Next.js 인증 헬퍼
+- 순수 쿠키 기반 접근 (비 localStorage)
 
 ### 4. 프론트엔드 페이지 구현
 **메인페이지 (`/`):**
@@ -294,11 +301,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 - 공개 읽기 접근 허용
 - 회원 전용 다운로드 접근 제어
 - 관리자 전용 데이터 수정 권한
+- **RLS 정책 단순화**: `auth.uid() = id` 방식으로 무한 재귀 방지
 
 ### 인증 흐름
 1. 비회원이 회원 전용 콘텐츠 접근 시도
 2. 자동으로 로그인 페이지로 리다이렉트
 3. 로그인 성공 시 원래 페이지로 복귀
+4. **세션 복원**: 3단계 복원 방식 (getSession → getUser → 쿠키 직접)
+5. **배포 환경**: 쿠키 지속성 및 middleware 자동 갱신
+
+### 인증 보안 특징
+- **쿠키 보안**: `secure`, `samesite=lax`, `httpOnly=false`
+- **토큰 갱신**: 자동 리프레시 지원
+- **중복 실행 방지**: initialized 플래그 및 이벤트 필터링
 
 ## 📊 주요 성능 최적화
 
@@ -314,12 +329,53 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 - React 성능 최적화 (useMemo, useCallback 적용)
 - CSS Module 기반 지역 스코프 스타일링
 
+## 🚫 알려진 이슈 및 해결법
+
+### 해결된 이슈들
+
+#### 1. **RLS 무한 재귀 문제**
+- **증상**: `"infinite recursion detected in policy for relation 'member_profiles'"`
+- **원인**: member_profiles 테이블 자기 참조 정책
+- **해결**: RLS 정책 단순화 (`auth.uid() = id`)
+- **상태**: ✅ 해결 완료
+
+#### 2. **배포 환경 쿠키 지속성 문제**
+- **증상**: 로그인 후 새로고침 시 세션 상실
+- **원인**: localStorage 기반 저장 방식의 SSR 비호환성
+- **해결**: 순수 쿠키 기반 접근법 적용
+- **상태**: ✅ 해결 완료
+
+#### 3. **AuthContext 무한 루프 문제**
+- **증상**: admin 페이지 무한 로딩
+- **원인**: useEffect 중복 실행 및 이벤트 핸들러 중복 처리
+- **해결**: initialized 플래그 및 이벤트 필터링
+- **상태**: ✅ 해결 완료
+
+#### 4. **sb-auth-token 쿠키 생성 문제**
+- **증상**: 배포 환경에서 sb-auth-token 쿠키 미생성
+- **원인**: 자동 쿠키 생성 실패
+- **해결**: 로그인 시 명시적 쿠키 생성 로직 추가
+- **상태**: ✅ 해결 완료
+
+### 현재 알려진 제한사항
+- **없음**: 모든 주요 인증 문제 해결
+
+### 개발 시 주의사항
+1. **RLS 정책 수정 시**: 자기 참조 방식 피하기
+2. **localStorage 사용 금지**: SSR 환경에서 문제 발생
+3. **AuthContext 수정 시**: initialized 플래그 유지하기
+4. **배포 환경 테스트**: 로그인 후 새로고침 테스트 필수
+
+---
+
 ## 🔄 향후 개선 계획
 
 ### 단기 개선사항
 - 이미지 최적화 (Next.js Image 컴포넌트 적용)
 - ESLint 경고 해결
 - 추가 에러 핸들링
+- **파일 업로드 기능 구현** (inquiries API)
+- **sitemap 동적 제품 페이지 생성**
 
 ### 장기 개선사항
 - 실시간 알림 시스템 (Supabase Realtime)

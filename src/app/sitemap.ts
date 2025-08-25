@@ -1,5 +1,8 @@
 import { MetadataRoute } from 'next'
 
+// TODO: 향후 동적 sitemap 구현 시 아래 import 활성화
+// import { createClient } from '@/lib/supabase-client'
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://virex.co.kr'
   const currentDate = new Date()
@@ -101,6 +104,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // TODO: 실제 제품 상세 페이지들 (데이터베이스에서 동적으로 가져와야 함)
   // 현재는 예시로 몇 개만 추가
+  // 구현 예정: Supabase products 테이블에서 part_number 기반 URL 생성
+  // 예: /products/[part_number] 형태로 모든 제품 상세 페이지 자동 생성
+  // 참고: 하단 예시 코드 사용하여 비동기 sitemap 생성
   const sampleProductPages = [
     {
       url: `${baseUrl}/products/ARL-22CH-12D`,

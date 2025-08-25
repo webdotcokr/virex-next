@@ -61,9 +61,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // For now, we'll skip file upload implementation
-      // In a real implementation, you would upload to Supabase Storage or external service
-      attachmentUrl = null; // TODO: Implement file upload
+      // TODO: 파일 업로드 기능 구현 예정
+      // Supabase Storage 또는 외부 서비스를 사용하여 파일 업로드 구현
+      // 예시 코드:
+      // const { data, error } = await supabase.storage
+      //   .from('inquiries')
+      //   .upload(`${Date.now()}-${attachment.name}`, attachment)
+      // if (!error) attachmentUrl = data.path
+      attachmentUrl = null; // 임시 비활성화
     }
 
     // Create Supabase client

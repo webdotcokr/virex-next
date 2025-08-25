@@ -188,7 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           agree_terms: true, // 기존 사용자는 약관에 동의했다고 가정
           agree_privacy: true,  
           agree_marketing: false, // 마케팅은 기본적으로 false
-          member_level: null, // tbl_member_level 데이터가 없으므로 NULL
+          member_level: null, // 선택적 필드: 멤버십 레벨 설정 (기본 NULL)
           status: 0,
           role: 'member' // 기본적으로 일반 회원
         })
@@ -197,6 +197,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('기본 프로필 생성 오류:', error)
+        // RLS 정책 오류 또는 제약 조건 위반 가능성
         console.error('Error details:', JSON.stringify(error, null, 2))
         return null
       }
@@ -463,15 +464,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           agree_terms: signUpData.agree_terms,
           agree_privacy: signUpData.agree_privacy,
           agree_marketing: signUpData.agree_marketing,
-          member_level: null, // tbl_member_level 데이터가 없으므로 NULL
+          member_level: null, // 선택적 필드: 멤버십 레벨 설정 (기본 NULL)
           status: 0, // 정상 상태
           role: 'member' // 기본적으로 일반 회원
         })
 
       if (profileError) {
         console.error('프로필 생성 오류:', profileError)
-        // 프로필 생성 실패 시에도 계정은 생성되었으므로, 경고만 로그
-        // 실제 서비스에서는 이런 경우를 위한 추가 처리가 필요할 수 있습니다.
+        // 프로필 생성 실패 시에도 Supabase Auth 계정은 생성됨
+        // 이후 로그인 시 createDefaultProfile()에서 재시도됨
+        // 운영 환경에서는 별도 모니터링 및 알림 시스템 적용 권장
       }
 
       return {}
