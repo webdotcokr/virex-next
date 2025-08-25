@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+import { verifyAdminAuth } from '@/lib/admin-auth';
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createClient();
-    
-    // Get current user for authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // 통합된 관리자 권한 검증
+    const authResult = await verifyAdminAuth(request)
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.status })
     }
+
+    // Service Role 클라이언트 생성
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
     const { searchParams } = new URL(request.url);
     const fileUrl = searchParams.get('fileUrl');

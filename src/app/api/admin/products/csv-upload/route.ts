@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { CSVProcessor } from '@/lib/CSVProcessor';
+import { verifyAdminAuth } from '@/lib/admin-auth';
 
 function createSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,6 +16,12 @@ function createSupabaseClient() {
 
 export async function POST(request: NextRequest) {
   try {
+    // 통합된 관리자 권한 검증
+    const authResult = await verifyAdminAuth(request)
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+    }
+
     const supabase = createSupabaseClient();
     
     // Get the uploaded file

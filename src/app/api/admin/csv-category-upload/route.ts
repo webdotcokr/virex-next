@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { verifyAdminAuth } from '@/lib/admin-auth';
 
 // 카테고리 ID to 테이블명 매핑
 const CATEGORY_TABLE_MAPPING: Record<number, string> = {
@@ -33,10 +34,20 @@ export async function POST(request: NextRequest) {
   console.log('CSV Upload API called');
   
   try {
+    // 통합된 관리자 권한 검증
+    const authResult = await verifyAdminAuth(request)
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+    }
     console.log('Parsing form data...');
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const categoryId = parseInt(formData.get('categoryId') as string);
+    const categoryIdStr = formData.get('categoryId') as string;
+    const categoryId = parseInt(categoryIdStr);
+    
+    if (isNaN(categoryId)) {
+      return NextResponse.json({ error: 'Invalid category ID' }, { status: 400 });
+    }
     
     console.log('File:', file?.name, 'Category ID:', categoryId);
     
@@ -139,7 +150,9 @@ export async function POST(request: NextRequest) {
             }
           }
           
-          processedData['series_id'] = seriesId;
+          if (seriesId) {
+            processedData['series_id'] = seriesId;
+          }
         }
 
         // Handle specification columns (non-common columns)

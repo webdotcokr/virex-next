@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
 import { CSVProcessor } from '@/lib/CSVProcessor'
 import { CSVTemplateGenerator } from '@/lib/CSVTemplateGenerator'
-
-// Supabase 클라이언트 초기화 (Service Role Key 사용)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { verifyAdminAuth } from '@/lib/admin-auth'
 
 export async function POST(request: NextRequest) {
   try {
-    // 인증 체크 (관리자만 접근 가능) - 선택사항
-    // const cookieStore = cookies()
-    // const token = cookieStore.get('sb-access-token')
+    // 통합된 관리자 권한 검증
+    const authResult = await verifyAdminAuth(request)
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+    }
+
+    // Service Role 클라이언트 생성 (RLS 우회)
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    )
     
     // FormData에서 파일 추출
     const formData = await request.formData()
@@ -206,6 +209,17 @@ export async function POST(request: NextRequest) {
 // CSV 템플릿 다운로드 엔드포인트 (CSVTemplateGenerator 호환)
 export async function GET(request: NextRequest) {
   try {
+    // 관리자 권한 검증
+    const authResult = await verifyAdminAuth(request)
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    )
     const { searchParams } = new URL(request.url)
     const categoryId = searchParams.get('categoryId')
     const categoryName = searchParams.get('category') // 카테고리명으로도 접근 가능
