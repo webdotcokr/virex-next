@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-client'
 
 interface MemberProfile {
   id: string
@@ -73,6 +73,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<MemberProfile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  
+  // SSR 친화적 Supabase 클라이언트 생성
+  const supabase = createClient()
   
   // 관리자 권한 상태 (더 명확한 검증)
   const isAdmin = Boolean(profile?.role === 'admin' && user)
