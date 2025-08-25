@@ -23,7 +23,7 @@ export default function HomeContent() {
   const mainProducts = [
     {
       title: '카메라',
-      href: '/products?categories=9',
+      href: '/products?categories=9&sort=maker&order=desc',
       image:  '/img/main-products/01.png'
     },
     {

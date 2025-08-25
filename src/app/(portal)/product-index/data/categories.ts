@@ -26,7 +26,7 @@ export const productCategories: ProductCategory[] = [
           'Contact Image Sensor'
         ],
         imageUrl: '/img/camera-01.png',
-        linkUrl: '/products?categories=9'
+        linkUrl: '/products?categories=9&sort=maker&order=desc'
       },
       {
         id: 'tdi',

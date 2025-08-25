@@ -115,7 +115,7 @@ export default function Footer() {
               <Link href="/product-index">제품</Link>
             </div>
             <div className="gnb-menu-group-item">
-              <Link href="/products?categories=9">카메라</Link>
+              <Link href="/products?categories=9&sort=maker&order=desc">카메라</Link>
             </div>
             <div className="gnb-menu-group-item">
               <Link href="/products?categories=15">렌즈</Link>

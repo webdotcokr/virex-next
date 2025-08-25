@@ -12,7 +12,7 @@ const MENU_CONFIG = {
     title: '제품',
     mainLink: '/product-index',
     items: [
-      { label: '카메라', href: '/products?categories=9' },
+      { label: '카메라', href: '/products?categories=9&sort=maker&order=desc' },
       { label: '렌즈', href: '/products?categories=15' },
       { label: '3D 카메라', href: '/products?categories=18' },
       { label: '오토포커스 모듈', href: '/products?categories=4' },
