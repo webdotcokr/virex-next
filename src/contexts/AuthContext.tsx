@@ -73,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<MemberProfile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false) // 초기화 상태 추가
   
   // SSR 친화적 Supabase 클라이언트 생성
   const supabase = createClient()
@@ -133,9 +134,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   // 회원 프로필 조회
-  const fetchProfile = async (userId: string): Promise<MemberProfile | null> => {
+  const fetchProfile = async (userId: string, context = 'unknown'): Promise<MemberProfile | null> => {
     try {
-      console.log('🔍 프로필 조회 시작:', userId)
+      console.log(`🔍 프로필 조회 시작 [${context}]:`, userId)
       
       const { data, error } = await supabase
         .from('member_profiles')
@@ -155,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null
       }
 
-      console.log('✅ 프로필 조회 성공:', { name: data.name, role: data.role })
+      console.log(`✅ 프로필 조회 성공 [${context}]:`, { name: data.name, role: data.role })
       return data
     } catch (error) {
       console.error('💥 프로필 조회 중 예외 발생:', error)
@@ -211,15 +212,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 프로필 새로고침
   const refreshProfile = async () => {
     if (user) {
-      const userProfile = await fetchProfile(user.id)
+      const userProfile = await fetchProfile(user.id, '수동새로고침')
       setProfile(userProfile)
     }
   }
 
   useEffect(() => {
+    // 중복 실행 방지
+    if (initialized) {
+      console.log('⚠️ 이미 초기화됨 - 중복 실행 방지')
+      return
+    }
+    
     // Get initial session with retry logic
     const getInitialSession = async () => {
-      console.log('🚀 초기 세션 조회 시작')
+      console.log('🚀 초기 세션 조회 시작 [초기화]')
+      setInitialized(true) // 초기화 플래그 설정
       
       try {
         // 쿠키 존재 여부 먼저 확인
@@ -235,44 +243,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
         
-        // 배포 환경에서 더 안정적인 세션 복원을 위해 재시도 로직 추가
-        let retryCount = 0
-        const maxRetries = 3
+        // 세션 복원 시도 (최적화된 버전)
         let sessionData = null
         
-        while (retryCount < maxRetries && !sessionData) {
-          console.log(`🔄 세션 조회 시도 ${retryCount + 1}/${maxRetries}`)
-          
-          // getSession()을 우선 시도 (쿠키에서 직접 읽기)
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-          
-          if (session?.user) {
-            console.log('✅ 세션 조회 성공:', {
-              user_id: session.user.id,
-              email: session.user.email,
-              expires_at: session.expires_at
-            })
-            sessionData = session
-            break
-          }
-          
-          // 세션이 없으면 getUser() 시도
+        // 1단계: getSession() 우선 시도
+        console.log('🔄 1단계: 세션 직접 조회')
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (session?.user && !sessionError) {
+          console.log('✅ 세션 직접 조회 성공')
+          sessionData = session
+        } else {
+          // 2단계: getUser() 보조 시도
+          console.log('🔄 2단계: 사용자 조회 후 세션 재확인')
           const { data: { user }, error: userError } = await supabase.auth.getUser()
           
           if (user && !userError) {
-            console.log('✅ 사용자 조회 성공:', { id: user.id, email: user.email })
-            // 사용자는 있지만 세션이 없는 경우, 새 세션 생성 시도
-            const { data: newSession } = await supabase.auth.getSession()
-            if (newSession.session) {
-              sessionData = newSession.session
-              break
+            console.log('✅ 사용자 조회 성공 - 세션 재확인')
+            // 사용자가 있으면 세션 재확인
+            const { data: retrySession } = await supabase.auth.getSession()
+            if (retrySession.session) {
+              console.log('✅ 세션 재확인 성공')
+              sessionData = retrySession.session
             }
-          }
-          
-          retryCount++
-          if (retryCount < maxRetries) {
-            console.log(`⏳ ${retryCount * 500}ms 대기 후 재시도...`)
-            await new Promise(resolve => setTimeout(resolve, retryCount * 500))
           }
         }
         
@@ -282,11 +275,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(sessionData.user)
           
           // 프로필 조회
-          const userProfile = await fetchProfile(sessionData.user.id)
+          const userProfile = await fetchProfile(sessionData.user.id, '초기화')
           setProfile(userProfile)
         } else {
-          // 일반 방법이 실패하면 쿠키에서 직접 복원 시도
-          console.log('🔧 일반 세션 복원 실패 - 쿠키 직접 복원 시도')
+          // 3단계: 쿠키 직접 복원 시도
+          console.log('🔧 3단계: 쿠키 직접 복원 시도')
           const cookieSession = await tryRestoreFromCookie()
           
           if (cookieSession?.user) {
@@ -294,7 +287,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(cookieSession)
             setUser(cookieSession.user)
             
-            const userProfile = await fetchProfile(cookieSession.user.id)
+            const userProfile = await fetchProfile(cookieSession.user.id, '쿠키복원')
             setProfile(userProfile)
           } else {
             console.log('❌ 모든 복원 방법 실패 - 로그아웃 상태로 처리')
@@ -311,7 +304,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null)
       } finally {
         setLoading(false)
-        console.log('✅ 초기 세션 조회 완료')
+        console.log('✅ 초기 세션 조회 완료 [초기화]')
       }
     }
 
@@ -320,27 +313,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 인증 상태 변경:', event, session ? {
+        console.log('🔄 인증 상태 변경 [이벤트]:', event, session ? {
           user_id: session.user.id,
           email: session.user.email
         } : null)
+        
+        // 초기화 중이면 무시 (초기화에서 이미 처리됨)
+        if (!initialized) {
+          console.log('⚠️ 초기화 중이므로 이벤트 무시')
+          return
+        }
+        
+        // INITIAL_SESSION 이벤트는 밴로 무시 (중복 방지)
+        if (event === 'INITIAL_SESSION') {
+          console.log('⚠️ INITIAL_SESSION 이벤트 무시 - 이미 초기화됨')
+          return
+        }
+        
+        // SIGNED_IN 이벤트에서 이미 세션이 있으면 무시
+        if (event === 'SIGNED_IN' && user && profile) {
+          console.log('⚠️ SIGNED_IN 이벤트에서 이미 세션 존재 - 무시')
+          return
+        }
+        
+        console.log('✅ 인증 이벤트 처리 시작:', event)
         
         setSession(session)
         setUser(session?.user ?? null)
         
         if (session?.user) {
-          const userProfile = await fetchProfile(session.user.id)
-          setProfile(userProfile)
+          // 이미 프로필이 있고 같은 사용자면 재조회 스킵
+          if (profile && profile.id === session.user.id) {
+            console.log('⚠️ 동일 사용자 프로필 존재 - 재조회 스킵')
+          } else {
+            const userProfile = await fetchProfile(session.user.id, '이벤트')
+            setProfile(userProfile)
+          }
         } else {
           setProfile(null)
         }
         
-        setLoading(false)
+        // 이벤트 핸들러에서는 loading을 변경하지 않음 (초기화에서만 처리)
+        console.log('✅ 인증 이벤트 처리 완료:', event)
       }
     )
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => {
+      console.log('🔌 AuthContext cleanup')
+      subscription.unsubscribe()
+    }
+  }, []) // 빈 의존성 배열 유지
 
   const signIn = async (email: string, password: string) => {
     try {
