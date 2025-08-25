@@ -175,32 +175,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session with retry logic
     const getInitialSession = async () => {
       console.log('🚀 초기 세션 조회 시작')
-      const { data: { session }, error } = await supabase.auth.getSession()
-      console.log('📋 초기 세션 결과:', { 
-        session: session ? { 
-          user_id: session.user.id, 
-          email: session.user.email,
-          expires_at: session.expires_at 
-        } : null, 
-        error 
-      })
       
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        console.log('👤 사용자 세션 존재, 프로필 조회 시작')
-        const userProfile = await fetchProfile(session.user.id)
-        setProfile(userProfile)
-      } else {
-        console.log('👤 사용자 세션 없음')
+      try {
+        // 1차: getUser() 먼저 시도 (쿠키 기반)
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        console.log('👤 User 조회 결과:', { user: user ? { id: user.id, email: user.email } : null, error: userError })
+        
+        if (user && !userError) {
+          // User가 있으면 세션도 조회
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+          console.log('📋 세션 조회 결과:', { 
+            session: session ? { 
+              user_id: session.user.id, 
+              email: session.user.email,
+              expires_at: session.expires_at 
+            } : null, 
+            error: sessionError 
+          })
+          
+          setSession(session)
+          setUser(user)
+          
+          // 프로필 조회
+          const userProfile = await fetchProfile(user.id)
+          setProfile(userProfile)
+        } else {
+          // User가 없으면 세션만 확인 (fallback)
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+          
+          if (session?.user) {
+            console.log('📋 세션에서 사용자 발견')
+            setSession(session)
+            setUser(session.user)
+            
+            const userProfile = await fetchProfile(session.user.id)
+            setProfile(userProfile)
+          } else {
+            console.log('👤 사용자 세션 없음')
+            setSession(null)
+            setUser(null)
+            setProfile(null)
+          }
+        }
+      } catch (error) {
+        console.error('❌ 초기 세션 조회 중 오류:', error)
+        setSession(null)
+        setUser(null)
+        setProfile(null)
+      } finally {
+        setLoading(false)
+        console.log('✅ 초기 세션 조회 완료')
       }
-      
-      setLoading(false)
-      console.log('✅ 초기 세션 조회 완료')
     }
 
     getInitialSession()
