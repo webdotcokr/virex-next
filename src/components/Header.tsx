@@ -170,28 +170,52 @@ export default function Header() {
     [handleScroll, throttle]
   )
 
-  // Unified megamenu handlers - no timeouts for smoother UX
+  // 완전히 재설계된 메가메뉴 호버 시스템
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
   
+  // 메뉴 아이템 호버: 메가메뉴 닫지 않고 활성 메뉴만 변경
   const handleMenuItemEnter = (menuKey: string) => {
-    // Clear any pending hide timeout
+    setHoveredMenuItem(menuKey)
+    // 메가메뉴가 아직 열리지 않았다면 열기
+    if (!isMegaMenuActive) {
+      setIsMegaMenuActive(true)
+    }
+  }
+
+  // 전체 메뉴 바 영역 진입: 메가메뉴 활성화 및 timeout 클리어
+  const handleHeaderMenuEnter = () => {
+    // 진입 시 timeout 클리어 및 메가메뉴 활성화
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
     }
     
-    setHoveredMenuItem(menuKey)
     setIsMegaMenuActive(true)
+    
+    // 첫 번째 메뉴를 기본 활성으로 설정 (메뉴가 선택되지 않은 경우)
+    if (!hoveredMenuItem) {
+      const firstMenuKey = Object.keys(MENU_CONFIG)[0]
+      setHoveredMenuItem(firstMenuKey)
+    }
   }
 
-  const handleMenuItemLeave = () => {
-    // Don't hide immediately - wait for potential megamenu enter
-    const timeout = setTimeout(() => {
-      setHoveredMenuItem(null)
-      setIsMegaMenuActive(false)
-    }, 200) // 더 넉넉한 딜레이로 안정적인 호버 경험 제공
+  // 전체 메뉴 바 영역 이탈: 메가메뉴 영역으로 이동하지 않으면 닫기
+  const handleHeaderMenuLeave = (e: React.MouseEvent) => {
+    const relatedTarget = e.relatedTarget as Node
+    const megaMenuContainer = document.getElementById('megamenu-container')
     
-    setHoverTimeout(timeout)
+    // 메가메뉴 영역으로 이동하는지 체크
+    const movingToMegaMenu = relatedTarget && megaMenuContainer?.contains(relatedTarget)
+    
+    if (!movingToMegaMenu) {
+      // 메가메뉴가 아닌 다른 곳으로 이동하면 닫기
+      const timeout = setTimeout(() => {
+        setHoveredMenuItem(null)
+        setIsMegaMenuActive(false)
+      }, 100)
+      
+      setHoverTimeout(timeout)
+    }
   }
 
   const handleMegaMenuEnter = () => {
@@ -206,14 +230,17 @@ export default function Header() {
   }
 
   const handleMegaMenuLeave = (e: React.MouseEvent) => {
-    // Event Delegation: relatedTarget으로 실제 영역 이탈 여부 정확히 판단
+    // Enhanced event delegation for smoother UX
+    const relatedTarget = e.relatedTarget as Node
+    const headerElement = document.querySelector('header[data-type="main"]')
     const megaMenuContainer = document.getElementById('megamenu-container')
-    const relatedTarget = e.relatedTarget as Element
     
-    // relatedTarget이 megamenu-container나 submenu-column 영역이 아닐 때만 닫기
-    if (!megaMenuContainer?.contains(relatedTarget) && 
-        !relatedTarget?.closest('.submenu-column') &&
-        !relatedTarget?.closest('.top-menu-item')) {
+    // Only close if moving to an area outside both header and megamenu
+    // relatedTarget이 null이거나 Node가 아닐 수 있으므로 안전하게 체크
+    const stillInHeader = relatedTarget && headerElement?.contains(relatedTarget)
+    const stillInMegaMenu = relatedTarget && megaMenuContainer?.contains(relatedTarget)
+    
+    if (!stillInHeader && !stillInMegaMenu) {
       setHoveredMenuItem(null)
       setIsMegaMenuActive(false)
       
@@ -287,14 +314,17 @@ export default function Header() {
             <Link href="/"><img src="/common/virex-logo.png" alt="Virex" /></Link>
           </div>
           
-          <div className="horizontal-menu">
+          <div 
+            className="horizontal-menu"
+            onMouseEnter={handleHeaderMenuEnter}
+            onMouseLeave={handleHeaderMenuLeave}
+          >
             {Object.entries(MENU_CONFIG).map(([key, config]) => (
               <div 
                 key={key} 
                 className={`top-menu-item ${hoveredMenuItem === key ? 'active' : ''}`}
                 data-menu={key}
                 onMouseEnter={() => handleMenuItemEnter(key)}
-                onMouseLeave={handleMenuItemLeave}
               >
                 <Link href={config.mainLink}>{config.title}</Link>
                 <div 
@@ -319,7 +349,7 @@ export default function Header() {
               placeholder="Search for..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={handleSearchKeyPress}
+              onKeyDown={handleSearchKeyPress}
             />
             <span 
               className="search-icon" 
@@ -401,7 +431,7 @@ export default function Header() {
             placeholder="Search for..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={handleSearchKeyPress}
+            onKeyDown={handleSearchKeyPress}
           />
           <span 
             className="search-icon" 

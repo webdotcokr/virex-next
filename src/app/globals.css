@@ -408,6 +408,7 @@ header #top-menu {
   padding: 1rem 1.25rem;
   transition: all 0.3s ease; /* Add transition for smooth changes */
   max-width: var(--container-width-xxl);
+  gap: 1rem; /* 최소 간격 보장 */
 }
 
 header #logo {
@@ -549,7 +550,7 @@ header.scrolled .horizontal-line {
   z-index: 998;
 }
 
-/* 호버 브릿지 강화 */
+/* 호버 브릿지 강화 - 클릭 가능하도록 수정 */
 .top-menu-item::before {
   content: '';
   position: absolute;
@@ -557,8 +558,8 @@ header.scrolled .horizontal-line {
   left: -10px;
   right: -10px;
   bottom: 0;
-  z-index: 1;
-  pointer-events: auto;
+  z-index: -1; /* 링크 클릭을 방해하지 않도록 z-index를 음수로 변경 */
+  pointer-events: none; /* 클릭 이벤트 차단 방지 */
 }
 
 header.megamenu-active .top-menu-item::before {
@@ -570,11 +571,11 @@ header.megamenu-active .horizontal-menu::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  left: -2rem; /* 좌우 확장으로 메뉴 간 공간 호버 감지 */
+  right: -2rem; /* 좌우 확장으로 메뉴 간 공간 호버 감지 */
   bottom: -560px;
-  z-index: 1;
-  pointer-events: auto;
+  z-index: -1; /* 클릭 방해하지 않도록 뒤로 배치 */
+  pointer-events: none; /* 클릭 이벤트는 차단하되 호버는 부모에서 감지 */
 }
 
 /* 기존 서브메뉴 스타일 제거 - 새로운 메가메뉴 구조는 megamenu.css에서 관리 */
@@ -593,10 +594,11 @@ header.megamenu-active .submenu-column {
 header .horizontal-menu {
   display: flex;
   justify-content: space-between;
-  gap: 0;
+  gap: 1rem; /* 메뉴 아이템 간 최소 간격 설정 */
   width: 100%;
   max-width: 50rem;
   position: relative; /* For absolute positioning of submenus */
+  margin-left: 1rem; /* 로고와의 최소 간격 보장 */
 }
 
 header .horizontal-menu .top-menu-item {
@@ -2437,9 +2439,22 @@ footer #footer-bottom #footer-copyright {
 /* 반응형 메가메뉴 스타일 */
 @media screen and (max-width: 1200px) {
   header .horizontal-menu {
-    gap: 3rem;
+    gap: 0.5rem; /* 좁은 화면에서 간격 줄임 */
+    margin-left: 0.5rem; /* 로고와의 간격도 줄임 */
   }
   
+}
+
+/* 더 좁은 화면에서 추가 조정 */
+@media screen and (max-width: 1024px) {
+  header #top-menu {
+    gap: 0.5rem; /* 전체 간격 줄임 */
+  }
+  
+  header .horizontal-menu {
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+  }
 }
 
 /* 태블릿 크기 메가메뉴 스타일 */
@@ -3939,6 +3954,8 @@ header.scrolled #search-bar .close-icon {
 /* Extend hover area when megamenu is active */
 header.megamenu-active .top-menu-item::before {
   bottom: -480px; /* Extend down to cover megamenu height */
+  pointer-events: none; /* 클릭 방해하지 않도록 설정 */
+  z-index: -1; /* 뒤로 배치 */
 }
 
 /* Update z-index hierarchy for smooth hover */
