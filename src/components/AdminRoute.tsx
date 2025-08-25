@@ -11,12 +11,21 @@ interface AdminRouteProps {
 }
 
 export default function AdminRoute({ children, fallback }: AdminRouteProps) {
-  const { user, isAdmin, loading } = useAuth()
+  const { user, profile, isAdmin, loading } = useAuth()
   const router = useRouter()
+
+  // 디버깅 로그 추가
+  console.log('🔐 AdminRoute 상태:', {
+    loading,
+    user: user ? { id: user.id, email: user.email } : null,
+    profile: profile ? { id: profile.id, name: profile.name, role: profile.role } : null,
+    isAdmin
+  })
 
   useEffect(() => {
     // 로딩이 완료되고 사용자가 없으면 로그인 페이지로 리다이렉트
     if (!loading && !user) {
+      console.log('🚫 사용자 없음, 로그인 페이지로 리다이렉트')
       router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname))
     }
   }, [loading, user, router])

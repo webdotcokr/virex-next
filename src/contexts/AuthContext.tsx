@@ -63,6 +63,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error?: string }>
   updatePassword: (newPassword: string) => Promise<{ error?: string }>
   verifyPassword: (password: string) => Promise<boolean>
+  fetchAdminData: (table: string, query?: any) => Promise<any>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -73,33 +74,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   
-  // 관리자 권한 상태
-  const isAdmin = profile?.role === 'admin'
+  // 관리자 권한 상태 (더 명확한 검증)
+  const isAdmin = Boolean(profile?.role === 'admin' && user)
   const role = profile?.role || null
+  
+  // 관리자 전용 데이터 조회 함수
+  const fetchAdminData = async (table: string, query?: any) => {
+    if (!isAdmin) {
+      throw new Error('관리자 권한이 필요합니다.')
+    }
+    return supabase.from(table).select(query || '*')
+  }
 
 
   // 회원 프로필 조회
   const fetchProfile = async (userId: string): Promise<MemberProfile | null> => {
     try {
+      console.log('🔍 프로필 조회 시작:', userId)
+      
       const { data, error } = await supabase
         .from('member_profiles')
         .select('*')
         .eq('id', userId)
         .single()
 
+      console.log('📊 프로필 조회 결과:', { data, error })
+
       if (error) {
         // PGRST116은 "행을 찾을 수 없음" 오류
         if (error.code === 'PGRST116') {
-          console.log('프로필이 존재하지 않습니다. 기본 프로필을 생성합니다.')
+          console.log('⚠️ 프로필이 존재하지 않습니다. 기본 프로필을 생성합니다.')
           return await createDefaultProfile(userId)
         }
-        console.error('프로필 조회 오류:', error)
+        console.error('❌ 프로필 조회 오류:', error)
         return null
       }
 
+      console.log('✅ 프로필 조회 성공:', { name: data.name, role: data.role })
       return data
     } catch (error) {
-      console.error('프로필 조회 중 예외 발생:', error)
+      console.error('💥 프로필 조회 중 예외 발생:', error)
       return null
     }
   }
@@ -160,16 +174,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      console.log('🚀 초기 세션 조회 시작')
+      const { data: { session }, error } = await supabase.auth.getSession()
+      console.log('📋 초기 세션 결과:', { 
+        session: session ? { 
+          user_id: session.user.id, 
+          email: session.user.email,
+          expires_at: session.expires_at 
+        } : null, 
+        error 
+      })
+      
       setSession(session)
       setUser(session?.user ?? null)
       
       if (session?.user) {
+        console.log('👤 사용자 세션 존재, 프로필 조회 시작')
         const userProfile = await fetchProfile(session.user.id)
         setProfile(userProfile)
+      } else {
+        console.log('👤 사용자 세션 없음')
       }
       
       setLoading(false)
+      console.log('✅ 초기 세션 조회 완료')
     }
 
     getInitialSession()
@@ -177,6 +205,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('🔄 인증 상태 변경:', event, session ? {
+          user_id: session.user.id,
+          email: session.user.email
+        } : null)
+        
         setSession(session)
         setUser(session?.user ?? null)
         
@@ -357,6 +390,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resetPassword,
     updatePassword,
     verifyPassword,
+    fetchAdminData,
   }
 
   return (
