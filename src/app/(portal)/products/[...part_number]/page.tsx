@@ -42,8 +42,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const categoryName = product.category_name || product.category?.name || ''
 
   return {
-    title: `${product.part_number} - ${seriesName} | ${makerName}`,
-    description: `${product.part_number} specifications and details. ${categoryName} by ${makerName}`,
+    title: `${product.part_number}${seriesName ? ` - ${seriesName}` : ''}${makerName ? ` | ${makerName}` : ''}`,
+    description: `${product.part_number} specifications and details${categoryName ? `. ${categoryName}` : ''}${makerName ? ` by ${makerName}` : ''}`,
     keywords: [
       product.part_number,
       seriesName,
@@ -68,15 +68,17 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         '@context': 'https://schema.org',
         '@type': 'Product',
         'name': product.part_number,
-        'brand': {
-          '@type': 'Brand',
-          'name': makerName
-        },
-        'category': categoryName,
+        ...(makerName && {
+          'brand': {
+            '@type': 'Brand',
+            'name': makerName
+          }
+        }),
+        ...(categoryName && { 'category': categoryName }),
         'productID': product.part_number,
         'url': canonicalUrl,
-        'image': product.image_url,
-        'description': shortText
+        ...(product.image_url && { 'image': product.image_url }),
+        ...(shortText && { 'description': shortText })
       })
     }
   }
@@ -100,10 +102,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             '@context': 'https://schema.org',
             '@type': 'Product',
             'name': product.part_number,
-            'brand': {
-              '@type': 'Brand',
-              'name': product.maker_name || 'Unknown'
-            },
+            ...(product.maker_name && {
+              'brand': {
+                '@type': 'Brand',
+                'name': product.maker_name
+              }
+            }),
             'category': product.category_name || product.category?.name || '',
             'productID': product.part_number,
             'url': `https://virex.co.kr/products/${encodeURIComponent(product.part_number)}`,
