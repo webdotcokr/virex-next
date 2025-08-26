@@ -977,7 +977,7 @@ export default function SeriesDataGrid() {
         <DialogContent sx={{ pt: 2, overflow: 'auto' }}>
           {/* Basic Information Section */}
           <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
-            📋 기본 정보
+            기본 정보
           </Typography>
           <Box sx={{ 
             display: 'grid', 
@@ -1055,7 +1055,7 @@ export default function SeriesDataGrid() {
 
           {/* Features Section */}
           <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
-            ⭐ 주요 특징 (Features)
+            주요 특징 (Features)
           </Typography>
           <Box sx={{ 
             display: 'grid', 
@@ -1089,66 +1089,10 @@ export default function SeriesDataGrid() {
             ))}
           </Box>
 
-          {/* Strengths Section */}
-          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
-            💪 강점 (Strengths)
-          </Typography>
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, 
-            gap: 2, 
-            mb: 3 
-          }}>
-            {[1, 2, 3, 4, 5, 6].map((num) => (
-              <TextField
-                key={num}
-                label={`Strength ${num}`}
-                variant="outlined"
-                value={editDialog[`strength${num}` as keyof typeof editDialog] as string || ''}
-                onChange={(e) => setEditDialog(prev => ({ ...prev, [`strength${num}`]: e.target.value }))}
-                size="small"
-              />
-            ))}
-          </Box>
-
-          {/* Applications Section */}
-          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
-            🎯 응용 분야 (Applications)
-          </Typography>
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
-            gap: 2, 
-            mb: 3 
-          }}>
-            {[1, 2, 3, 4].map((num) => (
-              <Box key={num} sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, bgcolor: '#fafafa' }}>
-                <Typography variant="subtitle2" gutterBottom color="primary">Application {num}</Typography>
-                <TextField
-                  label={`App Title`}
-                  fullWidth
-                  variant="outlined"
-                  value={editDialog[`appTitle${num}` as keyof typeof editDialog] as string || ''}
-                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`appTitle${num}`]: e.target.value }))}
-                  sx={{ mb: 1 }}
-                  size="small"
-                />
-                <TextField
-                  label={`App Image URL`}
-                  fullWidth
-                  variant="outlined"
-                  value={editDialog[`appImage${num}` as keyof typeof editDialog] as string || ''}
-                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`appImage${num}`]: e.target.value }))}
-                  size="small"
-                  placeholder="Image URL"
-                />
-              </Box>
-            ))}
-          </Box>
 
           {/* Text Content Section */}
           <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
-            📝 텍스트 콘텐츠 (Text Content)
+            텍스트 콘텐츠 (Text Content)
           </Typography>
           <Box sx={{ 
             display: 'grid', 
@@ -1192,9 +1136,66 @@ export default function SeriesDataGrid() {
             ))}
           </Box>
 
+          {/* Strengths Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+            강점 (Strengths)
+          </Typography>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {[1, 2, 3, 4, 5, 6].map((num) => (
+              <TextField
+                key={num}
+                label={`Strength ${num}`}
+                variant="outlined"
+                value={editDialog[`strength${num}` as keyof typeof editDialog] as string || ''}
+                onChange={(e) => setEditDialog(prev => ({ ...prev, [`strength${num}`]: e.target.value }))}
+                size="small"
+              />
+            ))}
+          </Box>
+
+          {/* Applications Section */}
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
+           응용 분야 (Applications)
+          </Typography>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {[1, 2, 3, 4].map((num) => (
+              <Box key={num} sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: 1, bgcolor: '#fafafa' }}>
+                <Typography variant="subtitle2" gutterBottom color="primary">Application {num}</Typography>
+                <TextField
+                  label={`App Title`}
+                  fullWidth
+                  variant="outlined"
+                  value={editDialog[`appTitle${num}` as keyof typeof editDialog] as string || ''}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`appTitle${num}`]: e.target.value }))}
+                  sx={{ mb: 1 }}
+                  size="small"
+                />
+                <TextField
+                  label={`App Image URL`}
+                  fullWidth
+                  variant="outlined"
+                  value={editDialog[`appImage${num}` as keyof typeof editDialog] as string || ''}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`appImage${num}`]: e.target.value }))}
+                  size="small"
+                  placeholder="Image URL"
+                />
+              </Box>
+            ))}
+          </Box>
+
           {/* Feature Image Upload */}
           <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', borderBottom: '2px solid', borderColor: 'primary.main', pb: 1 }}>
-            🖼️ 대표 이미지 (Feature Image)
+           대표 이미지 (Feature Image)
           </Typography>
           <Box sx={{ mb: 2 }}>
             <FileUploadComponent
