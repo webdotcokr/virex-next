@@ -1280,11 +1280,6 @@ footer #footer-bottom #footer-copyright {
     display: flex !important;
   }
   
-  
-  footer {
-    margin-bottom: 4rem;
-  }
-
   /*뉴스레터*/
   footer #newsletter .newsletter-contents {
     margin: 0;

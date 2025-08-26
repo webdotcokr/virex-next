@@ -176,7 +176,7 @@
   border: 1px solid var(--gray200);
   border-radius: 6px;
   cursor: pointer;
-  margin-bottom: 1rem;
+  margin: 1rem;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
@@ -187,6 +187,10 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.mobileFilterToggle:hover img {
+  filter: brightness(0) saturate(100%) invert(20%) sepia(77%) saturate(3491%) hue-rotate(214deg) brightness(95%) contrast(103%);
+}
+
 .mobileFilterToggle:active {
   transform: scale(0.98);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -195,6 +199,13 @@
 .mobileFilterToggle span {
   font-weight: 600;
   color: var(--gray999);
+}
+
+.mobileFilterToggle img {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(214deg) brightness(99%) contrast(97%);
+  transition: filter 0.2s ease;
 }
 
 /* Filter Sidebar */
@@ -1335,6 +1346,7 @@
   .productsContainer {
     flex-direction: column;
     padding: 1rem;
+    width: 100%;
   }
 
   /* Hide desktop filter sidebar on mobile */
@@ -1342,6 +1354,7 @@
     display: none;
   }
 
+  /* Mobile-only filter sidebar */
   .filterSidebar {
     position: fixed;
     bottom: -100%;
@@ -1391,8 +1404,8 @@
 
   .mobileFilterClose {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 2.5rem;
+    right: .5rem;
     width: 2.5rem;
     height: 2.5rem;
     background: rgba(255, 255, 255, 0.9);

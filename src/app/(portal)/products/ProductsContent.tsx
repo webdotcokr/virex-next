@@ -145,6 +145,7 @@ export default function ProductsContent() {
   const [comparisonProducts, setComparisonProducts] = useState<Product[]>([])
   const [seriesMap, setSeriesMap] = useState<Map<number, string>>(new Map())
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [isMobileScreen, setIsMobileScreen] = useState(false)
 
   // Initialize filters from URL on component mount
   useEffect(() => {
@@ -161,8 +162,20 @@ export default function ProductsContent() {
       setSortDirection(orderParam)
     }
     
+    // Check if it's mobile screen
+    const checkIsMobile = () => {
+      setIsMobileScreen(window.innerWidth <= 768)
+    }
+    
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    
     // 초기 로드 완료 표시 (약간의 지연을 둬서 다른 useEffect들이 실행된 후)
     setTimeout(() => setIsInitialLoad(false), 100)
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile)
+    }
   }, [searchParams, setFiltersFromUrl])
 
   // 현재 선택된 카테고리 정보
@@ -542,7 +555,7 @@ export default function ProductsContent() {
     >
       {/* Mobile Filter Toggle */}
       <div className={styles.mobileFilterToggle} onClick={() => setIsMobileFilterOpen(true)}>
-        <span>필터</span>
+        <span>필터 적용</span>
         <img src="/img/icon-filter.svg" alt="필터" />
       </div>
 
@@ -615,15 +628,17 @@ export default function ProductsContent() {
         }}
       />
 
-      {/* Mobile Filter Sidebar */}
-      <FilterSidebar 
-        categories={siblingCategories}
-        categoryName={categoryInfo.name}
-        selectedCategory={categoryInfo.name}
-        isMobile={true}
-        isOpen={isMobileFilterOpen}
-        onClose={() => setIsMobileFilterOpen(false)}
-      />
+      {/* Mobile Filter Sidebar - Only render on mobile screens */}
+      {isMobileScreen && (
+        <FilterSidebar 
+          categories={siblingCategories}
+          categoryName={categoryInfo.name}
+          selectedCategory={categoryInfo.name}
+          isMobile={true}
+          isOpen={isMobileFilterOpen}
+          onClose={() => setIsMobileFilterOpen(false)}
+        />
+      )}
 
     </ProductsPageLayout>
   )
