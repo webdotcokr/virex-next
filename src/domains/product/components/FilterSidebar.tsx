@@ -47,6 +47,11 @@ function FilterSidebar({
   const [loading, setLoading] = useState(true)
   const [sliderValues, setSliderValues] = useState<Record<string, [number, number]>>({})
   const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({})
+  
+  // Touch/swipe handling for mobile
+  const touchStartY = useRef<number>(0)
+  const touchCurrentY = useRef<number>(0)
+  const isDragging = useRef<boolean>(false)
 
   // Close sidebar on escape key
   useEffect(() => {
@@ -65,6 +70,51 @@ function FilterSidebar({
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = 'unset'
     }
+  }, [isMobile, isOpen, onClose])
+
+  // Touch event handlers for swipe-to-close gesture
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!isMobile || !isOpen || !onClose) return
+    
+    const touch = e.touches[0]
+    touchStartY.current = touch.clientY
+    touchCurrentY.current = touch.clientY
+    isDragging.current = false
+    
+    // Add haptic feedback on modern devices
+    if ('vibrate' in navigator) {
+      navigator.vibrate(1)
+    }
+  }, [isMobile, isOpen, onClose])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isMobile || !isOpen || !onClose) return
+    
+    const touch = e.touches[0]
+    touchCurrentY.current = touch.clientY
+    
+    const deltaY = touchCurrentY.current - touchStartY.current
+    
+    // Only track downward swipes from the top area
+    if (deltaY > 10 && touchStartY.current < 100) {
+      isDragging.current = true
+      e.preventDefault()
+    }
+  }, [isMobile, isOpen, onClose])
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isMobile || !isOpen || !onClose || !isDragging.current) return
+    
+    const deltaY = touchCurrentY.current - touchStartY.current
+    
+    // Close if swiped down more than 100px
+    if (deltaY > 100) {
+      onClose()
+    }
+    
+    isDragging.current = false
+    touchStartY.current = 0
+    touchCurrentY.current = 0
   }, [isMobile, isOpen, onClose])
 
   // Stabilize category ID to prevent infinite loops
@@ -431,9 +481,10 @@ function FilterSidebar({
     filters.series ||
     Object.keys(filters.parameters).length > 0
 
-  const sidebarClasses = `${styles.filterSidebar} ${
-    isMobile && isOpen ? styles.active : ''
-  }`
+  // 모바일과 데스크톱 클래스 분리
+  const sidebarClasses = isMobile 
+    ? `${styles.filterSidebar} ${isOpen ? styles.active : ''}`
+    : styles.filterSidebar
 
   // 데바운스 적용된 필터 변경 함수
   const debouncedParameterChange = useCallback((paramName: string, value: [number, number]) => {
@@ -597,28 +648,11 @@ function FilterSidebar({
     )
   }
 
-  return (
-    <>
-      {/* Mobile Overlay */}
-      {isMobile && (
-        <div 
-          className={`${styles.filterOverlay} ${isOpen ? styles.active : ''}`}
-          onClick={onClose}
-        />
-      )}
-
-      {/* Mobile Close Button */}
-      {isMobile && isOpen && (
-        <button 
-          className={`${styles.mobileFilterClose} ${styles.active}`}
-          onClick={onClose}
-        >
-          <X className="w-4 h-4" />
-        </button>
-      )}
-
+  // 모바일이 아닌 경우 간단한 데스크톱 렌더링
+  if (!isMobile) {
+    return (
       <div className={sidebarClasses}>
-        {/* Filter Title */}
+        {/* Desktop Filter Title */}
         <div className={styles.filterTitle}>
           <h3 className={styles.filterTitleName}>{categoryName}</h3>
           <button 
@@ -676,9 +710,87 @@ function FilterSidebar({
           </button>
         </div>
       </div>
+    )
+  }
 
-      {/* Mobile Filter Actions */}
-      {isMobile && (
+  // 모바일 전용 렌더링
+  return (
+    <>
+      {/* Mobile Overlay */}
+      <div 
+        className={`${styles.filterOverlay} ${isOpen ? styles.active : ''}`}
+        onClick={onClose}
+      />
+
+      {/* Mobile Close Button */}
+      <button 
+        className={`${styles.mobileFilterClose} ${isOpen ? styles.visible : ''}`}
+        onClick={onClose}
+      >
+        <X className="w-4 h-4" />
+      </button>
+
+      <div 
+        className={sidebarClasses}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Bottom Sheet Header (Mobile Only) */}
+        <div className={styles.bottomSheetHeader}>
+          <div 
+            className={styles.dragHandle}
+            onMouseDown={(e) => e.preventDefault()}
+          />
+          <div className={styles.filterTitle}>
+            <h3 className={styles.filterTitleName}>{categoryName}</h3>
+            <button 
+              className={styles.filterTitleBtnRefresh}
+              onClick={handleReset}
+              title="필터 초기화"
+            />
+          </div>
+        </div>
+
+        <div className={`${styles.filterContainer} ${styles.bottomSheetContent}`}>
+          {/* 동적으로 로드된 필터 그룹들 */}
+          {loading ? (
+            <div className={styles.loadingMessage}>필터를 불러오는 중...</div>
+          ) : staticFilters.length === 0 ? (
+            <div className={styles.loadingMessage}>사용 가능한 필터가 없습니다.</div>
+          ) : (
+            staticFilters.map((filter, index) => {
+              const isExpanded = expandedSections.has(filter.param)
+              
+              return (
+                <div key={`${filter.param}-${index}`} className={`${styles.filterGroup} ${!isExpanded ? styles.collapsed : ''}`}>
+                  <h4 
+                    onClick={() => toggleSection(filter.param)}
+                    className={styles.filterGroupHeader}
+                  >
+                    <span className={styles.filterGroupTitle}>
+                      {filter.name}
+                      {filter.unit && (
+                        <span className={styles.filterUnit}>({filter.unit})</span>
+                      )}
+                    </span>
+                    <span className={styles.filterExpandToggle}>
+                    </span>
+                  </h4>
+                  
+                  {isExpanded && (
+                    <div className={styles.filterOptions}>
+                      {filter.type === 'checkbox' && renderCheckboxes(filter)}
+                      {filter.type === 'slider' && renderSlider(filter)}
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        {/* Mobile Filter Actions */}
         <div className={`${styles.filterActions} ${isOpen ? styles.active : ''}`}>
           <button className={`${styles.filterActionBtn} ${styles.reset}`} onClick={handleReset}>
             초기화
@@ -687,7 +799,7 @@ function FilterSidebar({
             적용
           </button>
         </div>
-      )}
+      </div>
     </>
   )
 }

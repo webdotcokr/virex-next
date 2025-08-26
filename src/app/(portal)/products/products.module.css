@@ -83,6 +83,7 @@
 @media (max-width: 768px) {
   .productsLayout {
     flex-direction: column;
+    overflow: scroll;
   }
 }
 
@@ -176,6 +177,19 @@
   border-radius: 6px;
   cursor: pointer;
   margin-bottom: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.mobileFilterToggle:hover {
+  background: var(--gray000);
+  border-color: var(--primary500);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobileFilterToggle:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .mobileFilterToggle span {
@@ -203,6 +217,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 1rem;
   width: 100%;
   margin-bottom: 1rem;
 }
@@ -1322,70 +1337,108 @@
     padding: 1rem;
   }
 
+  /* Hide desktop filter sidebar on mobile */
+  .productsContainer .filterSidebar:not(.active) {
+    display: none;
+  }
+
   .filterSidebar {
     position: fixed;
-    left: -100%;
-    top: 0;
-    height: 100vh;
+    bottom: -100%;
+    left: 0;
+    right: 0;
+    height: 80vh;
+    max-height: 600px;
     z-index: 1000;
-    transition: left 0.3s ease;
+    transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease, visibility 0.3s ease;
+    will-change: bottom, opacity, visibility;
     margin: 0;
-    max-width: 80%;
-    border-radius: 0;
+    border-radius: 20px 20px 0 0;
     flex: none;
-    width: 280px;
+    width: 100%;
+    background: white;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
   }
 
   .filterSidebar.active {
-    left: 0;
+    bottom: 0;
+    opacity: 1;
+    visibility: visible;
   }
 
   .filterOverlay {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
     z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
   }
 
   .filterOverlay.active {
-    display: block;
+    opacity: 1;
+    visibility: visible;
   }
 
   .mobileFilterClose {
-    display: none;
-    position: fixed;
+    position: absolute;
     top: 1rem;
     right: 1rem;
-    width: 2rem;
-    height: 2rem;
-    background: white;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: rgba(255, 255, 255, 0.9);
     border-radius: 50%;
     cursor: pointer;
-    z-index: 1001;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .mobileFilterClose.active {
+    z-index: 1002;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--gray200);
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.8);
+  }
+
+  .mobileFilterClose.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+
+  .mobileFilterClose:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .mobileFilterClose:active {
+    transform: scale(0.95);
   }
 
   .filterActions {
     display: none;
-    position: fixed;
+    position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     background: white;
     border-top: 1px solid var(--gray200);
-    padding: 1rem;
-    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    gap: 0.75rem;
     z-index: 1001;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   }
 
   .filterActions.active {
@@ -1412,9 +1465,65 @@
     color: white;
   }
 
+  /* Bottom Sheet Header with Drag Handle */
+  .bottomSheetHeader {
+    position: relative;
+    padding: 1rem 1.5rem 0 1.5rem;
+    background: white;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .dragHandle {
+    width: 40px;
+    height: 4px;
+    background: var(--gray300);
+    border-radius: 2px;
+    margin: 0 auto 1rem auto;
+    cursor: grab;
+    transition: background-color 0.2s ease;
+  }
+
+  .dragHandle:hover {
+    background: var(--gray400);
+  }
+
+  .dragHandle:active {
+    cursor: grabbing;
+    background: var(--gray500);
+  }
+
+  .bottomSheetContent {
+    height: calc(100% - 140px); /* 헤더(80px) + 하단 액션(60px) */
+    overflow-y: auto;
+    padding: 0 1.5rem 1rem 1.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray300) transparent;
+  }
+
+  .bottomSheetContent::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .bottomSheetContent::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .bottomSheetContent::-webkit-scrollbar-thumb {
+    background: var(--gray300);
+    border-radius: 2px;
+  }
+
+  .bottomSheetContent::-webkit-scrollbar-thumb:hover {
+    background: var(--gray400);
+  }
+
   .productListSortBar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .sortBarItem select {
+    font-size: 0.875rem;
   }
 
   .searchBar {
@@ -1444,10 +1553,6 @@
 
   .pageTitleKo {
     font-size: 2rem;
-  }
-
-  .productHeroSection {
-    min-height: 200px;
   }
 
   .horizontalMenu {
@@ -1638,6 +1743,11 @@
 }
 
 @media (max-width: 768px) {
+
+  .productList th,
+.productList td {
+  font-size: 14px !important;
+}
   .pagination {
     margin: 1rem 0;
     padding: 0.5rem;
@@ -1649,5 +1759,9 @@
     height: 2rem;
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
+  }
+
+  .pageDescription {
+    font-size: 15px;
   }
 }

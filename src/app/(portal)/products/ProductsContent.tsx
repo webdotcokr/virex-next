@@ -550,14 +550,14 @@ export default function ProductsContent() {
       <div className={`${styles.filterOverlay} ${isMobileFilterOpen ? styles.active : ''}`} />
 
       <div className={styles.productsContainer}>
-        {/* Filter Sidebar */}
+        {/* Desktop Filter Sidebar */}
         <FilterSidebar 
           categories={siblingCategories}
           categoryName={categoryInfo.name}
           selectedCategory={categoryInfo.name}
           isMobile={false}
-          isOpen={isMobileFilterOpen}
-          onClose={() => setIsMobileFilterOpen(false)}
+          isOpen={false}
+          onClose={() => {}}
         />
 
         {/* Main Contents */}
@@ -614,6 +614,17 @@ export default function ProductsContent() {
           setComparisonProducts(prev => prev.filter(p => p.part_number !== productId))
         }}
       />
+
+      {/* Mobile Filter Sidebar */}
+      <FilterSidebar 
+        categories={siblingCategories}
+        categoryName={categoryInfo.name}
+        selectedCategory={categoryInfo.name}
+        isMobile={true}
+        isOpen={isMobileFilterOpen}
+        onClose={() => setIsMobileFilterOpen(false)}
+      />
+
     </ProductsPageLayout>
   )
 }

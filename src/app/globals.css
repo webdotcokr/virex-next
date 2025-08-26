@@ -1320,6 +1320,13 @@ footer #footer-bottom #footer-copyright {
     font-size: 0.75rem;
   }
 
+  /* 태블릿 뉴스레터 개선 (577px ~ 767px) */
+  @media screen and (min-width: 577px) and (max-width: 767px) {
+    footer #newsletter .newsletter-contents {
+      margin: 2rem 1.5rem;
+    }
+  }
+
   /* 모바일 뉴스레터 개선 */
   @media screen and (max-width: 576px) {
     footer #newsletter {
