@@ -1,0 +1,32 @@
+/** 
+ * 새로운 모듈식 CSS 구조
+ * 각 모듈은 독립적으로 관리되며, 필요에 따라 선택적 로딩 가능
+ */
+
+/** Tailwind CSS v3 - 기본 CSS 프레임워크 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/** Base Styles - 기본 설정 및 리셋 */
+@import './base/variables.css';     /* CSS 변수 및 디자인 토큰 */
+@import './base/reset.css';         /* 브라우저 리셋 및 폼 스타일 */
+
+/** Layout System - 레이아웃 및 그리드 시스템 */
+@import './layout/containers.css';  /* 컨테이너 및 너비 시스템 */
+
+/** Components - 재사용 가능한 컴포넌트 스타일 */
+@import './components/header.css';  /* 헤더, 네비게이션, 검색바 */
+
+/** Utilities - 유틸리티 클래스들 */
+@import './utilities/helpers.css';  /* 헬퍼 클래스 및 유틸리티 */
+
+/** 
+ * 향후 확장 가능한 모듈들:
+ * @import './components/footer.css';      // 푸터 스타일
+ * @import './components/forms.css';       // 폼 컴포넌트 스타일
+ * @import './components/buttons.css';     // 버튼 스타일
+ * @import './components/modals.css';      // 모달 스타일
+ * @import './layout/grid.css';           // 그리드 시스템
+ * @import './utilities/animations.css';   // 애니메이션 유틸리티
+ */

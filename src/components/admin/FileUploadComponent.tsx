@@ -112,9 +112,13 @@ export default function FileUploadComponent({
         }));
       }, 100);
 
-      // Upload to Next.js API with category
-      const uploadUrl = `/api/upload?category=${encodeURIComponent(category)}`;
-      console.log('📤 Starting upload to', uploadUrl);
+      // Upload to Supabase Storage API with category
+      if (category) {
+        formData.append('categoryId', category);
+      }
+      
+      const uploadUrl = `/api/admin/file-upload`;
+      console.log('📤 Starting upload to Supabase Storage:', uploadUrl);
       const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
@@ -125,17 +129,17 @@ export default function FileUploadComponent({
       const result = await response.json();
       console.log('📥 Upload result:', result);
 
-      if (result.success && result.url) {
+      if (result.success && result.fileUrl) {
         setUploadState({
           uploading: false,
           progress: 100,
           error: null,
           success: true,
-          fileName: result.filename || file.name,
+          fileName: result.fileName || file.name,
         });
 
         // Call parent callback
-        onUpload(result.url, result.filename || file.name);
+        onUpload(result.fileUrl, result.fileName || file.name);
       } else {
         throw new Error(result.error || 'Upload failed');
       }

@@ -1,0 +1,112 @@
+/** CSS Reset & Base Styles */
+
+/* Universal box-sizing reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body base styles */
+body {
+  font-size: 1.1rem;
+  font-weight: 400;
+  font-family: var(--ft-default);
+  letter-spacing: -0.03375rem;
+}
+
+/* H태그 사용자 에이전트 스타일 완전 초기화 */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  display: block;
+  unicode-bidi: normal;
+}
+
+/* Typography styles for specific contexts */
+body[data-type="main"] h2 {
+  font-size: 2.1875rem;
+  color: var(--gray999);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+/* Form elements base styles */
+input, select, label {
+  color: var(--gray999, #000);
+  font-family: var(--ft-default);
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: -0.00875rem;
+}
+
+/* Select element styling */
+select {
+  border-radius: 0.375rem;
+  border: 1px solid var(--gray300, #DEE2E6);
+  padding: 0.56rem 0.75rem;
+  padding-right: 2rem;
+
+  appearance: none; /* Hide default arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('/img/icon-dropdown-arrow.svg'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.5rem;
+}
+
+/* Custom Checkbox Styles */
+input[type="checkbox"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 1.1875rem; /* 19px */
+  height: 1.1875rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.25rem; /* 4px */
+  cursor: pointer;
+  position: relative;
+  margin: 0;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--secondary);
+  border-color: rgba(0, 0, 0, 0.1);
+  background-image: url('/img/icon-checkbox-on.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 1rem 1rem;
+}
+
+/* Custom Radio Button Styles */
+input[type="radio"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 1.1875rem; /* 19px */
+  height: 1.1875rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  margin: 0;
+}
+
+input[type="radio"]:checked {
+  background-color: var(--secondary);
+  border-color: rgba(0, 0, 0, 0.1);
+  background-image: url('/img/icon-radio-on.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 1rem 1rem;
+}

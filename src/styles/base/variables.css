@@ -1,0 +1,61 @@
+/** CSS Variables - 프로젝트 전역에서 사용되는 디자인 토큰들 */
+
+:root {
+  /** Colors - 컬러 시스템 */
+  --white-dark: #ffffff1f;
+  --white-light: #ffffffb3;
+  --white: #ffffff;
+  --gray000: #f8f9fb;
+  --gray100: #f1f3f5;
+  --gray200: #E8ECEF;
+  --gray300: #DEE2E6;
+  --gray400: #CED4DA;
+  --gray500: #ADB5BD;
+  --gray600: #868e96;
+  --gray700: #495057;
+  --gray800: #343A40;
+  --gray900: #212529;
+  --gray999: #000000; 
+  --primary: #0c2959;
+  --primary-hover: #0b2247;
+  --secondary: #566bda;
+  --bg-footer-shortcuts: #111111;
+  --bg-footer: #161616;
+  --fg-copyright: #666666;
+  --fg-info-label: #656565;
+  --fg-gnb-label: #ffffff66;
+
+  /** Container Sizes - 컨테이너 너비 시스템 */
+  --mw-container: 87.5rem; /* 1400px */
+  --container-width-xl: 87.5rem; /* 1400px - 대형 콘텐츠용 */
+  --container-width-lg: 75rem; /* 1200px - 일반 콘텐츠용 */
+  --container-width-md: 64rem; /* 1024px - 중형 콘텐츠용 */
+  --container-width-xxl: 120rem; /* 1920px - 초대형 콘텐츠용 */
+
+  /** Typography - 폰트 패밀리 */
+  --ft-default: "Pretendard", sans-serif;
+  --ft-en: "Montserrat", sans-serif;
+
+  /** Breakpoints - 반응형 중단점 */
+  --bp-mobile: 767px;
+  --bp-tablet: 1023px;
+  --bp-desktop: 1024px;
+
+  /** Spacing - 간격 시스템 (추후 확장) */
+  --spacing-xs: 0.5rem;   /* 8px */
+  --spacing-sm: 0.75rem;  /* 12px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 1.5rem;   /* 24px */
+  --spacing-xl: 2rem;     /* 32px */
+  --spacing-2xl: 3rem;    /* 48px */
+  --spacing-3xl: 4rem;    /* 64px */
+
+  /** Z-index - 레이어 순서 */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}

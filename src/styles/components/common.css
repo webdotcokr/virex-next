@@ -1,0 +1,182 @@
+/** Common Component Patterns - 자주 반복되는 패턴들 */
+
+/* Page Container Pattern - 페이지별 공통 컨테이너 */
+.page-container {
+  max-width: var(--container-width-lg); /* 1200px */
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 1.25rem; /* 40px 20px 20px */
+}
+
+.page-container-xl {
+  max-width: var(--container-width-xl); /* 1400px */
+  margin: 0 auto;
+  padding: 0 1.25rem; /* 0 20px */
+}
+
+.page-container-full {
+  max-width: var(--container-width-xxl); /* 1920px */
+  margin: 0 auto;
+  padding: 0 1.25rem; /* 0 20px */
+}
+
+/* Hero Section Pattern - 히어로 섹션 공통 패턴 */
+.hero-section {
+  background-size: cover;
+  background-position: center;
+  min-height: 23rem; /* 368px */
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+}
+
+.hero-content {
+  max-width: var(--container-width-xxl);
+  margin: 0 auto;
+  padding: 0 1.25rem 2.5rem; /* 0 20px 40px */
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+/* Page Title Pattern - 페이지 타이틀 공통 패턴 */
+.page-title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.page-title-en {
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--ft-en);
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: -0.03rem;
+  margin-top: 2.69rem;
+}
+
+.page-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.4;
+  margin-top: 1rem;
+}
+
+/* Content Layout Pattern - 콘텐츠 레이아웃 패턴 */
+.content-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 3.75rem; /* 60px */
+}
+
+.left-aligned {
+  flex: 1;
+  max-width: 37.5rem; /* 600px */
+}
+
+/* Search Results Pattern - 검색 결과 패턴 */
+.search-container {
+  min-height: 25rem; /* 400px */
+  max-width: var(--container-width-lg);
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem;
+}
+
+.no-results {
+  text-align: center;
+  color: var(--gray600);
+  max-width: var(--container-width-lg);
+  margin: 0 auto;
+}
+
+/* Card Pattern - 카드 공통 패턴 */
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray200);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  border-bottom: 1px solid var(--gray200);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray900);
+  margin: 0;
+}
+
+/* Button Pattern - 버튼 공통 패턴 */
+.btn-primary {
+  background-color: var(--secondary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--secondary);
+  border: 1px solid var(--secondary);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary);
+  color: white;
+}
+
+/* Responsive Patterns */
+@media screen and (max-width: 768px) {
+  .page-container,
+  .page-container-xl,
+  .page-container-full,
+  .hero-content,
+  .search-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .content-wrapper {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .hero-section {
+    min-height: 18rem;
+  }
+}

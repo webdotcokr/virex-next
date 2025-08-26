@@ -1,0 +1,96 @@
+/** Utility Classes - 재사용 가능한 헬퍼 클래스들 */
+
+/* Interactive */
+.btn-clickable { 
+  cursor: pointer; 
+}
+
+/* Colors */
+.purple { 
+  color: var(--secondary); 
+}
+
+/* Screen reader only - 접근성을 위한 숨김 텍스트 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Layout */
+.full-width { 
+  width: 100% !important; 
+}
+
+.w-100p { 
+  width: 100%; 
+}
+
+.justify-center { 
+  justify-content: center !important; 
+}
+
+.center-aligned { 
+  text-align: center; 
+}
+
+/* 
+  Margin Top Utilities
+  참고: 이 클래스들은 점진적으로 Tailwind의 표준 spacing으로 교체 권장
+  예: mt-10px -> mt-2.5 (10px), mt-16px -> mt-4 (16px)
+*/
+
+/* 작은 간격 (0-20px) */
+.mt-10px { margin-top: 0.625rem !important; }      /* 10px - Tailwind: mt-2.5 */
+.mt-12px { margin-top: 0.75rem !important; }       /* 12px - Tailwind: mt-3 */
+.mt-14px { margin-top: 0.875rem !important; }      /* 14px - Tailwind: mt-3.5 */
+.mt-16px { margin-top: 1rem !important; }          /* 16px - Tailwind: mt-4 */
+.mt-18px { margin-top: 1.125rem !important; }      /* 18px - Tailwind: mt-4.5 */
+.mt-20px { margin-top: 1.25rem !important; }       /* 20px - Tailwind: mt-5 */
+
+/* 중간 간격 (20-40px) */
+.mt-22px { margin-top: 1.375rem !important; }      /* 22px - Tailwind: mt-5.5 */
+.mt-24px { margin-top: 1.5rem !important; }        /* 24px - Tailwind: mt-6 */
+.mt-26px { margin-top: 1.625rem !important; }      /* 26px - Tailwind: mt-6.5 */
+.mt-28px { margin-top: 1.75rem !important; }       /* 28px - Tailwind: mt-7 */
+.mt-30px { margin-top: 1.875rem !important; }      /* 30px - Tailwind: mt-7.5 */
+.mt-32px { margin-top: 2rem !important; }          /* 32px - Tailwind: mt-8 */
+.mt-34px { margin-top: 2.125rem !important; }      /* 34px - Tailwind: mt-8.5 */
+.mt-36px { margin-top: 2.25rem !important; }       /* 36px - Tailwind: mt-9 */
+.mt-37px { margin-top: 2.3125rem !important; }     /* 37px - 커스텀 */
+.mt-38px { margin-top: 2.375rem !important; }      /* 38px - Tailwind: mt-9.5 */
+.mt-40px { margin-top: 2.5rem !important; }        /* 40px - Tailwind: mt-10 */
+
+/* 중대형 간격 (40-80px) */
+.mt-42px { margin-top: 2.625rem !important; }      /* 42px - Tailwind: mt-10.5 */
+.mt-44px { margin-top: 2.75rem !important; }       /* 44px - Tailwind: mt-11 */
+.mt-46px { margin-top: 2.875rem !important; }      /* 46px - Tailwind: mt-11.5 */
+.mt-48px { margin-top: 3rem !important; }          /* 48px - Tailwind: mt-12 */
+.mt-50px { margin-top: 3.125rem !important; }      /* 50px - 커스텀 */
+.mt-60px { margin-top: 3.75rem !important; }       /* 60px - Tailwind: mt-15 */
+.mt-64px { margin-top: 4rem !important; }          /* 64px - Tailwind: mt-16 */
+.mt-80px { margin-top: 5rem !important; }          /* 80px - Tailwind: mt-20 */
+.mt-84px { margin-top: 5.25rem !important; }       /* 84px - Tailwind: mt-21 */
+
+/* 대형 간격 (100px+) */
+.mt-100px { margin-top: 6.25rem !important; }      /* 100px - Tailwind: mt-25 */
+.mt-112px { margin-top: 7rem !important; }         /* 112px - Tailwind: mt-28 */
+.mt-140px { margin-top: 8.75rem !important; }      /* 140px - 커스텀 */
+.mt-150px { margin-top: 9.375rem !important; }     /* 150px - 커스텀 */
+.mt-176px { margin-top: 11rem !important; }        /* 176px - Tailwind: mt-44 */
+.mt-200px { margin-top: 12.5rem !important; }      /* 200px - Tailwind: mt-50 */
+.mt-232px { margin-top: 14.5rem !important; }      /* 232px - 커스텀 */
+.mt-250px { margin-top: 15.625rem !important; }    /* 250px - 커스텀 */
+
+/* 
+  TODO: 향후 개선 사항
+  - 위 클래스들을 Tailwind의 표준 spacing으로 점진적 교체
+  - 자주 사용되지 않는 커스텀 사이즈(37px, 50px, 140px 등) 제거 검토
+  - CSS 변수 기반 spacing 시스템으로 통합 고려
+*/

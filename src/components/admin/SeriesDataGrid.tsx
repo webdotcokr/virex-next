@@ -1070,7 +1070,7 @@ export default function SeriesDataGrid() {
                   label={`Title`}
                   fullWidth
                   variant="outlined"
-                  value={editDialog[`featureTitle${num}` as keyof typeof editDialog] as string}
+                  value={editDialog[`featureTitle${num}` as keyof typeof editDialog] as string || ''}
                   onChange={(e) => setEditDialog(prev => ({ ...prev, [`featureTitle${num}`]: e.target.value }))}
                   sx={{ mb: 1 }}
                   size="small"
@@ -1081,7 +1081,7 @@ export default function SeriesDataGrid() {
                   multiline
                   rows={2}
                   variant="outlined"
-                  value={editDialog[`featureDesc${num}` as keyof typeof editDialog] as string}
+                  value={editDialog[`featureDesc${num}` as keyof typeof editDialog] as string || ''}
                   onChange={(e) => setEditDialog(prev => ({ ...prev, [`featureDesc${num}`]: e.target.value }))}
                   size="small"
                 />
@@ -1104,7 +1104,7 @@ export default function SeriesDataGrid() {
                 key={num}
                 label={`Strength ${num}`}
                 variant="outlined"
-                value={editDialog[`strength${num}` as keyof typeof editDialog] as string}
+                value={editDialog[`strength${num}` as keyof typeof editDialog] as string || ''}
                 onChange={(e) => setEditDialog(prev => ({ ...prev, [`strength${num}`]: e.target.value }))}
                 size="small"
               />
@@ -1128,7 +1128,7 @@ export default function SeriesDataGrid() {
                   label={`App Title`}
                   fullWidth
                   variant="outlined"
-                  value={editDialog[`appTitle${num}` as keyof typeof editDialog] as string}
+                  value={editDialog[`appTitle${num}` as keyof typeof editDialog] as string || ''}
                   onChange={(e) => setEditDialog(prev => ({ ...prev, [`appTitle${num}`]: e.target.value }))}
                   sx={{ mb: 1 }}
                   size="small"
@@ -1137,7 +1137,7 @@ export default function SeriesDataGrid() {
                   label={`App Image URL`}
                   fullWidth
                   variant="outlined"
-                  value={editDialog[`appImage${num}` as keyof typeof editDialog] as string}
+                  value={editDialog[`appImage${num}` as keyof typeof editDialog] as string || ''}
                   onChange={(e) => setEditDialog(prev => ({ ...prev, [`appImage${num}`]: e.target.value }))}
                   size="small"
                   placeholder="Image URL"
@@ -1163,7 +1163,7 @@ export default function SeriesDataGrid() {
                   label={`Title`}
                   fullWidth
                   variant="outlined"
-                  value={editDialog[`textTitle${num}` as keyof typeof editDialog] as string}
+                  value={editDialog[`textTitle${num}` as keyof typeof editDialog] as string || ''}
                   onChange={(e) => setEditDialog(prev => ({ ...prev, [`textTitle${num}`]: e.target.value }))}
                   sx={{ mb: 1 }}
                   size="small"
@@ -1174,7 +1174,7 @@ export default function SeriesDataGrid() {
                   multiline
                   rows={2}
                   variant="outlined"
-                  value={editDialog[`textDesc${num}` as keyof typeof editDialog] as string}
+                  value={editDialog[`textDesc${num}` as keyof typeof editDialog] as string || ''}
                   onChange={(e) => setEditDialog(prev => ({ ...prev, [`textDesc${num}`]: e.target.value }))}
                   sx={{ mb: 1 }}
                   size="small"
@@ -1183,7 +1183,7 @@ export default function SeriesDataGrid() {
                   label={`Image URL`}
                   fullWidth
                   variant="outlined"
-                  value={editDialog[`textImageUrl${num}` as keyof typeof editDialog] as string}
+                  value={editDialog[`textImageUrl${num}` as keyof typeof editDialog] as string || ''}
                   onChange={(e) => setEditDialog(prev => ({ ...prev, [`textImageUrl${num}`]: e.target.value }))}
                   size="small"
                   placeholder="Image URL"
@@ -1325,7 +1325,7 @@ export default function SeriesDataGrid() {
                   label={`Title`}
                   fullWidth
                   variant="outlined"
-                  value={addDialog[`featureTitle${num}` as keyof typeof addDialog] as string}
+                  value={addDialog[`featureTitle${num}` as keyof typeof addDialog] as string || ''}
                   onChange={(e) => setAddDialog(prev => ({ ...prev, [`featureTitle${num}`]: e.target.value }))}
                   sx={{ mb: 1 }}
                   size="small"
@@ -1336,7 +1336,7 @@ export default function SeriesDataGrid() {
                   multiline
                   rows={2}
                   variant="outlined"
-                  value={addDialog[`featureDesc${num}` as keyof typeof addDialog] as string}
+                  value={addDialog[`featureDesc${num}` as keyof typeof addDialog] as string || ''}
                   onChange={(e) => setAddDialog(prev => ({ ...prev, [`featureDesc${num}`]: e.target.value }))}
                   size="small"
                 />
@@ -1359,7 +1359,7 @@ export default function SeriesDataGrid() {
                 key={num}
                 label={`Strength ${num}`}
                 variant="outlined"
-                value={addDialog[`strength${num}` as keyof typeof addDialog] as string}
+                value={addDialog[`strength${num}` as keyof typeof addDialog] as string || ''}
                 onChange={(e) => setAddDialog(prev => ({ ...prev, [`strength${num}`]: e.target.value }))}
                 size="small"
               />
@@ -1383,7 +1383,7 @@ export default function SeriesDataGrid() {
                   label={`App Title`}
                   fullWidth
                   variant="outlined"
-                  value={addDialog[`appTitle${num}` as keyof typeof addDialog] as string}
+                  value={addDialog[`appTitle${num}` as keyof typeof addDialog] as string || ''}
                   onChange={(e) => setAddDialog(prev => ({ ...prev, [`appTitle${num}`]: e.target.value }))}
                   sx={{ mb: 1 }}
                   size="small"
@@ -1392,7 +1392,7 @@ export default function SeriesDataGrid() {
                   label={`App Image URL`}
                   fullWidth
                   variant="outlined"
-                  value={addDialog[`appImage${num}` as keyof typeof addDialog] as string}
+                  value={addDialog[`appImage${num}` as keyof typeof addDialog] as string || ''}
                   onChange={(e) => setAddDialog(prev => ({ ...prev, [`appImage${num}`]: e.target.value }))}
                   size="small"
                   placeholder="Image URL"
@@ -1418,7 +1418,7 @@ export default function SeriesDataGrid() {
                   label={`Title`}
                   fullWidth
                   variant="outlined"
-                  value={addDialog[`textTitle${num}` as keyof typeof addDialog] as string}
+                  value={addDialog[`textTitle${num}` as keyof typeof addDialog] as string || ''}
                   onChange={(e) => setAddDialog(prev => ({ ...prev, [`textTitle${num}`]: e.target.value }))}
                   sx={{ mb: 1 }}
                   size="small"
@@ -1429,7 +1429,7 @@ export default function SeriesDataGrid() {
                   multiline
                   rows={2}
                   variant="outlined"
-                  value={addDialog[`textDesc${num}` as keyof typeof addDialog] as string}
+                  value={addDialog[`textDesc${num}` as keyof typeof addDialog] as string || ''}
                   onChange={(e) => setAddDialog(prev => ({ ...prev, [`textDesc${num}`]: e.target.value }))}
                   sx={{ mb: 1 }}
                   size="small"
@@ -1438,7 +1438,7 @@ export default function SeriesDataGrid() {
                   label={`Image URL`}
                   fullWidth
                   variant="outlined"
-                  value={addDialog[`textImageUrl${num}` as keyof typeof addDialog] as string}
+                  value={addDialog[`textImageUrl${num}` as keyof typeof addDialog] as string || ''}
                   onChange={(e) => setAddDialog(prev => ({ ...prev, [`textImageUrl${num}`]: e.target.value }))}
                   size="small"
                   placeholder="Image URL"
