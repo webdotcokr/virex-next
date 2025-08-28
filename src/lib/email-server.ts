@@ -6,11 +6,11 @@ if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS |
   throw new Error('Required email environment variables are not set');
 }
 
-// SMTP 설정
+// Gmail SMTP 설정
 const transporterConfig = {
   host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '465'),
-  secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: false, // Gmail uses STARTTLS
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -217,7 +217,7 @@ export async function sendContactNotification(contactData: {
       html: htmlContent,
     }
 
-    // Primary SMTP로 먼저 시도 (타임아웃 10초)
+    // Gmail SMTP로 발송 (타임아웃 10초)
     const sendWithTimeout = new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('메일 발송 타임아웃 (10초)'))
