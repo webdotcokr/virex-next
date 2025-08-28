@@ -103,14 +103,16 @@ function DownloadFormDialog({
   const [showManualInput, setShowManualInput] = useState(false);
 
   useEffect(() => {
-    setValues({
-      title: initial?.title ?? '',
-      file_name: initial?.file_name ?? '',
-      file_url: initial?.file_url ?? '',
-      category_id: initial?.category_id ?? (categories[0]?.id ?? 1),
-    });
-    setShowManualInput(false);
-  }, [initial, categories]);
+    if (open) {
+      setValues({
+        title: initial?.title ?? '',
+        file_name: initial?.file_name ?? '',
+        file_url: initial?.file_url ?? '',
+        category_id: initial?.category_id ?? (categories[0]?.id ?? 1),
+      });
+      setShowManualInput(false);
+    }
+  }, [open, initial, categories]);
 
   const handle = (k: keyof typeof values) => (e: React.ChangeEvent<HTMLInputElement> | any) =>
     setValues(v => ({ ...v, [k]: e.target.value }));
@@ -921,7 +923,7 @@ export default function DownloadsDataGrid() {
 
       <DownloadFormDialog
         open={dialog.open}
-        onClose={() => setDialog({ open: false, mode: 'add' })}
+        onClose={() => setDialog({ open: false, mode: 'add', target: undefined })}
         onSubmit={handleSubmit}
         categories={categories}
         initial={dialog.mode === 'edit' ? dialog.target : undefined}

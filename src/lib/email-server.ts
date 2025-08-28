@@ -15,6 +15,10 @@ const transporterConfig = {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  // 연결 타임아웃 설정 추가
+  connectionTimeout: 10000, // 10초
+  greetingTimeout: 5000,    // 5초
+  socketTimeout: 10000,     // 10초
 };
 
 let transporter: nodemailer.Transporter | null = null;
@@ -187,6 +191,8 @@ export async function sendContactNotification(contactData: {
   inquiryType?: string
   description: string
 }) {
+  console.log('문의접수 메일 발송 시도 시작...');
+  
   try {
     const transporter = getTransporter();
     
@@ -211,11 +217,35 @@ export async function sendContactNotification(contactData: {
       html: htmlContent,
     }
 
-    const result = await transporter.sendMail(mailOptions)
+    // Primary SMTP로 먼저 시도 (타임아웃 10초)
+    const sendWithTimeout = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('메일 발송 타임아웃 (10초)'))
+      }, 10000)
+      
+      transporter.sendMail(mailOptions)
+        .then(result => {
+          clearTimeout(timeout)
+          resolve(result)
+        })
+        .catch(error => {
+          clearTimeout(timeout)
+          reject(error)
+        })
+    })
+
+    const result = await sendWithTimeout as any;
     console.log('문의접수 알림 메일 발송 성공:', result.messageId)
     return { success: true, messageId: result.messageId }
   } catch (error) {
     console.error('문의접수 알림 메일 발송 실패:', error)
+    
+    // 로컬 개발환경에서는 메일 실패해도 정상 처리로 간주
+    if (process.env.NODE_ENV === 'development') {
+      console.log('개발환경: 메일 발송 실패는 무시하고 정상 처리')
+      return { success: true, messageId: 'dev-skip', error: 'Development mode - email skipped' }
+    }
+    
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
@@ -259,7 +289,25 @@ export async function sendNewsletterNotification(email: string) {
 export async function testEmailConnection() {
   try {
     const transporter = getTransporter();
-    await transporter.verify()
+    
+    // 타임아웃이 있는 Promise로 래핑
+    const verifyWithTimeout = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('SMTP 연결 테스트 타임아웃 (10초)'))
+      }, 10000)
+      
+      transporter.verify()
+        .then(result => {
+          clearTimeout(timeout)
+          resolve(result)
+        })
+        .catch(error => {
+          clearTimeout(timeout)
+          reject(error)
+        })
+    })
+    
+    await verifyWithTimeout
     console.log('SMTP 연결 테스트 성공')
     return { success: true }
   } catch (error) {
