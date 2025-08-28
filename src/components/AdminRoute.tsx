@@ -22,31 +22,24 @@ export default function AdminRoute({ children, fallback }: AdminRouteProps) {
     isAdmin
   }
   
-  console.log('🔐 AdminRoute 상태:', currentState)
-  
-  // 무한루프 감지 로직
+  // 무한루프 감지 로직 (디버깅 로그 제거)
   const stateKey = `${loading}-${user?.id || 'null'}-${profile?.id || 'null'}-${isAdmin}`
   if (typeof window !== 'undefined') {
     const lastStateKey = window.sessionStorage.getItem('adminRouteLastState')
-    if (lastStateKey === stateKey) {
-      console.log('⚠️ AdminRoute 동일 상태 반복 감지:', stateKey)
-    } else {
+    if (lastStateKey !== stateKey) {
       window.sessionStorage.setItem('adminRouteLastState', stateKey)
-      console.log('✅ AdminRoute 상태 변경:', stateKey)
     }
   }
 
   useEffect(() => {
     // 로딩이 완료되고 사용자가 없으면 로그인 페이지로 리다이렉트
     if (!loading && !user) {
-      console.log('🙫 AdminRoute: 사용자 없음, 로그인 페이지로 리다이렉트')
       router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname))
     }
   }, [loading, user, router])
 
   // 로딩 중일 때
   if (loading) {
-    console.log('⏳ AdminRoute: 로딩 상태 화면 표시')
     return (
       <div style={{
         display: 'flex',
@@ -76,13 +69,11 @@ export default function AdminRoute({ children, fallback }: AdminRouteProps) {
 
   // 사용자가 없으면 null 반환 (리다이렉트 처리됨)
   if (!user) {
-    console.log('❌ AdminRoute: 사용자 없음 - null 반환')
     return null
   }
 
   // 관리자가 아닌 경우
   if (!isAdmin) {
-    console.log('🙫 AdminRoute: 관리자 권한 없음 - 접근 거부 화면 표시')
     return fallback || (
       <div style={{
         display: 'flex',
@@ -133,6 +124,5 @@ export default function AdminRoute({ children, fallback }: AdminRouteProps) {
   }
 
   // 관리자인 경우 자식 컴포넌트 렌더링
-  console.log('✅ AdminRoute: 관리자 권한 확인 - 콘텐츠 렌더링')
   return <>{children}</>
 }

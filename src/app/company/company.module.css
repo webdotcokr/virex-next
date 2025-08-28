@@ -991,5 +991,9 @@
     padding: 0.875rem 1.5rem;
     font-size: 1rem;
   }
+
+  .global-partners-item-content .global-partners-item-desc {
+    font-size: 12px; 
+  }
 }
   

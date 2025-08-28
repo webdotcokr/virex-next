@@ -100,6 +100,11 @@ export default function Header() {
     setActiveSubmenu(activeSubmenu === menu ? null : menu)
   }
 
+  const handleMobileMenuClose = () => {
+    setIsMobileMenuOpen(false)
+    setActiveSubmenu(null)
+  }
+
   const handleLogout = async () => {
     if (confirm('로그아웃하시겠습니까?')) {
       await signOut()
@@ -489,9 +494,9 @@ export default function Header() {
                   data-menu={key}
                   onClick={() => handleSubmenuClick(key)}
                 >
-                  <a href="javascript:void(0);">
+                  <div className="mobile-menu-link" style={{ cursor: 'pointer' }}>
                     <div className="menu-title">{config.title}</div>
-                  </a>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -509,7 +514,7 @@ export default function Header() {
                 <ul className="mobile-submenu-list">
                   {config.items.map((item, index) => (
                     <li key={index} className="mobile-submenu-item">
-                      <Link href={item.href}>{item.label}</Link>
+                      <Link href={item.href} onClick={handleMobileMenuClose}>{item.label}</Link>
                     </li>
                   ))}
                 </ul>

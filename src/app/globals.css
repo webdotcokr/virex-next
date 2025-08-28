@@ -1989,7 +1989,8 @@ footer #footer-bottom #footer-copyright {
             height: 2.75rem;
             
             display: flex;
-            width: 334px;
+            width: 50%;
+            max-width: 300px;
             height: 42px;
             padding: 6px 8px 6px 16px;
             align-items: center;
@@ -3243,7 +3244,8 @@ body.megamenu-open {
     border-bottom: 1px solid #F0F0F0;
   }
   
-  .mobile-menu-item a {
+  .mobile-menu-item a,
+  .mobile-menu-item .mobile-menu-link {
     display: flex;
     padding: 1.25rem 1.5rem;
     color: #555;
@@ -3256,7 +3258,8 @@ body.megamenu-open {
     align-items: center;
   }
   
-  .mobile-menu-item a:after {
+  .mobile-menu-item a:after,
+  .mobile-menu-item .mobile-menu-link:after {
     content: '›';
     font-size: 1.5rem;
     line-height: 1;
@@ -3269,13 +3272,15 @@ body.megamenu-open {
     border: none;
   }
   
-  .mobile-menu-item.active a {
+  .mobile-menu-item.active a,
+  .mobile-menu-item.active .mobile-menu-link {
     color: #3D86FF;
     font-weight: 600;
     background-color: #EFF6FF;
   }
   
-  .mobile-menu-item.active a:after {
+  .mobile-menu-item.active a:after,
+  .mobile-menu-item.active .mobile-menu-link:after {
     color: #3D86FF;
     opacity: 1;
     transform: translateX(3px);
@@ -3390,7 +3395,8 @@ body.megamenu-open {
     height: 55%;
   }
   
-  .mobile-menu-item a {
+  .mobile-menu-item a,
+  .mobile-menu-item .mobile-menu-link {
     padding: 1rem 1.5rem;
   }
   
@@ -3403,6 +3409,9 @@ body.megamenu-open {
     padding: 0.875rem 1.5rem;
     font-size: 0.9375rem;
   }
+
+    #page-content #breadcrumb,
+.breadcrumb {font-size: 13px;}
 }
 
 /* Touch device enhancements */
