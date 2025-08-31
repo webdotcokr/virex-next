@@ -148,7 +148,11 @@ export default function RelatedProductsSlider({ products }: RelatedProductsSlide
                   alt={product.part_number || product.partnumber}
                   className={styles.productImage}
                   onError={(e) => {
-                    e.currentTarget.src = '/img/no-image.png'
+                    const target = e.currentTarget
+                    // 이미 기본 이미지로 변경된 경우 중복 실행 방지
+                    if (target.src.includes('/img/no-image.png')) return
+                    console.log(`Image load failed for: ${target.src}, switching to default image`)
+                    target.src = '/img/no-image.png'
                   }}
                 />
                 <div className={styles.relatedProductContent}>

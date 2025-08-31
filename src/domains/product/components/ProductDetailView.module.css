@@ -24,7 +24,7 @@
 
 .productImage {
   width: 500px;
-  height: 400px;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
 }
 
@@ -207,6 +207,7 @@
 .featureImageContainer img {
   width: 70%;
   height: auto;
+  aspect-ratio: 16 / 9;
   border-radius: 8px;
   margin: 0 auto;
 }
@@ -246,7 +247,7 @@
 
 .textImage img {
   width: 100%;
-  height: 300px;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
 }
 

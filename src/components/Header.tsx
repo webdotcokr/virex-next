@@ -236,7 +236,7 @@ export default function Header() {
 
   const handleMegaMenuLeave = (e: React.MouseEvent) => {
     // Enhanced event delegation for smoother UX
-    const relatedTarget = e.relatedTarget as Node
+    const relatedTarget = e.relatedTarget as Node | null
     const headerElement = document.querySelector('header[data-type="main"]')
     const megaMenuContainer = document.getElementById('megamenu-container')
     
