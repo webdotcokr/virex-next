@@ -147,6 +147,9 @@ export default function RelatedProductsSlider({ products }: RelatedProductsSlide
                   src={product.image_url || '/img/no-image.png'}
                   alt={product.part_number || product.partnumber}
                   className={styles.productImage}
+                  onError={(e) => {
+                    e.currentTarget.src = '/img/no-image.png'
+                  }}
                 />
                 <div className={styles.relatedProductContent}>
                   <div className={styles.relatedProductSeries}>
