@@ -86,11 +86,11 @@ const CompanyPage = () => {
       {/* 기존 className들을 styles 객체를 사용하도록 수정 */}
       <div className={styles['content-body']}>
         <div className="content-title"><h2>회사소개</h2></div>
-        <div className={`${styles['company-content-wrapper']} mt-84px`}>
+        <div className={`${styles['company-content-wrapper']} mt-[84px] max-md:!mt-[0px] mx-auto`}>
           <div className={styles['company-title-bg']}>About</div>
           <div className={styles['company-title']}>
             <h3>
-              바이렉스는 최적의 비전 시스템 구축을<br />
+              바이렉스는 최적의 비전 시스템 구축을 <br />
               함께하는 <span className="purple">혁신적 파트너</span>입니다.
             </h3>
           </div>
@@ -103,7 +103,7 @@ const CompanyPage = () => {
             필요한 모든 것을 함께 고민하고 해결하는 파트너가 되는 것이 우리의 목표입니다.
           </p>
         </div>
-        <div className={`${styles['company-content-wrapper']} mt-176px`}>
+        <div className={`${styles['company-content-wrapper']} mt-[120px] max-md:!mt-[10px] mx-auto`}>
           <div className={styles['company-title-bg']}>Mission</div>
           <div className={styles['slogan-title']}>
             Leading your vision to success
@@ -117,7 +117,7 @@ const CompanyPage = () => {
 
       <div className={`${styles['content-body']} full-width mt-112px`}>
         <div className={styles['company-content-rounded-gray-background']}></div>
-        <div className={`${styles['company-content-wrapper']} mt-140px`}>
+        <div className={`${styles['company-content-wrapper']}  mx-auto`}>
           <div className={`${styles['company-title-bg']} ${styles.darker}`}>Management</div>
           <div className={styles['company-title']}>
             <h3><span className="purple">경영철학,</span> 우리는 이렇게 생각합니다</h3>
@@ -144,12 +144,10 @@ const CompanyPage = () => {
               <div className={`${styles['company-content-grid-item']} ${styles['grid-text-with-icon']}`}>
                 <img className={styles['grid-icon']} src="/img/virex-content-04-02-icon.svg" alt="" />
                 <div className={styles['grid-text-title']}>
-                  <h4>행복한 사람이<br/>
-                  최고의 결과를 만든다!</h4>
+                  <h4>행복한 사람이<br/> 최고의 결과를 만든다!</h4>
                 </div>
                 <div className={styles['grid-text-desc']}>
-                  일의 의미를 찾고 몰입할 수 있어야,<br/>
-                  고객에게도 최고의 가치를 제공합니다. 
+                  일의 의미를 찾고 몰입할 수 있어야,<br/> 고객에게도 최고의 가치를 제공합니다. 
                 </div>
               </div>
               <div className={`${styles['company-content-grid-item']} ${styles['grid-image']}`}>
@@ -164,12 +162,10 @@ const CompanyPage = () => {
               <div className={`${styles['company-content-grid-item']} ${styles['grid-text-with-icon']}`}>
                 <img className={styles['grid-icon']} src="/img/virex-content-04-03-icon.svg" alt="" />
                 <div className={styles['grid-text-title']}>
-                  <h4>학벌, 나이, 성별 상관없어요!<br/>
-                  인성과 태도</h4>
+                  <h4>학벌, 나이, 성별 상관없어요!<br/> 인성과 태도</h4>
                 </div>
                 <div className={styles['grid-text-desc']}>
-                  학벌, 나이, 성별보다 올바른 인성과<br/>
-                  협업하는 자세가 가장 큰 경쟁력입니다.
+                  학벌, 나이, 성별보다 올바른 인성과<br/> 협업하는 자세가 가장 큰 경쟁력입니다.
                 </div>
               </div>
             </div>
@@ -178,12 +174,10 @@ const CompanyPage = () => {
               <div className={`${styles['company-content-grid-item']} ${styles['grid-text-with-icon']}`}>
                 <div><img src="/img/virex-content-04-04-icon.svg" alt="" /></div>
                 <div className={styles['grid-text-title']}>
-                  <h4>최고의 복지는<br/>
-                  최고의 동료와 함께하는 것</h4>
+                  <h4>최고의 복지는<br/> 최고의 동료와 함께하는 것</h4>
                 </div>
                 <div className={styles['grid-text-desc']}>
-                  뛰어난 동료들과 함께 배우고<br/>
-                  성장할 수 있는 환경을 만들어갑니다.
+                  뛰어난 동료들과 함께 배우고<br/> 성장할 수 있는 환경을 만들어갑니다.
                 </div>
               </div>
               <div className={`${styles['company-content-grid-item']} ${styles['grid-image']}`}>
@@ -193,7 +187,7 @@ const CompanyPage = () => {
           </div>
         </div>
 
-        <div className={`${styles['company-content-wrapper']} mt-232px`}>
+        <div className={`${styles['company-content-wrapper']} mt-[160px] max-md:!mt-[10px] mx-auto`}>
           <div className={styles['company-title-bg']}><h3>Core Value</h3></div>
           <div className={styles['company-title']}>
             우리의 핵심 가치인 <span className="purple">고객성공, 성장, 소통, 원팀</span>을 바탕으로,<br />

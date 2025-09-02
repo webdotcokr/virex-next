@@ -1971,7 +1971,7 @@ footer #footer-bottom #footer-copyright {
         #general-article-list-header {
           display: flex;
           justify-content: space-between;
-          align-items: end;
+          align-items:center;
           width: 100%;
           font-size: 1rem;
           font-weight: 600;
@@ -2221,14 +2221,10 @@ footer #footer-bottom #footer-copyright {
           /* 50px */
           margin-right: 0.75rem;
           /* 12px */
-          width: 15.3125rem;
-          /* 245px */
-          height: 2.75rem;
-          /* 44px */
-        
           
           display: flex;
-          width: 334px;
+          width: 300px;
+          max-width: 100%;
           height: 42px;
           padding: 6px 8px 6px 16px;
           align-items: center;
@@ -2515,6 +2511,23 @@ footer #footer-bottom #footer-copyright {
   header #top-menu {
     flex-wrap: wrap;
     justify-content: space-between;
+  }
+
+  .grid-item-title {
+    font-size: 1rem;
+  }
+
+  #general-article-list thead tr th {
+    font-size: 0.875rem;
+  }
+
+  #general-article-list tbody td {
+    font-size: 0.875rem;
+    padding: .25rem;
+  }
+
+  #general-article-view .article-view-content {
+    padding: 1rem;
   }
   
   header .horizontal-menu {

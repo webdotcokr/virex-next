@@ -125,6 +125,8 @@ export default function Header() {
     console.log('🔍 Header search:', trimmedQuery)
     // 최근 검색어에 추가
     SearchService.addRecentSearch(trimmedQuery)
+    // 모바일 검색창 닫기
+    setIsMobileSearchOpen(false)
     router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`)
   }, [searchQuery, router])
 
