@@ -1,7 +1,99 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+
+// File Upload 컴포넌트
+interface FileUploadProps {
+  fileType: 'catalog' | 'datasheet' | 'manual' | 'drawing'
+  productPartNumber: string
+  onUploadSuccess: (downloadId: number) => void
+  disabled?: boolean
+}
+
+function FileUpload({ fileType, productPartNumber, onUploadSuccess, disabled }: FileUploadProps) {
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('fileType', fileType)
+      formData.append('productPartNumber', productPartNumber)
+
+      const response = await fetch('/api/admin/product-file-upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Upload failed')
+      }
+
+      // 성공 시 다운로드 ID를 부모에 전달
+      onUploadSuccess(result.data.download.id)
+      
+      // 파일 입력 초기화
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+
+    } catch (error) {
+      console.error('File upload error:', error)
+      alert(`파일 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const getFileTypeLabel = () => {
+    const labels = {
+      catalog: '카달로그',
+      datasheet: '제안서',
+      manual: '메뉴얼',
+      drawing: '도면'
+    }
+    return labels[fileType]
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx,.hwp,.xls,.xlsx,.ppt,.pptx,.zip,.rar"
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={disabled || uploading}
+      />
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        disabled={disabled || uploading}
+        className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-colors"
+        title={`${getFileTypeLabel()} 파일 업로드`}
+      >
+        {uploading ? (
+          <>
+            <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent"></div>
+            업로드 중...
+          </>
+        ) : (
+          <>
+            📤 업로드
+          </>
+        )}
+      </button>
+    </div>
+  )
+}
 
 // Searchable Select 컴포넌트
 interface SearchableSelectProps {
@@ -311,6 +403,20 @@ export default function ProductFilesManagementPage() {
     }
   }
 
+  const handleFileUploadSuccess = (fileType: string, downloadId: number) => {
+    // downloads 목록 새로고침
+    loadData()
+    
+    // 업로드된 파일을 자동으로 선택
+    const fileTypeKey = `${fileType}_file_id` as keyof typeof editData
+    setEditData(prev => ({
+      ...prev,
+      [fileTypeKey]: downloadId
+    }))
+    
+    setMessage(`${fileType === 'catalog' ? '카달로그' : fileType === 'datasheet' ? '제안서' : fileType === 'manual' ? '메뉴얼' : '도면'} 파일이 성공적으로 업로드되었습니다.`)
+  }
+
   const filterDownloadsByType = (type: string) => {
     // You can implement category-based filtering here if needed
     return downloads
@@ -442,7 +548,15 @@ export default function ProductFilesManagementPage() {
               <div className="space-y-6">
                 {/* 카달로그 */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">📋 카달로그</label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium">📋 카달로그</label>
+                    <FileUpload
+                      fileType="catalog"
+                      productPartNumber={selectedProduct.part_number}
+                      onUploadSuccess={(downloadId) => handleFileUploadSuccess('catalog', downloadId)}
+                      disabled={saving}
+                    />
+                  </div>
                   <SearchableSelect
                     options={filterDownloadsByType('catalog')}
                     value={editData.catalog_file_id}
@@ -453,7 +567,15 @@ export default function ProductFilesManagementPage() {
 
                 {/* 제안서 */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">📄 제안서</label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium">📄 제안서</label>
+                    <FileUpload
+                      fileType="datasheet"
+                      productPartNumber={selectedProduct.part_number}
+                      onUploadSuccess={(downloadId) => handleFileUploadSuccess('datasheet', downloadId)}
+                      disabled={saving}
+                    />
+                  </div>
                   <SearchableSelect
                     options={filterDownloadsByType('datasheet')}
                     value={editData.datasheet_file_id}
@@ -464,7 +586,15 @@ export default function ProductFilesManagementPage() {
 
                 {/* 메뉴얼 */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">📖 메뉴얼</label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium">📖 메뉴얼</label>
+                    <FileUpload
+                      fileType="manual"
+                      productPartNumber={selectedProduct.part_number}
+                      onUploadSuccess={(downloadId) => handleFileUploadSuccess('manual', downloadId)}
+                      disabled={saving}
+                    />
+                  </div>
                   <SearchableSelect
                     options={filterDownloadsByType('manual')}
                     value={editData.manual_file_id}
@@ -475,7 +605,15 @@ export default function ProductFilesManagementPage() {
 
                 {/* 도면 (회원전용) */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">🔒 도면 (회원전용)</label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium">🔒 도면 (회원전용)</label>
+                    <FileUpload
+                      fileType="drawing"
+                      productPartNumber={selectedProduct.part_number}
+                      onUploadSuccess={(downloadId) => handleFileUploadSuccess('drawing', downloadId)}
+                      disabled={saving}
+                    />
+                  </div>
                   <SearchableSelect
                     options={filterDownloadsByType('drawing')}
                     value={editData.drawing_file_id}
