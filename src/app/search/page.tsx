@@ -33,7 +33,8 @@ function SearchContent() {
   
   const [results, setResults] = useState<SearchResults | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'products' | 'news' | 'downloads'>('products')
+  // 제품만 검색하므로 탭 제거
+  // const [activeTab, setActiveTab] = useState<'products' | 'news' | 'downloads'>('products')
   const [error, setError] = useState<string | null>(null)
 
   // 브레드크럼 생성
@@ -61,14 +62,7 @@ function SearchContent() {
         SearchService.addRecentSearch(query.trim())
         
         setResults(searchResults)
-        // 결과가 가장 많은 탭을 기본으로 선택
-        if (searchResults.total.products > 0) {
-          setActiveTab('products')
-        } else if (searchResults.total.news > 0) {
-          setActiveTab('news')
-        } else if (searchResults.total.downloads > 0) {
-          setActiveTab('downloads')
-        }
+        // 제품만 검색하므로 탭 선택 로직 제거
       } else {
         setError('검색 중 오류가 발생했습니다.')
       }
@@ -134,7 +128,7 @@ function SearchContent() {
     )
   }
 
-  const hasResults = results.total.products > 0 || results.total.news > 0 || results.total.downloads > 0
+  const hasResults = results.total.products > 0
 
   return (
     <PageContentContainer
@@ -151,7 +145,7 @@ function SearchContent() {
           <p className={styles.searchQuery}>'{query}' 검색 결과</p>
           {hasResults && (
             <p className={styles.searchSummary}>
-              총 {results.total.products + results.total.news + results.total.downloads}개의 결과를 찾았습니다.
+              총 {results.total.products}개의 제품을 찾았습니다.
             </p>
           )}
         </div>
@@ -171,32 +165,13 @@ function SearchContent() {
         </div>
       ) : (
         <>
-          {/* 탭 네비게이션 */}
-          <div className={styles.searchTabs}>
-            <button
-              className={`${styles.tabButton} ${activeTab === 'products' ? styles.active : ''}`}
-              onClick={() => setActiveTab('products')}
-            >
-              제품 ({results.total.products})
-            </button>
-            <button
-              className={`${styles.tabButton} ${activeTab === 'news' ? styles.active : ''}`}
-              onClick={() => setActiveTab('news')}
-            >
-              뉴스 ({results.total.news})
-            </button>
-            <button
-              className={`${styles.tabButton} ${activeTab === 'downloads' ? styles.active : ''}`}
-              onClick={() => setActiveTab('downloads')}
-            >
-              다운로드 ({results.total.downloads})
-            </button>
-          </div>
-
-          {/* 검색 결과 */}
+          {/* 검색 결과 - 제품만 표시 */}
           <div className={styles.searchResults}>
+            <div className={styles.resultsHeader}>
+              <h2>제품 검색 결과 ({results.total.products}개)</h2>
+            </div>
             {/* 제품 결과 */}
-            {activeTab === 'products' && (
+            {(
               <div className={styles.productsResults}>
                 {results.products.length === 0 ? (
                   <p className={styles.noCategoryResults}>제품 검색 결과가 없습니다.</p>
@@ -241,72 +216,6 @@ function SearchContent() {
                               {product.maker}
                             </p>
                           )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 뉴스 결과 */}
-            {activeTab === 'news' && (
-              <div className={styles.newsResults}>
-                {results.news.length === 0 ? (
-                  <p className={styles.noCategoryResults}>뉴스 검색 결과가 없습니다.</p>
-                ) : (
-                  <div className={styles.newsList}>
-                    {results.news.map((newsItem) => (
-                      <div key={newsItem.id} className={styles.newsCard}>
-                        {newsItem.thumbnail_url && (
-                          <div className={styles.newsThumbnail}>
-                            <img src={newsItem.thumbnail_url} alt={newsItem.title} />
-                          </div>
-                        )}
-                        <div className={styles.newsContent}>
-                          <h3 className={styles.newsTitle}>
-                            <Link href={getNewsUrl(newsItem)}>
-                              {highlightSearchTerm(newsItem.title, query)}
-                            </Link>
-                          </h3>
-                          <p className={styles.newsExcerpt}>
-                            {highlightSearchTerm(getTextExcerpt(newsItem.content, query, 150), query)}
-                          </p>
-                          <p className={styles.newsDate}>
-                            {new Date(newsItem.created_at).toLocaleDateString('ko-KR')}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 다운로드 결과 */}
-            {activeTab === 'downloads' && (
-              <div className={styles.downloadsResults}>
-                {results.downloads.length === 0 ? (
-                  <p className={styles.noCategoryResults}>다운로드 검색 결과가 없습니다.</p>
-                ) : (
-                  <div className={styles.downloadsList}>
-                    {results.downloads.map((download) => (
-                      <div key={download.id} className={styles.downloadCard}>
-                        <div className={styles.downloadIcon}>
-                          📄
-                        </div>
-                        <div className={styles.downloadInfo}>
-                          <h3 className={styles.downloadTitle}>
-                            <Link href={`/support/download?id=${download.id}`}>
-                              {highlightSearchTerm(download.title, query)}
-                            </Link>
-                          </h3>
-                          <p className={styles.downloadFilename}>
-                            {highlightSearchTerm(download.file_name, query)}
-                          </p>
-                          <p className={styles.downloadDate}>
-                            {new Date(download.created_at).toLocaleDateString('ko-KR')}
-                          </p>
                         </div>
                       </div>
                     ))}

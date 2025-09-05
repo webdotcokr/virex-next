@@ -105,20 +105,21 @@ export class SearchService {
       }
     }
 
-    // 병렬로 검색 실행
+    // 제품만 검색 (성능 최적화 - 뉴스/다운로드 배제)
     const promises: Promise<void>[] = []
 
     if (includeProducts) {
       promises.push(this.searchProducts(searchTerm, limit, results))
     }
 
-    if (includeNews) {
-      promises.push(this.searchNews(searchTerm, limit, results))
-    }
+    // 성능 최적화: 뉴스와 다운로드 검색 비활성화
+    // if (includeNews) {
+    //   promises.push(this.searchNews(searchTerm, limit, results))
+    // }
 
-    if (includeDownloads) {
-      promises.push(this.searchDownloads(searchTerm, limit, results))
-    }
+    // if (includeDownloads) {
+    //   promises.push(this.searchDownloads(searchTerm, limit, results))
+    // }
 
     await Promise.all(promises)
 
