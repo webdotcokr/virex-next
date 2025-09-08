@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 interface FileUploadProps {
   fileType: 'catalog' | 'datasheet' | 'manual' | 'drawing'
   productPartNumber: string
-  onUploadSuccess: (downloadId: number) => void
+  onUploadSuccess: (downloadData: Download) => void
   disabled?: boolean
 }
 
@@ -38,8 +38,8 @@ function FileUpload({ fileType, productPartNumber, onUploadSuccess, disabled }: 
         throw new Error(result.error || 'Upload failed')
       }
 
-      // 성공 시 다운로드 ID를 부모에 전달
-      onUploadSuccess(result.data.download.id)
+      // 성공 시 다운로드 객체를 부모에 전달
+      onUploadSuccess(result.data.download)
       
       // 파일 입력 초기화
       if (fileInputRef.current) {
@@ -403,15 +403,15 @@ export default function ProductFilesManagementPage() {
     }
   }
 
-  const handleFileUploadSuccess = (fileType: string, downloadId: number) => {
-    // downloads 목록 새로고침
-    loadData()
+  const handleFileUploadSuccess = (fileType: string, downloadData: Download) => {
+    // downloads 목록에 새로운 파일 추가 (전체 리로드 대신)
+    setDownloads(prev => [...prev, downloadData])
     
     // 업로드된 파일을 자동으로 선택
     const fileTypeKey = `${fileType}_file_id` as keyof typeof editData
     setEditData(prev => ({
       ...prev,
-      [fileTypeKey]: downloadId
+      [fileTypeKey]: downloadData.id
     }))
     
     setMessage(`${fileType === 'catalog' ? '카달로그' : fileType === 'datasheet' ? '제안서' : fileType === 'manual' ? '메뉴얼' : '도면'} 파일이 성공적으로 업로드되었습니다.`)
@@ -553,7 +553,7 @@ export default function ProductFilesManagementPage() {
                     <FileUpload
                       fileType="catalog"
                       productPartNumber={selectedProduct.part_number}
-                      onUploadSuccess={(downloadId) => handleFileUploadSuccess('catalog', downloadId)}
+                      onUploadSuccess={(downloadData) => handleFileUploadSuccess('catalog', downloadData)}
                       disabled={saving}
                     />
                   </div>
@@ -572,7 +572,7 @@ export default function ProductFilesManagementPage() {
                     <FileUpload
                       fileType="datasheet"
                       productPartNumber={selectedProduct.part_number}
-                      onUploadSuccess={(downloadId) => handleFileUploadSuccess('datasheet', downloadId)}
+                      onUploadSuccess={(downloadData) => handleFileUploadSuccess('datasheet', downloadData)}
                       disabled={saving}
                     />
                   </div>
@@ -591,7 +591,7 @@ export default function ProductFilesManagementPage() {
                     <FileUpload
                       fileType="manual"
                       productPartNumber={selectedProduct.part_number}
-                      onUploadSuccess={(downloadId) => handleFileUploadSuccess('manual', downloadId)}
+                      onUploadSuccess={(downloadData) => handleFileUploadSuccess('manual', downloadData)}
                       disabled={saving}
                     />
                   </div>
@@ -610,7 +610,7 @@ export default function ProductFilesManagementPage() {
                     <FileUpload
                       fileType="drawing"
                       productPartNumber={selectedProduct.part_number}
-                      onUploadSuccess={(downloadId) => handleFileUploadSuccess('drawing', downloadId)}
+                      onUploadSuccess={(downloadData) => handleFileUploadSuccess('drawing', downloadData)}
                       disabled={saving}
                     />
                   </div>
