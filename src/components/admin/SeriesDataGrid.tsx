@@ -30,6 +30,7 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon,
   Image as ImageIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { httpQueries } from '@/lib/http-supabase';
 import FileUploadComponent from './FileUploadComponent';
@@ -37,7 +38,6 @@ import FileUploadComponent from './FileUploadComponent';
 interface Series {
   id: number
   series_name: string
-  category_id?: number | null
   intro_text?: string
   short_text?: string
   youtube_url?: string
@@ -83,14 +83,16 @@ interface Series {
   updated_at?: string
 }
 
-interface Category {
-  id: number
-  name: string
-}
 
 export default function SeriesDataGrid() {
   const [rows, setRows] = useState<Series[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  
+  // Image preview handler
+  const handleImagePreview = (imageUrl: string) => {
+    if (imageUrl) {
+      window.open(imageUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [totalRows, setTotalRows] = useState(0);
   const [paginationModel, setPaginationModel] = useState({
@@ -103,7 +105,6 @@ export default function SeriesDataGrid() {
     open: false,
     series: null as Series | null,
     seriesName: '',
-    categoryId: null as number | null,
     introText: '',
     shortText: '',
     youtubeUrl: '',
@@ -151,7 +152,6 @@ export default function SeriesDataGrid() {
   const [addDialog, setAddDialog] = useState({
     open: false,
     seriesName: '',
-    categoryId: null as number | null,
     introText: '',
     shortText: '',
     youtubeUrl: '',
@@ -246,19 +246,6 @@ export default function SeriesDataGrid() {
       ),
     },
     {
-      field: 'category_id',
-      headerName: 'Category',
-      width: 150,
-      renderCell: (params) => {
-        const category = categories.find(cat => cat.id === params.value);
-        return (
-          <Typography variant="body2" color="text.secondary">
-            {category?.name || '-'}
-          </Typography>
-        );
-      },
-    },
-    {
       field: 'intro_text',
       headerName: 'Introduction',
       flex: 1,
@@ -334,20 +321,6 @@ export default function SeriesDataGrid() {
     },
   ];
 
-  // Fetch categories
-  const fetchCategories = useCallback(async () => {
-    try {
-      const { data, error } = await httpQueries.getGenericData('categories', {
-        orderBy: 'name',
-        orderDirection: 'asc'
-      });
-
-      if (error) throw error;
-      setCategories(data as Category[] || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  }, []);
 
   // Fetch data function
   const fetchData = useCallback(async () => {
@@ -384,9 +357,8 @@ export default function SeriesDataGrid() {
 
   // Load data when component mounts or pagination changes
   useEffect(() => {
-    fetchCategories();
     fetchData();
-  }, [fetchCategories, fetchData]);
+  }, [fetchData]);
 
   // Handle edit
   const handleEdit = (series: Series) => {
@@ -394,7 +366,6 @@ export default function SeriesDataGrid() {
       open: true,
       series,
       seriesName: series.series_name || '',
-      categoryId: series.category_id,
       introText: series.intro_text || '',
       shortText: series.short_text || '',
       youtubeUrl: series.youtube_url || '',
@@ -470,7 +441,6 @@ export default function SeriesDataGrid() {
 
       const { error } = await httpQueries.updateGeneric('series', editDialog.series.id, {
         series_name: editDialog.seriesName.trim(),
-        category_id: editDialog.categoryId,
         intro_text: editDialog.introText,
         short_text: editDialog.shortText,
         youtube_url: editDialog.youtubeUrl,
@@ -526,7 +496,6 @@ export default function SeriesDataGrid() {
         open: false, 
         series: null, 
         seriesName: '', 
-        categoryId: null,
         introText: '',
         shortText: '',
         youtubeUrl: '',
@@ -603,7 +572,6 @@ export default function SeriesDataGrid() {
 
       const { error } = await httpQueries.insertGeneric('series', {
         series_name: addDialog.seriesName.trim(),
-        category_id: addDialog.categoryId,
         intro_text: addDialog.introText,
         short_text: addDialog.shortText,
         youtube_url: addDialog.youtubeUrl,
@@ -658,7 +626,6 @@ export default function SeriesDataGrid() {
       setAddDialog({ 
         open: false, 
         seriesName: '', 
-        categoryId: null,
         introText: '',
         shortText: '',
         youtubeUrl: '',
@@ -722,7 +689,7 @@ export default function SeriesDataGrid() {
 
     const csvContent = [
       [
-        'ID', 'Series Name', 'Category ID', 'Intro Text', 'Short Text', 'YouTube URL', 'Feature Image URL',
+        'ID', 'Series Name', 'Intro Text', 'Short Text', 'YouTube URL', 'Feature Image URL',
         'Feature Title 1', 'Feature Desc 1', 'Feature Title 2', 'Feature Desc 2', 'Feature Title 3', 'Feature Desc 3', 'Feature Title 4', 'Feature Desc 4',
         'Strength 1', 'Strength 2', 'Strength 3', 'Strength 4', 'Strength 5', 'Strength 6',
         'App Title 1', 'App Image 1', 'App Title 2', 'App Image 2', 'App Title 3', 'App Image 3', 'App Title 4', 'App Image 4',
@@ -733,7 +700,6 @@ export default function SeriesDataGrid() {
       ...rows.map(row => [
         row.id,
         row.series_name || '',
-        row.category_id || '',
         row.intro_text || '',
         row.short_text || '',
         row.youtube_url || '',
@@ -801,7 +767,6 @@ export default function SeriesDataGrid() {
       open: false, 
       series: null, 
       seriesName: '', 
-      categoryId: null,
       introText: '',
       shortText: '',
       youtubeUrl: '',
@@ -850,7 +815,6 @@ export default function SeriesDataGrid() {
     setAddDialog({ 
       open: false, 
       seriesName: '', 
-      categoryId: null,
       introText: '',
       shortText: '',
       youtubeUrl: '',
@@ -995,26 +959,6 @@ export default function SeriesDataGrid() {
               required
             />
 
-            <FormControl size="small">
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={editDialog.categoryId || ''}
-                onChange={(e) => setEditDialog(prev => ({ 
-                  ...prev, 
-                  categoryId: e.target.value ? Number(e.target.value) : null 
-                }))}
-                label="Category"
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {categories.map((category) => (
-                  <MenuItem key={category.id} value={category.id}>
-                    {category.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
 
             <TextField
               label="YouTube URL"
@@ -1123,15 +1067,37 @@ export default function SeriesDataGrid() {
                   sx={{ mb: 1 }}
                   size="small"
                 />
-                <TextField
-                  label={`Image URL`}
-                  fullWidth
-                  variant="outlined"
-                  value={editDialog[`textImageUrl${num}` as keyof typeof editDialog] as string || ''}
-                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`textImageUrl${num}`]: e.target.value }))}
-                  size="small"
-                  placeholder="Image URL"
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TextField
+                    label={`Image URL`}
+                    fullWidth
+                    variant="outlined"
+                    value={editDialog[`textImageUrl${num}` as keyof typeof editDialog] as string || ''}
+                    onChange={(e) => setEditDialog(prev => ({ ...prev, [`textImageUrl${num}`]: e.target.value }))}
+                    size="small"
+                    placeholder="Image URL or upload file"
+                  />
+                  {editDialog[`textImageUrl${num}` as keyof typeof editDialog] && (
+                    <IconButton
+                      size="small"
+                      onClick={() => handleImagePreview(editDialog[`textImageUrl${num}` as keyof typeof editDialog] as string)}
+                      title="Preview Image"
+                    >
+                      <VisibilityIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                  <Box sx={{ minWidth: 100 }}>
+                    <FileUploadComponent
+                      category="series"
+                      onUpload={(fileUrl) => {
+                        setEditDialog(prev => ({ ...prev, [`textImageUrl${num}`]: fileUrl }));
+                      }}
+                      accept={['.jpg', '.jpeg', '.png', '.gif', '.webp']}
+                      maxSize={5}
+                      currentFile={editDialog[`textImageUrl${num}` as keyof typeof editDialog] as string || ''}
+                    />
+                  </Box>
+                </Box>
               </Box>
             ))}
           </Box>
@@ -1180,15 +1146,37 @@ export default function SeriesDataGrid() {
                   sx={{ mb: 1 }}
                   size="small"
                 />
-                <TextField
-                  label={`App Image URL`}
-                  fullWidth
-                  variant="outlined"
-                  value={editDialog[`appImage${num}` as keyof typeof editDialog] as string || ''}
-                  onChange={(e) => setEditDialog(prev => ({ ...prev, [`appImage${num}`]: e.target.value }))}
-                  size="small"
-                  placeholder="Image URL"
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TextField
+                    label={`App Image URL`}
+                    fullWidth
+                    variant="outlined"
+                    value={editDialog[`appImage${num}` as keyof typeof editDialog] as string || ''}
+                    onChange={(e) => setEditDialog(prev => ({ ...prev, [`appImage${num}`]: e.target.value }))}
+                    size="small"
+                    placeholder="Image URL or upload file"
+                  />
+                  {editDialog[`appImage${num}` as keyof typeof editDialog] && (
+                    <IconButton
+                      size="small"
+                      onClick={() => handleImagePreview(editDialog[`appImage${num}` as keyof typeof editDialog] as string)}
+                      title="Preview Image"
+                    >
+                      <VisibilityIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                  <Box sx={{ minWidth: 100 }}>
+                    <FileUploadComponent
+                      category="series"
+                      onUpload={(fileUrl) => {
+                        setEditDialog(prev => ({ ...prev, [`appImage${num}`]: fileUrl }));
+                      }}
+                      accept={['.jpg', '.jpeg', '.png', '.gif', '.webp']}
+                      maxSize={5}
+                      currentFile={editDialog[`appImage${num}` as keyof typeof editDialog] as string || ''}
+                    />
+                  </Box>
+                </Box>
               </Box>
             ))}
           </Box>
@@ -1251,26 +1239,6 @@ export default function SeriesDataGrid() {
               required
             />
 
-            <FormControl size="small">
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={addDialog.categoryId || ''}
-                onChange={(e) => setAddDialog(prev => ({ 
-                  ...prev, 
-                  categoryId: e.target.value ? Number(e.target.value) : null 
-                }))}
-                label="Category"
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {categories.map((category) => (
-                  <MenuItem key={category.id} value={category.id}>
-                    {category.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
 
             <TextField
               label="YouTube URL"
@@ -1389,15 +1357,37 @@ export default function SeriesDataGrid() {
                   sx={{ mb: 1 }}
                   size="small"
                 />
-                <TextField
-                  label={`App Image URL`}
-                  fullWidth
-                  variant="outlined"
-                  value={addDialog[`appImage${num}` as keyof typeof addDialog] as string || ''}
-                  onChange={(e) => setAddDialog(prev => ({ ...prev, [`appImage${num}`]: e.target.value }))}
-                  size="small"
-                  placeholder="Image URL"
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TextField
+                    label={`App Image URL`}
+                    fullWidth
+                    variant="outlined"
+                    value={addDialog[`appImage${num}` as keyof typeof addDialog] as string || ''}
+                    onChange={(e) => setAddDialog(prev => ({ ...prev, [`appImage${num}`]: e.target.value }))}
+                    size="small"
+                    placeholder="Image URL or upload file"
+                  />
+                  {addDialog[`appImage${num}` as keyof typeof addDialog] && (
+                    <IconButton
+                      size="small"
+                      onClick={() => handleImagePreview(addDialog[`appImage${num}` as keyof typeof addDialog] as string)}
+                      title="Preview Image"
+                    >
+                      <VisibilityIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                  <Box sx={{ minWidth: 100 }}>
+                    <FileUploadComponent
+                      category="series"
+                      onUpload={(fileUrl) => {
+                        setAddDialog(prev => ({ ...prev, [`appImage${num}`]: fileUrl }));
+                      }}
+                      accept={['.jpg', '.jpeg', '.png', '.gif', '.webp']}
+                      maxSize={5}
+                      currentFile={addDialog[`appImage${num}` as keyof typeof addDialog] as string || ''}
+                    />
+                  </Box>
+                </Box>
               </Box>
             ))}
           </Box>
@@ -1435,15 +1425,37 @@ export default function SeriesDataGrid() {
                   sx={{ mb: 1 }}
                   size="small"
                 />
-                <TextField
-                  label={`Image URL`}
-                  fullWidth
-                  variant="outlined"
-                  value={addDialog[`textImageUrl${num}` as keyof typeof addDialog] as string || ''}
-                  onChange={(e) => setAddDialog(prev => ({ ...prev, [`textImageUrl${num}`]: e.target.value }))}
-                  size="small"
-                  placeholder="Image URL"
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TextField
+                    label={`Image URL`}
+                    fullWidth
+                    variant="outlined"
+                    value={addDialog[`textImageUrl${num}` as keyof typeof addDialog] as string || ''}
+                    onChange={(e) => setAddDialog(prev => ({ ...prev, [`textImageUrl${num}`]: e.target.value }))}
+                    size="small"
+                    placeholder="Image URL or upload file"
+                  />
+                  {addDialog[`textImageUrl${num}` as keyof typeof addDialog] && (
+                    <IconButton
+                      size="small"
+                      onClick={() => handleImagePreview(addDialog[`textImageUrl${num}` as keyof typeof addDialog] as string)}
+                      title="Preview Image"
+                    >
+                      <VisibilityIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                  <Box sx={{ minWidth: 100 }}>
+                    <FileUploadComponent
+                      category="series"
+                      onUpload={(fileUrl) => {
+                        setAddDialog(prev => ({ ...prev, [`textImageUrl${num}`]: fileUrl }));
+                      }}
+                      accept={['.jpg', '.jpeg', '.png', '.gif', '.webp']}
+                      maxSize={5}
+                      currentFile={addDialog[`textImageUrl${num}` as keyof typeof addDialog] as string || ''}
+                    />
+                  </Box>
+                </Box>
               </Box>
             ))}
           </Box>
