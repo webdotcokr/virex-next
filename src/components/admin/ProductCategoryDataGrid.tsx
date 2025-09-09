@@ -17,6 +17,9 @@ import {
   FormControlLabel,
   LinearProgress,
 } from '@mui/material';
+import SeriesDropdown from './SeriesDropdown';
+import ImageUploadField from './ImageUploadField';
+import EnhancedFileSelector from './EnhancedFileSelector';
 import {
   DataGrid,
   GridColDef,
@@ -671,6 +674,47 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
       return null;
     }
 
+    // Special handling for series_id - use SeriesDropdown
+    if (col.column_name === 'series_id') {
+      return (
+        <SeriesDropdown
+          key={col.column_name}
+          value={value || null}
+          onChange={(seriesId) => onChange(col.column_name, seriesId)}
+          label="Series"
+          disabled={false}
+        />
+      );
+    }
+
+    // Special handling for image_url - use ImageUploadField
+    if (col.column_name === 'image_url') {
+      return (
+        <ImageUploadField
+          key={col.column_name}
+          value={value || ''}
+          onChange={(imageUrl) => onChange(col.column_name, imageUrl)}
+          label="Image"
+          categoryName={categoryName.toLowerCase()}
+        />
+      );
+    }
+
+    // Special handling for file ID fields - use EnhancedFileSelector
+    if (col.column_name.endsWith('_file_id')) {
+      const fileType = col.column_name.replace('_file_id', '') as 'catalog' | 'datasheet' | 'manual' | 'drawing';
+      return (
+        <EnhancedFileSelector
+          key={col.column_name}
+          value={value || null}
+          onChange={(fileId) => onChange(col.column_name, fileId)}
+          fileType={fileType}
+          categoryName={categoryName.toLowerCase()}
+        />
+      );
+    }
+
+    // Standard field types
     if (col.data_type === 'boolean') {
       return (
         <FormControlLabel
