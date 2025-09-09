@@ -12,6 +12,14 @@ const CATEGORY_TABLE_MAPPING: Record<number, string> = {
   16: 'products_telecentric',       // Telecentric
   17: 'products_fa_lens',           // FA Lens
   18: 'products_3d_laser_profiler', // 3D Laser Profiler
+  19: 'products_3d_stereo_camera',  // 3D Stereo Camera
+  20: 'products_light',             // Light
+  22: 'products_controller',        // Controller
+  23: 'products_frame_grabber',     // Frame Grabber
+  24: 'products_gige_lan_card',     // GigE 랜카드
+  25: 'products_usb_card',          // USB 카드
+  26: 'products_cable',             // 케이블
+  27: 'products_accessory',         // 악세사리
 }
 
 // 카테고리 ID to 이름 매핑
@@ -26,6 +34,14 @@ const CATEGORY_NAME_MAPPING: Record<number, string> = {
   16: 'Telecentric',
   17: 'FA Lens',
   18: '3D Laser Profiler',
+  19: '3D Stereo Camera',
+  20: 'Light',
+  22: 'Controller',
+  23: 'Frame Grabber',
+  24: 'GigE 랜카드',
+  25: 'USB 카드',
+  26: '케이블',
+  27: '악세사리',
 }
 
 export interface ProductResult {
