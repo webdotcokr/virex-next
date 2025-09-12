@@ -338,6 +338,22 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
       delete updateData.created_at;
       delete updateData.updated_at;
       
+      // bigint/integer 필드들의 빈 문자열을 null로 변환
+      const bigintFields = ['series_id', 'catalog_file_id', 'datasheet_file_id', 'manual_file_id', 'drawing_file_id'];
+      bigintFields.forEach(field => {
+        if (updateData[field] === '' || updateData[field] === undefined) {
+          updateData[field] = null;
+        }
+      });
+      
+      // integer 타입 필드들도 처리
+      const integerFields = ['dpi', 'no_of_pixels'];
+      integerFields.forEach(field => {
+        if (updateData[field] === '' || updateData[field] === undefined) {
+          updateData[field] = null;
+        }
+      });
+      
       console.log(`Updating ${tableName} record:`, id, updateData);
 
       const { error } = await httpQueries.updateGeneric(tableName, id, updateData);
@@ -392,7 +408,26 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
     try {
       console.log(`Adding new ${tableName} record:`, addDialog.data);
 
-      const { error } = await httpQueries.insertGeneric(tableName, addDialog.data);
+      // bigint/integer 필드들의 빈 문자열을 null로 변환
+      const processedData = { ...addDialog.data };
+      
+      // bigint 타입 필드들 처리
+      const bigintFields = ['series_id', 'catalog_file_id', 'datasheet_file_id', 'manual_file_id', 'drawing_file_id'];
+      bigintFields.forEach(field => {
+        if (processedData[field] === '' || processedData[field] === undefined) {
+          processedData[field] = null;
+        }
+      });
+      
+      // integer 타입 필드들도 처리
+      const integerFields = ['dpi', 'no_of_pixels'];
+      integerFields.forEach(field => {
+        if (processedData[field] === '' || processedData[field] === undefined) {
+          processedData[field] = null;
+        }
+      });
+
+      const { error } = await httpQueries.insertGeneric(tableName, processedData);
 
       if (error) {
         console.error('Insert error:', error);
@@ -533,7 +568,8 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
               if (schemaCol.data_type === 'boolean') {
                 value = value.toLowerCase() === 'true' || value === '1' ? true : false;
               } else if (schemaCol.data_type === 'numeric' || schemaCol.data_type === 'integer' || schemaCol.data_type === 'bigint') {
-                value = value ? Number(value) : null;
+                // 빈 문자열이나 공백문자열을 null로 변환
+                value = (value && value.trim() !== '') ? Number(value) : null;
               } else if (schemaCol.data_type === 'timestamp') {
                 // Skip timestamp fields (auto-generated)
                 return;
