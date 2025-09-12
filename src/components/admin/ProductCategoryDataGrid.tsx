@@ -338,19 +338,14 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
       delete updateData.created_at;
       delete updateData.updated_at;
       
-      // bigint/integer 필드들의 빈 문자열을 null로 변환
-      const bigintFields = ['series_id', 'catalog_file_id', 'datasheet_file_id', 'manual_file_id', 'drawing_file_id'];
-      bigintFields.forEach(field => {
-        if (updateData[field] === '' || updateData[field] === undefined) {
-          updateData[field] = null;
-        }
-      });
-      
-      // integer 타입 필드들도 처리
-      const integerFields = ['dpi', 'no_of_pixels'];
-      integerFields.forEach(field => {
-        if (updateData[field] === '' || updateData[field] === undefined) {
-          updateData[field] = null;
+      // bigint/integer/numeric 필드들의 빈 문자열을 null로 변환
+      const numericTypes = ['bigint', 'integer', 'numeric'];
+      schema.forEach(col => {
+        if (numericTypes.includes(col.data_type) && col.column_name !== 'id') {
+          const value = updateData[col.column_name];
+          if (value === '' || value === undefined) {
+            updateData[col.column_name] = null;
+          }
         }
       });
       
@@ -408,22 +403,17 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
     try {
       console.log(`Adding new ${tableName} record:`, addDialog.data);
 
-      // bigint/integer 필드들의 빈 문자열을 null로 변환
+      // bigint/integer/numeric 필드들의 빈 문자열을 null로 변환
       const processedData = { ...addDialog.data };
       
-      // bigint 타입 필드들 처리
-      const bigintFields = ['series_id', 'catalog_file_id', 'datasheet_file_id', 'manual_file_id', 'drawing_file_id'];
-      bigintFields.forEach(field => {
-        if (processedData[field] === '' || processedData[field] === undefined) {
-          processedData[field] = null;
-        }
-      });
-      
-      // integer 타입 필드들도 처리
-      const integerFields = ['dpi', 'no_of_pixels'];
-      integerFields.forEach(field => {
-        if (processedData[field] === '' || processedData[field] === undefined) {
-          processedData[field] = null;
+      // 스키마에서 numeric 타입 필드들을 자동으로 찾아서 처리
+      const numericTypes = ['bigint', 'integer', 'numeric'];
+      schema.forEach(col => {
+        if (numericTypes.includes(col.data_type) && col.column_name !== 'id') {
+          const value = processedData[col.column_name];
+          if (value === '' || value === undefined) {
+            processedData[col.column_name] = null;
+          }
         }
       });
 
