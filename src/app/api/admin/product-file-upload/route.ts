@@ -7,7 +7,7 @@ import { verifyAdminAuth } from '@/lib/admin-auth';
 const FILE_TYPE_TO_CATEGORY = {
   catalog: { id: 1, folder: 'catalog', name: '카달로그' },
   datasheet: { id: 2, folder: 'datasheet', name: '데이터시트' },
-  manual: { id: 3, folder: 'manual', name: '데이터시트' },
+  manual: { id: 3, folder: 'manual', name: '메뉴얼' },
   drawing: { id: 4, folder: 'drawing', name: '도면' }
 } as const;
 
@@ -24,7 +24,7 @@ function sanitizeFileName(fileName: string): string {
     .replace(/파일/g, 'file')
     .replace(/문서/g, 'document')
     .replace(/카달로그/g, 'catalog')
-    .replace(/데이터시트/g, 'manual')
+    .replace(/메뉴얼/g, 'manual')
     .replace(/도면/g, 'drawing')
     .replace(/\s+/g, '_')
     .replace(/[()]/g, '')

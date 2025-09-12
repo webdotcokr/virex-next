@@ -96,7 +96,7 @@ const DownloadContent = () => {
     const name = categoryName.toLowerCase()
     if (name.includes('카달로그') || name.includes('catalog')) return 'icon-download-catalog.svg'
     if (name.includes('데이터') || name.includes('datasheet')) return 'icon-download-datasheet.svg'
-    if (name.includes('데이터시트') || name.includes('manual')) return 'icon-download-manual.svg'
+    if (name.includes('메뉴얼') || name.includes('manual')) return 'icon-download-manual.svg'
     if (name.includes('도면') || name.includes('drawing')) return 'icon-download-drawing.svg'
     if (name.includes('펌웨어') || name.includes('firmware')) return 'icon-download-firmware.svg'
     if (name.includes('소프트웨어') || name.includes('software')) return 'icon-download-software.svg'

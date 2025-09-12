@@ -58,7 +58,7 @@ function FileUpload({ fileType, productPartNumber, onUploadSuccess, disabled }: 
     const labels = {
       catalog: '카달로그',
       datasheet: '데이터시트',
-      manual: '데이터시트',
+      manual: '메뉴얼',
       drawing: '도면'
     }
     return labels[fileType]
@@ -414,7 +414,7 @@ export default function ProductFilesManagementPage() {
       [fileTypeKey]: downloadData.id
     }))
     
-    setMessage(`${fileType === 'catalog' ? '카달로그' : fileType === 'datasheet' ? '데이터시트' : fileType === 'manual' ? '데이터시트' : '도면'} 파일이 성공적으로 업로드되었습니다.`)
+    setMessage(`${fileType === 'catalog' ? '카달로그' : fileType === 'datasheet' ? '데이터시트' : fileType === 'manual' ? '메뉴얼' : '도면'} 파일이 성공적으로 업로드되었습니다.`)
   }
 
   const filterDownloadsByType = (type: string) => {
@@ -584,10 +584,10 @@ export default function ProductFilesManagementPage() {
                   />
                 </div>
 
-                {/* 데이터시트 */}
+                {/* 메뉴얼 */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium">📖 데이터시트</label>
+                    <label className="block text-sm font-medium">📖 메뉴얼</label>
                     <FileUpload
                       fileType="manual"
                       productPartNumber={selectedProduct.part_number}
@@ -599,7 +599,7 @@ export default function ProductFilesManagementPage() {
                     options={filterDownloadsByType('manual')}
                     value={editData.manual_file_id}
                     onChange={(value) => setEditData(prev => ({ ...prev, manual_file_id: value }))}
-                    placeholder="데이터시트 파일을 선택하세요"
+                    placeholder="메뉴얼 파일을 선택하세요"
                   />
                 </div>
 

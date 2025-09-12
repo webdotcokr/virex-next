@@ -53,7 +53,7 @@ export default function ProductDownloadTable({ downloads, showMemberOnly = true 
     switch (fileType) {
       case 'catalog': return '카달로그'
       case 'datasheet': return '데이터시트'
-      case 'manual': return '데이터시트'
+      case 'manual': return '메뉴얼'
       case 'drawing': return '도면'
       default: return '파일'
     }
