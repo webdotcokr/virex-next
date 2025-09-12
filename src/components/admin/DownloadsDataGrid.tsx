@@ -280,7 +280,7 @@ export default function DownloadsDataGrid() {
     switch (categoryId) {
       case 1: return <Description />; // 바이렉스 제품 카달로그
       case 2: return <Description />; // 데이터 시트
-      case 3: return <Build />; // 메뉴얼
+      case 3: return <Build />; // 데이터시트
       case 4: return <Engineering />; // 도면
       case 5: return <Memory />; // 카메라 펌웨어
       case 6: return <Computer />; // 소프트웨어

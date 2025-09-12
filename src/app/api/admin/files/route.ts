@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       const categoryMapping: Record<string, string[]> = {
         'catalog': ['바이렉스 제품 카달로그', 'Catalog'],
         'datasheet': ['데이터 시트', 'Datasheet'],
-        'manual': ['Manual', '메뉴얼'],
+        'manual': ['Manual', '데이터시트'],
         'drawing': ['Drawing', 'Drawings', '도면'],
       };
 
