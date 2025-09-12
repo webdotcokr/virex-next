@@ -91,6 +91,58 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
     severity: 'success' as 'success' | 'error' | 'warning' | 'info',
   });
 
+  // Helper function to process numeric fields
+  const processNumericFields = useCallback((data: any, schema: TableSchema[]) => {
+    const processed = { ...data };
+    
+    console.log('🔧 Processing numeric fields:', { tableName, hasSchema: schema.length > 0, data });
+    
+    // schema가 없거나 비어있으면 fallback 처리
+    if (!schema || schema.length === 0) {
+      console.warn('⚠️ Schema not loaded, using fallback numeric field processing');
+      // 모든 제품 테이블의 공통 numeric 필드들 수동 처리
+      const commonNumericFields = [
+        'series_id', 'catalog_file_id', 'datasheet_file_id', 
+        'manual_file_id', 'drawing_file_id', 'dpi', 'no_of_pixels',
+        'resolution', 'line_rate', 'pixel_size', 'dynamic_range',
+        'frame_rate', 'mega_pixel', 'number_of_line', 'scan_width',
+        'speed', 'wd', 'port', 'trans_speed', 'point', 'z_range',
+        'profile_rate', 'focal_length', 'laser_wavelength', 'channel',
+        'max_continuous_current', 'max_pulse_current', 'min_pulse_width',
+        'max_frequency', 'image_circle', 'image_resolution', 'mod',
+        'central_mag', 'mag', 'na', 'dof', 'length_of_io', 'line_rate_turbo'
+      ];
+      
+      commonNumericFields.forEach(field => {
+        if (field in processed && (processed[field] === '' || processed[field] === undefined)) {
+          processed[field] = null;
+        }
+      });
+    } else {
+      // schema 기반 처리
+      const numericTypes = ['bigint', 'integer', 'numeric', 'real', 'double precision'];
+      schema.forEach(col => {
+        if (numericTypes.includes(col.data_type) && col.column_name !== 'id') {
+          const value = processed[col.column_name];
+          if (value === '' || value === undefined) {
+            console.log(`🔄 Converting ${col.column_name} from "${value}" to null`);
+            processed[col.column_name] = null;
+          }
+        }
+      });
+    }
+    
+    // 추가 안전장치: 모든 빈 문자열을 null로 변환
+    Object.keys(processed).forEach(key => {
+      if (processed[key] === '') {
+        processed[key] = null;
+      }
+    });
+    
+    console.log('✅ Processed data:', processed);
+    return processed;
+  }, [tableName]);
+
   // Fetch table schema
   const fetchSchema = useCallback(async () => {
     // Set timeout for schema fetch
@@ -338,20 +390,13 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
       delete updateData.created_at;
       delete updateData.updated_at;
       
-      // bigint/integer/numeric 필드들의 빈 문자열을 null로 변환
-      const numericTypes = ['bigint', 'integer', 'numeric'];
-      schema.forEach(col => {
-        if (numericTypes.includes(col.data_type) && col.column_name !== 'id') {
-          const value = updateData[col.column_name];
-          if (value === '' || value === undefined) {
-            updateData[col.column_name] = null;
-          }
-        }
-      });
-      
       console.log(`Updating ${tableName} record:`, id, updateData);
+      console.log(`Schema available:`, schema.length > 0 ? 'Yes' : 'No');
+      
+      // 헬퍼 함수를 사용하여 numeric 필드들 처리
+      const processedData = processNumericFields(updateData, schema);
 
-      const { error } = await httpQueries.updateGeneric(tableName, id, updateData);
+      const { error } = await httpQueries.updateGeneric(tableName, id, processedData);
 
       if (error) {
         console.error('Update error:', error);
@@ -402,20 +447,10 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
   const handleSaveAdd = async () => {
     try {
       console.log(`Adding new ${tableName} record:`, addDialog.data);
+      console.log(`Schema available:`, schema.length > 0 ? 'Yes' : 'No');
 
-      // bigint/integer/numeric 필드들의 빈 문자열을 null로 변환
-      const processedData = { ...addDialog.data };
-      
-      // 스키마에서 numeric 타입 필드들을 자동으로 찾아서 처리
-      const numericTypes = ['bigint', 'integer', 'numeric'];
-      schema.forEach(col => {
-        if (numericTypes.includes(col.data_type) && col.column_name !== 'id') {
-          const value = processedData[col.column_name];
-          if (value === '' || value === undefined) {
-            processedData[col.column_name] = null;
-          }
-        }
-      });
+      // 헬퍼 함수를 사용하여 numeric 필드들 처리
+      const processedData = processNumericFields(addDialog.data, schema);
 
       const { error } = await httpQueries.insertGeneric(tableName, processedData);
 
