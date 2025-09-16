@@ -97,10 +97,13 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
     
     console.log('🔧 Processing numeric fields:', { tableName, hasSchema: schema.length > 0, data });
     
+    // NOT NULL 제약조건이 있는 필수 필드들 (빈 문자열을 null로 변환하면 안 됨)
+    const requiredFields = ['part_number', 'id'];
+    
     // schema가 없거나 비어있으면 fallback 처리
     if (!schema || schema.length === 0) {
       console.warn('⚠️ Schema not loaded, using fallback numeric field processing');
-      // 모든 제품 테이블의 공통 numeric 필드들 수동 처리
+      // 모든 제품 테이블의 공통 numeric 필드들 수동 처리 (필수 필드 제외)
       const commonNumericFields = [
         'series_id', 'catalog_file_id', 'datasheet_file_id', 
         'manual_file_id', 'drawing_file_id', 'dpi', 'no_of_pixels',
@@ -122,6 +125,11 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
       // schema 기반 처리
       const numericTypes = ['bigint', 'integer', 'numeric', 'real', 'double precision'];
       schema.forEach(col => {
+        // 필수 필드는 건드리지 않음
+        if (requiredFields.includes(col.column_name)) {
+          return;
+        }
+        
         if (numericTypes.includes(col.data_type) && col.column_name !== 'id') {
           const value = processed[col.column_name];
           if (value === '' || value === undefined) {
@@ -132,12 +140,19 @@ export default function ProductCategoryDataGrid({ tableName, categoryName }: Pro
       });
     }
     
-    // 추가 안전장치: 모든 빈 문자열을 null로 변환
+    // 추가 안전장치: 모든 빈 문자열을 null로 변환 (단, 필수 필드는 제외)
     Object.keys(processed).forEach(key => {
-      if (processed[key] === '') {
+      if (processed[key] === '' && !requiredFields.includes(key)) {
+        console.log(`🔄 Converting empty string field ${key} to null`);
         processed[key] = null;
       }
     });
+    
+    // part_number 필드가 비어있으면 에러 발생 방지를 위해 경고
+    if (!processed.part_number || processed.part_number === '') {
+      console.error('⚠️ part_number is required but empty!', processed);
+      throw new Error('Part number is required and cannot be empty');
+    }
     
     console.log('✅ Processed data:', processed);
     return processed;

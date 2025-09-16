@@ -576,7 +576,7 @@ export default function DownloadsDataGrid() {
               border: '1px solid #E8ECEF', 
               borderRadius: '4px',
               backgroundColor: 'white',
-              overflow: 'hidden'
+              overflow: 'scroll'
             }}>
               {/* 테이블 헤더 */}
               <div style={{
