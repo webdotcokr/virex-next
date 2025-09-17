@@ -233,6 +233,14 @@ const CATEGORY_TABLE_MAPPING: Record<number, string> = {
   27: 'products_accessory'          // Accessory
 }
 
+// 파일 타입별 category_id 매핑 (업로드 API와 동일)
+const FILE_TYPE_CATEGORY_MAP: Record<string, number> = {
+  'catalog': 1,
+  'datasheet': 2,
+  'manual': 3,
+  'drawing': 4
+}
+
 const CATEGORY_NAMES: Record<number, string> = {
   9: 'CIS',
   10: 'TDI',
@@ -300,7 +308,7 @@ export default function ProductFilesManagementPage() {
       const { data: downloadsData, error: downloadsError } = await supabase
         .from('downloads')
         .select('id, title, file_name, category_id')
-        .order('title')
+        .order('created_at', { ascending: false })
 
       if (downloadsError) throw downloadsError
       setDownloads(downloadsData || [])
@@ -404,22 +412,26 @@ export default function ProductFilesManagementPage() {
   }
 
   const handleFileUploadSuccess = (fileType: string, downloadData: Download) => {
-    // downloads 목록에 새로운 파일 추가 (전체 리로드 대신)
-    setDownloads(prev => [...prev, downloadData])
-    
+    // downloads 목록에 새로운 파일 추가 (최신 파일이 상단에 오도록)
+    setDownloads(prev => [downloadData, ...prev])
+
     // 업로드된 파일을 자동으로 선택
     const fileTypeKey = `${fileType}_file_id` as keyof typeof editData
     setEditData(prev => ({
       ...prev,
       [fileTypeKey]: downloadData.id
     }))
-    
+
     setMessage(`${fileType === 'catalog' ? '카달로그' : fileType === 'datasheet' ? '데이터시트' : fileType === 'manual' ? '메뉴얼' : '도면'} 파일이 성공적으로 업로드되었습니다.`)
   }
 
   const filterDownloadsByType = (type: string) => {
-    // You can implement category-based filtering here if needed
-    return downloads
+    const categoryId = FILE_TYPE_CATEGORY_MAP[type]
+    if (!categoryId) {
+      console.warn(`Unknown file type: ${type}`)
+      return []
+    }
+    return downloads.filter(download => download.category_id === categoryId)
   }
 
   // 제품 검색 필터링
