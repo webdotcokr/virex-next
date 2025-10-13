@@ -154,7 +154,6 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
         param: "maker",
         options: [
           { display: "INSNEX", value: "INSNEX" },
-          { display: "ARES INTELTECH", value: "ARES INTELTECH" },
           { display: "ETC", value: "!INSNEX,ARES INTELTECH" }
         ]
       }

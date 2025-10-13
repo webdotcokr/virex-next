@@ -27,7 +27,6 @@ type Partner = {
         "Teleyne Dalsa": "https://www.teledynedalsa.com/en/home/",
         "Teledyne FLIR": "https://www.flirkorea.com/",
         "INSNEX": "https://www.insnex.com/",
-        "ARES INTELTEC": "https://www.visionchinashow.net/txw_enbj/exhibit/index.html?id=933",
         "Teledyne Photometrics": "https://www.teledynevisionsolutions.com/company/about-teledyne-vision-solutions/teledyne-photometrics/",
         "Teledyne Princeton Instruments": "https://www.teledynevisionsolutions.com/company/about-teledyne-vision-solutions/teledyne-princeton-instruments/",
         "Teledyne Lumenera": "https://www.teledynevisionsolutions.com/company/about-teledyne-vision-solutions/teledyne-lumenera/",
@@ -63,13 +62,6 @@ const partners: Partner[] = [
     description: '머신비전 용으로 설계된 고성능 CIS 카메라 개발 및 제조',
     products: 'CIS 카메라, 2.5D 카메라CIS 2.5D 카메라, SCIS 카메라',
     link: partnerLinks["INSNEX"],
-  },
-  {
-    imageSrc: 'global-partner4.jpg',
-    name: 'ARES INTELTEC',
-    description: '좁은 공간에 설치 가능한 센서, 렌즈, 조명 일체형 Contact Image Sensor',
-    products: 'CIS 카메라, CIS Light',
-    link: partnerLinks["ARES INTELTEC"],
   },
   {
     imageSrc: 'global-partner5.jpg',
