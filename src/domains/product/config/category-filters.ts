@@ -54,6 +54,16 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     ],
     filters: [
       {
+        name: "CIS Type",
+        type: "checkbox",
+        param: "cis_type",
+        defaultExpanded: true,
+        options: [
+          { display: "1.0", value: "1.0" },
+          { display: "2.5", value: "2.5" }
+        ]
+      },
+      {
         name: "Scan width",
         type: "checkbox",
         param: "scan_width",

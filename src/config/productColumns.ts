@@ -14,6 +14,7 @@ export const PRODUCT_COLUMN_CONFIGS: Record<number, ColumnConfig[]> = {
   9: [
     { column_name: 'series', column_label: 'Series', is_sortable: true, column_width: '120px' },
     { column_name: 'part_number', column_label: 'Part Number', is_sortable: true, column_width: '150px' },
+    { column_name: 'cis_type', column_label: 'CIS Type', is_sortable: true, column_width: '90px' },
     { column_name: 'scan_width', column_label: 'Scan Width', is_sortable: true, column_width: '100px', unit: 'mm' },
     { column_name: 'dpi', column_label: 'DPI', is_sortable: true, column_width: '80px', unit: 'dpi' },
     { column_name: 'resolution', column_label: 'Resolution', is_sortable: true, column_width: '100px', unit: 'μm' },

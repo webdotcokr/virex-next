@@ -1,3 +1,0 @@
-This is a test file for Supabase Storage upload.
-File size: very small
-Created: 2025-08-12

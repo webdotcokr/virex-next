@@ -208,19 +208,19 @@ export default function Header() {
 
   // 전체 메뉴 바 영역 이탈: 메가메뉴 영역으로 이동하지 않으면 닫기
   const handleHeaderMenuLeave = (e: React.MouseEvent) => {
-    const relatedTarget = e.relatedTarget as Node
+    const relatedTarget = e.relatedTarget as Node | null
     const megaMenuContainer = document.getElementById('megamenu-container')
-    
+
     // 메가메뉴 영역으로 이동하는지 체크
     const movingToMegaMenu = relatedTarget && megaMenuContainer?.contains(relatedTarget)
-    
+
     if (!movingToMegaMenu) {
       // 메가메뉴가 아닌 다른 곳으로 이동하면 닫기
       const timeout = setTimeout(() => {
         setHoveredMenuItem(null)
         setIsMegaMenuActive(false)
       }, 100)
-      
+
       setHoverTimeout(timeout)
     }
   }
